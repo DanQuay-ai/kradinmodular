@@ -7,67 +7,77 @@
 <title>Kɔradin Radicals</title>
 <link rel="stylesheet" href="apple.css">
 <style>
-@font-face{font-family:"KM-Regular";src:url(fonts/KoradinModular-Regular-VF.woff2) format("woff2")}
-.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 60px}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 22px 60px}
 h1{font:700 40px/1.1 var(--display);letter-spacing:-.5px}
-.lead{color:var(--label2);font-size:17px;max-width:720px;margin-top:10px}
-h2{font:600 22px/1.2 var(--display);margin:40px 0 12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.card{background:var(--card);border-radius:16px;padding:12px 14px 14px}
-.card svg{width:100%;height:210px;display:block;background:var(--canvas);border-radius:10px}
-.card b{display:block;font-size:15px;margin-top:10px}
-.card p{font-size:13px;color:var(--label2);margin-top:2px}
-.card code{font-size:12px;color:var(--tint)}
+.lead{color:var(--label2);font-size:17px;max-width:760px;margin-top:10px}
+h2{font:600 22px/1.2 var(--display);margin:36px 0 12px;display:flex;align-items:baseline;gap:10px}
+h2 small{font:400 14px var(--font);color:var(--label2)}
+.ctl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.ctl .group{display:flex;align-items:center;gap:12px;padding:8px 16px}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.rc{background:var(--card);border-radius:14px;padding:10px 12px 12px;text-decoration:none;color:inherit;display:block}
+.rc svg{width:100%;height:150px;display:block;background:var(--canvas);border-radius:9px}
+.rc .t{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;gap:6px}
+.rc .t b{font-size:17px}
+.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--fill);color:var(--label2);white-space:nowrap}
+.badge.draft{background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}.badge.ok{background:#34c75933;color:#248a3d}.badge.fix{background:#ff950033;color:#c93400}
+.rc .m{font-size:12px;color:var(--label2);margin-top:4px;line-height:1.4}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
-th,td{text-align:left;padding:10px 14px;border-bottom:.5px solid var(--sep)}
+th,td{text-align:left;padding:9px 14px;border-bottom:.5px solid var(--sep)}
 th{color:var(--label2);font-weight:500;font-size:13px}
-.ctl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px}
-.ctl .group{display:flex;align-items:center;gap:12px;padding:8px 16px;min-width:300px}
+.seg{min-width:280px}
 </style>
 </head>
 <body>
 <nav class="nav">
   <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
-  <div class="tabs"><a href="index.html">Type tester</a><a href="elements.html">Elements</a><a href="radicals.html" aria-current="page">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html">Construction lab</a></div>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html">Construction lab</a></div>
 </nav>
-<style>
-.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.rc{background:var(--card);border-radius:14px;padding:10px 12px 12px;text-decoration:none;color:inherit;display:block}
-.rc svg{width:100%;height:170px;display:block;background:var(--canvas);border-radius:9px}
-.rc .t{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
-.rc .t b{font-size:17px}.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--fill);color:var(--label2)}
-.badge.draft{background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}.badge.ok{background:#34c75933;color:#248a3d}.badge.fix{background:#ff950033;color:#c93400}
-.rc ol{margin:6px 0 0 18px;font-size:12px;color:var(--label2);line-height:1.45}
-</style>
 <div class="wrap">
   <h1>Radicals</h1>
-  <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows. Every other row is built from these with modifiers and glides. Each radical is listed with its numbered strokes, in writing order, and the elements each stroke is made of. Click one to edit it in the stroke generator.</p>
-  <div class="ctl"><div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
-  <div class="group"><span class="lbl">Kɔradin guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label></div>
-  <div class="group"><span class="lbl">Numbers</span><label class="switch"><input type="checkbox" id="nb" checked><span></span></label></div></div>
-  <h2>Stroke order</h2>
-  <table><tr><th>Rule</th><th></th></tr>
-  <tr><td>1</td><td>Left before right</td></tr><tr><td>2</td><td>Top before bottom</td></tr>
-  <tr><td>3</td><td>Vertical before horizontal where they cross</td></tr><tr><td>4</td><td>A stem before the bowl, loop or curl hanging from it</td></tr>
-  <tr><td>5</td><td>The modifier is always last; it grows out of the rightmost element</td></tr></table>
+  <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows, drawn in the stroke generator. Every other row is composed from them: a modifier bar grown out of the rightmost element, a bracket, a glide, or the ni prefix. Strokes are numbered in writing order.</p>
+  <div class="ctl">
+    <div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
+    <div class="group"><span class="lbl">Kɔradin guide</span><label class="switch"><input type="checkbox" id="gh"><span></span></label></div>
+    <div class="group"><span class="lbl">Stroke order</span><label class="switch"><input type="checkbox" id="nb" checked><span></span></label></div>
+  </div>
+  <h2>Rules</h2>
+  <table>
+    <tr><th>Rule</th><th>Value</th></tr>
+    <tr><td>Body</td><td>baseline 0, top 700. Axes: base, mid 350, top (half a stroke inside the body at every weight)</td></tr>
+    <tr><td>Elements</td><td>stems and bars (2 points each), one diagonal at 60°, circular arcs: arc, bowl (180°), curl (270°), loop (360°), spirals as chains of half turns. fa keeps its own angles</td></tr>
+    <tr><td>Spirals</td><td>o turns anticlockwise; ɔ turns clockwise and winds in less (about 270° past the ring)</td></tr>
+    <tr><td>Ends</td><td>a line that runs past the baseline or the top is cut flat there, always with 2 points</td></tr>
+    <tr><td>Junctions</td><td>a stroke ends on the centreline of the stroke it joins; separate strokes keep at least 0.4 × stroke of white between them</td></tr>
+    <tr><td>Stroke order</td><td>left before right, top before bottom, vertical before horizontal where they cross, a stem before what hangs from it, the modifier last</td></tr>
+    <tr><td>Modifier</td><td>the rightmost element branches into the bar, which runs about 170 past the sign</td></tr>
+  </table>
   <div id="rows"></div>
 </div>
 <script src="stroke.js"></script>
 <script>
-const ROWS=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]],V=["a","e","ɛ","i","o","ɔ","u"];
-let DATA,GH;
+const $=id=>document.getElementById(id);
+const V=["a","e","ɛ","i","o","ɔ","u"];
+const RAD=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]];
+const COMP=[["b","b","p + top bar"],["kp","kp","p + bracket"],["gb","gb","b + bracket"],["ky","ky","t + bar"],["tw","tw","t + bar"],["gy (= j)","gy","d + bar"],["dw","dw","d + bar"],["hy","hy","s + bar"],["z","z","s + bar"],["v","v","f + bar"],["hw","hw","f + bar"],["l","l","r + bar"],["g","g","k + bar"],["m","m","n + bar"],["h","h","vowel + bar"],["y","y","mini i + vowel"],["w","w","mini ɔ + vowel"],["ny (= ni)","ny","ni + medium vowel"],["my","my","ny + mid bar"]];
+let RD,GL,GH;
 function local(){try{return JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){return {}}}
-function card(k,W,gs,nb){const g=Object.assign({},DATA[k],local()[k]||{}),st=g.strokes;
-  const status=g.approved?"ok":g.fix?"fix":g.status;
-  const body=st.map((s,i)=>KS.svgStroke(s,W)).join("");
-  const nums=nb?st.map((s,i)=>`<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="34" fill="#ff3b30"/><text y="12" text-anchor="middle" font-size="36" font-weight="700" fill="#fff" font-family="system-ui">${i+1}</text></g>`).join(""):"";
-  const els=st.map(s=>`<li>${[...new Set(KS.elements(s).filter(e=>e!=="corner"))].join(" → ")}</li>`).join("");
-  return `<a class="rc" href="generator.html#${encodeURIComponent(k)}"><svg viewBox="-80 -80 920 860"><defs><clipPath id="b${k}"><rect x="-200" y="0" width="1400" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${KS.guides(W,-80,840)}
-  ${gs?`<path d="${GH[k].d}" fill="#ff9500" fill-opacity=".25"/>`:""}<g clip-path="url(#b${k})">${body}</g>${nums}</g></svg>
-  <div class="t"><b>${k}</b><span class="badge ${status==="ok"?"ok":status==="fix"?"fix":status==="draft"?"draft":""}">${status==="ok"?"approved":status==="fix"?"needs fix":status==="draft"?"drafted":"traced, not drafted"}</span></div><ol>${els}</ol></a>`}
-function draw(){const W=+document.getElementById("w").value;document.getElementById("wv").textContent=W;
-  const gs=document.getElementById("gh").checked,nb=document.getElementById("nb").checked;
-  document.getElementById("rows").innerHTML=ROWS.map(([n,on])=>`<h2>${n}</h2><div class="rg">${V.map(v=>card(on+v,W,gs,nb)).join("")}</div>`).join("")}
-Promise.all([fetch("radicals.json").then(r=>r.json()),fetch("radicals-ghost.json").then(r=>r.json())]).then(([d,g])=>{DATA=d;GH=g;draw()});
-["w","gh","nb"].forEach(i=>document.getElementById(i).oninput=draw);
-</script></body></html>
+function card(k,g,href){
+  const W=+$("w").value,e=(href?local()[k]:null)||{},st=e.strokes||g.strokes;
+  const status=e.fix?"fix":e.approved||g.status==="approved"?"ok":g.status==="draft"?"draft":"comp";
+  const lbl={ok:"approved",fix:"needs fix",draft:"drafted",comp:"composed"}[status];
+  const svg=KS.glyphSVG(st,W,{nums:$("nb").checked,ghost:$("gh").checked&&GH[k]?GH[k].d:null});
+  const m=href?`${st.length} stroke${st.length>1?"s":""}`:`${st.length} strokes · ${(g.comp||"").replace(/\(.*\)/,"").trim()}`;
+  return `<${href?`a href="${href}"`:"div"} class="rc">${svg}<div class="t"><b>${k}</b><span class="badge ${status}">${lbl}</span></div><div class="m">${m}</div></${href?"a":"div"}>`}
+function draw(){
+  $("wv").textContent=$("w").value;
+  let h=RAD.map(([n,on])=>`<h2>${n}<small>radicals</small></h2><div class="rg">${V.map(v=>RD[on+v]?card(on+v,RD[on+v],"generator.html#"+encodeURIComponent(on+v)):"").join("")}</div>`).join("");
+  h+=COMP.map(([n,on,how])=>`<h2>${n}<small>${how}</small></h2><div class="rg">${V.map(v=>GL[on+v]?card(on+v,GL[on+v]):"").join("")}</div>`).join("");
+  $("rows").innerHTML=h;
+  document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
+}
+Promise.all(["radicals.json","glyphs.json","radicals-ghost.json"].map(u=>fetch(u).then(r=>r.json()))).then(([r,g,gh])=>{RD=r;GL=g.glyphs;GH=gh;draw()});
+["w","gh","nb"].forEach(i=>$(i).oninput=draw);
+</script>
+</body>
+</html>

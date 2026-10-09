@@ -1,3 +1,4 @@
+@font-face{font-family:"KM2";src:url(fonts/KoradinModular2-VF.woff2) format("woff2");font-display:block}
 :root{
   --bg:#f5f5f7; --bg2:#ffffff; --card:#ffffff; --label:#1d1d1f; --label2:rgba(60,60,67,.62); --label3:rgba(60,60,67,.32);
   --sep:rgba(60,60,67,.14); --fill:rgba(118,118,128,.12); --fill2:rgba(118,118,128,.2);
@@ -22,7 +23,7 @@ button{font:inherit;color:inherit}
 .nav{position:sticky;top:0;z-index:20;height:52px;display:flex;align-items:center;gap:24px;padding:0 22px;
   background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
 .nav .brand{display:flex;align-items:center;gap:10px;font:600 17px/1 var(--display);color:var(--label);letter-spacing:-.2px}
-.nav .brand .k{font-family:"KM-Regular";font-size:24px;font-weight:400;font-feature-settings:"liga","calt"}
+.nav .brand .k{font-family:"KM2";font-variation-settings:"wght" 500;font-size:24px;font-weight:400;font-feature-settings:"liga","calt"}
 .nav .tabs{display:flex;gap:4px;margin-left:auto}
 .nav .tabs a{color:var(--label2);font-size:14px;padding:6px 12px;border-radius:8px;transition:color .2s,background .2s}
 .nav .tabs a:hover{color:var(--label)}

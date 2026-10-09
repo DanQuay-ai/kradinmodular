@@ -96,7 +96,16 @@
     return s.replace(/ɛ/g, "E").replace(/ɔ/g, "O").replace(/ŋ/g, "ng");
   }
 
-  const api = { detect, toKradin, toAdinkra, shortcuts, words, SYL };
+  /* Latin restricted to the Twi alphabet (a b d e ɛ f g h i k l m n o ɔ p r s t u w y); loan letters respelled. */
+  function twiLatin(s) {
+    s = stripMarks(shortcuts(s));
+    const M = { c: "k", q: "k", x: "ks", j: "gy", v: "f", z: "s", C: "K", Q: "K", X: "Ks", J: "Gy", V: "F", Z: "S" };
+    return s.replace(/[cqxjvzCQXJVZ]/g, (m) => M[m]).replace(/ŋ/g, "ng");
+  }
+  /* For the stroke-built Adinkra fonts: ɛ and ɔ have their own Unicode glyphs. */
+  function toAdinkraModular(s) { return twiLatin(s).toLowerCase(); }
+
+  const api = { detect, toKradin, toAdinkra, toAdinkraModular, twiLatin, shortcuts, words, SYL };
   if (typeof module !== "undefined") module.exports = api;
   root.TwiScript = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

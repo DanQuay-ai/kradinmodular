@@ -91,5 +91,20 @@ const KS = (() => {
       return [Math.round(Math.min(...xs) / 120), -Math.round(Math.max(...ys) / 120), vert]; };
     return strokes.map((s, i) => [key(s), i, s]).sort((a, b) => { for (let k = 0; k < 3; k++) if (a[0][k] !== b[0][k]) return a[0][k] - b[0][k]; return a[1] - b[1]; }).map(x => x[2]);
   }
-  return { K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  // whole-glyph SVG with an automatic viewBox. o: {ghost (path d), nums, guides, color(i), cl (centrelines), cls, order}
+  let _id = 0;
+  function glyphSVG(strokes, W, o = {}) {
+    const sc = strokes.map(s => scaled(s, W));
+    let x1 = 0;
+    sc.forEach(s => trace(s).joints.forEach(j => { x1 = Math.max(x1, j.x); }));
+    const r = Math.max(700, x1 + W / 2 + 60), id = "c" + (++_id);
+    let g = "";
+    if (o.guides !== false) g += guides(W, -60, r + 40);
+    if (o.ghost) g += `<path d="${o.ghost}" fill="#ff9500" fill-opacity=".25"/>`;
+    g += `<g clip-path="url(#${id})">` + strokes.map((s, i) => svgStroke(s, W, { color: o.color ? o.color(i, s) : "var(--ink)", attr: o.attr ? o.attr(i, s) : "" })).join("") + `</g>`;
+    if (o.cl) g += sc.map(s => `<path d="${trace(s).d}" fill="none" stroke="#ff3b30" stroke-width="3"/>`).join("");
+    if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
+    return `<svg viewBox="-60 -60 ${r + 100} 820" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="0" width="${r + 600}" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
+  }
+  return { glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

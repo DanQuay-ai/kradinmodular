@@ -53,7 +53,7 @@ textarea{width:100%;min-height:64px;border-radius:10px;border:.5px solid var(--s
 <body>
 <nav class="nav">
   <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
-  <div class="tabs"><a href="index.html">Type tester</a><a href="elements.html">Elements</a><a href="radicals.html">Radicals</a><a href="generator.html" aria-current="page">Stroke generator</a><a href="lab.html">Construction lab</a></div>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="generator.html" aria-current="page">Stroke generator</a><a href="lab.html">Construction lab</a></div>
 </nav>
 <div class="gen">
   <aside class="pane pick" id="pick"></aside>
@@ -75,7 +75,12 @@ textarea{width:100%;min-height:64px;border-radius:10px;border:.5px solid var(--s
 const $=id=>document.getElementById(id);
 const VOW=["a","e","ɛ","i","o","ɔ","u"],ROWS=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]];
 let DATA,GH,EDIT={},cur=null,sel=0,hist=[];
-const load=()=>{try{EDIT=JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){EDIT={}}};
+const load=()=>{try{EDIT=JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){EDIT={}}
+  // a new set of drafts: keep the edits you approved (they are already in the drafts), park the rest in a backup
+  try{if(localStorage.getItem("kr-ver")!==DATA._version){
+    const back={};for(const k in EDIT)if(!EDIT[k].approved){back[k]=EDIT[k];delete EDIT[k]}
+    if(Object.keys(back).length)localStorage.setItem("kr-edits-backup-"+(localStorage.getItem("kr-ver")||"v1"),JSON.stringify(back));
+    localStorage.setItem("kr-ver",DATA._version);localStorage.setItem("kr-edits",JSON.stringify(EDIT))}}catch(e){}};
 const save=()=>{try{localStorage.setItem("kr-edits",JSON.stringify(EDIT))}catch(e){}};
 const clone=o=>JSON.parse(JSON.stringify(o));
 function G(k=cur){if(!EDIT[k])EDIT[k]={strokes:clone(DATA[k].strokes),note:""};return EDIT[k]}
@@ -86,9 +91,9 @@ const W=()=>+$("w").value;
 
 function pick(){
   $("pick").innerHTML=ROWS.map(([n,on])=>`<h3>${n}</h3><div class="chips">${VOW.map(v=>{const k=on+v,e=EDIT[k],d=DATA[k];
-    const c=e&&e.approved?"ok":e&&e.fix?"fix":d.status==="draft"?"dr":"";
+    const c=e&&e.fix?"fix":(e&&e.approved)||d.status==="approved"?"ok":"dr";
     return `<button class="${c}" aria-current="${k===cur}" data-k="${k}">${k}</button>`}).join("")}</div>`).join("")+
-    `<p class="hint" style="margin-top:14px">● gold drafted · ● green approved · ● orange needs fix</p>`;
+    `<p class="hint" style="margin-top:14px">● gold drafted · ● green approved · ● orange needs fix. Radicals only: every other row is composed from these with modifiers (see Construction lab).</p>`;
   $("pick").querySelectorAll("button").forEach(b=>b.onclick=()=>{location.hash=encodeURIComponent(b.dataset.k)});
 }
 function openG(k){if(!DATA[k])k="a";cur=k;sel=0;hist=[];pick();render()}
