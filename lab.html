@@ -2,125 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Construction Lab</title>
-<meta name="description" content="How every Kɔradin sign is built: radical and modifier, number of strokes, stroke order, and the same syllable in the Adinkra alphabet and Adinkra symbols.">
+<title>Kɔradin Construction Lab</title>
 <link rel="stylesheet" href="apple.css">
-<style>
-@font-face{font-family:"KDua";src:url(fonts/KoradinDua.woff2) format("woff2")}
-@font-face{font-family:"KM1";src:url(fonts/KoradinModular-Regular-VF.woff2) format("woff2")}
-@font-face{font-family:"KM2";src:url(fonts/KoradinModular2-VF.woff2) format("woff2")}
-@font-face{font-family:"AAM";src:url(fonts/AdinkraAlphabetModular-VF.woff2) format("woff2")}
-@font-face{font-family:"AAO";src:url(adinkra/fonts/AdinkraAlphabet.ttf) format("truetype")}
-@font-face{font-family:"ASY";src:url(fonts/AdinkraSymbolsTwi.woff2) format("woff2")}
-:root{--ro-radical:var(--ink);--ro-vowel:var(--ink);--ro-modifier:#ff3b30;--ro-glide:#0a84ff;--ro-prefix:#af52de}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.tile{appearance:none;border:0;background:var(--fill);border-radius:10px;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
-.tile svg{width:100%;height:44px}
-.tile span{font-size:11px;color:var(--label2)}
-.tile[aria-current="true"]{background:var(--tint)}
-.tile[aria-current="true"] span{color:var(--tint-ink)}
-.view{padding:24px 28px 40px;display:flex;flex-direction:column;gap:18px}
-.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.title{font:700 44px/1.05 var(--display);letter-spacing:-.5px}
-.title small{display:block;font:400 15px/1.4 var(--font);color:var(--label2);letter-spacing:-.2px;margin-top:6px}
-.canvas{background:var(--canvas);border-radius:18px;border:.5px solid var(--sep);position:relative;overflow:hidden}
-.canvas svg{display:block;width:100%;height:min(58vh,600px)}
-.pill{position:absolute;top:14px;right:14px;font-size:12px;font-weight:500;padding:5px 11px;border-radius:980px;background:var(--glass);backdrop-filter:blur(16px);border:.5px solid var(--sep)}
-.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-@media(max-width:1000px){.cols{grid-template-columns:1fr}}
-.card2{background:var(--card);border-radius:16px;padding:14px 16px}
-.card2 h3{font-size:13px;color:var(--label2);font-weight:500;margin-bottom:8px}
-.order{display:flex;flex-direction:column;gap:6px}
-.order div{display:flex;gap:10px;align-items:center;font-size:14px}
-.order .n{width:24px;height:24px;border-radius:24px;background:#ff3b30;color:#fff;font:700 12px system-ui;display:grid;place-items:center;flex:none}
-.order .r{font-size:12px;color:var(--label2)}
-.scripts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.scripts div{background:var(--canvas);border-radius:12px;padding:10px 8px 8px;text-align:center}
-.scripts .g{font-size:44px;line-height:1.2;font-feature-settings:"liga","calt";min-height:56px;color:var(--ink)}
-.scripts .l{font-size:11px;color:var(--label2)}
-.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.toolbar .group{display:flex;align-items:center;gap:10px;padding:8px 14px}
-.over{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-.over .tile svg{height:92px}
-select.sel{width:100%;border:0;border-radius:10px;background:var(--fill);color:var(--label);font:15px var(--font);padding:9px 10px}
-</style>
+<link rel="stylesheet" href="editor.css">
 </head>
 <body>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
   <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html" aria-current="page">Construction lab</a></div>
 </nav>
-<div class="shell">
-  <aside class="side" aria-label="Signs">
-    <p class="h-sec">Show</p>
-    <div class="group">
-      <div class="row col"><div class="seg" id="mode" role="radiogroup"><span class="thumb"></span><button data-v="inspect">Inspect</button><button data-v="overview">Overview</button></div></div>
-      <div class="row col"><select class="sel" id="fam" aria-label="Family">
-        <option value="all">All signs</option><option value="radical">Radicals</option><option value="bar">Modifier bar rows</option>
-        <option value="bracket">Bracket rows (kp, gb)</option><option value="glide">Glide rows (y, w)</option><option value="ny">ny / my</option></select></div>
-      <div class="row col"><input type="search" id="q" placeholder="Find a syllable (e.g. kyɛ)" aria-label="Find"></div>
+<div class="gen">
+  <aside class="pane pick" id="pick" aria-label="Glyphs"></aside>
+  <main class="stage">
+    <div class="top">
+      <div class="pane group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98" aria-label="Stroke weight"><span class="val" id="wv">98</span></div>
+      <div class="pane group"><span class="lbl">Guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label>
+        <span class="lbl">Lines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label>
+        <span class="lbl">Hide</span><label class="switch"><input type="checkbox" id="hide"><span></span></label></div>
+      <div class="pane group"><button class="mini pri" id="play">▶ Play</button><button class="mini" id="undo">Undo</button></div>
+      <div class="pane group exportbar"><span id="prog"></span><button class="mini pri" id="exportAll" disabled>Export font</button><button class="mini" id="exportTest" title="Export everything as it is now, approved or not, to try it in the type tester">Test build</button></div>
     </div>
-    <p class="h-sec" id="cnt"></p>
-    <div class="tiles" id="tiles"></div>
-  </aside>
-  <main class="main"><div class="view" id="view"></div></main>
+    <svg id="cv" viewBox="-100 -100 1000 900"></svg>
+    <p class="hint">Every glyph. Composed glyphs show their radical locked (striped): it follows the approved radical. Place it, then add or adjust the modifier strokes. my waits for ny, gb waits for b. When every glyph is approved, Export font sends it to the type tester.</p>
+  </main>
+  <aside class="pane ins" id="ins"></aside>
 </div>
+<script>window.EDITOR_MODE="all"</script>
 <script src="twi.js"></script>
 <script src="stroke.js"></script>
-<script>
-const $=id=>document.getElementById(id);
-const V=["a","e","ɛ","i","o","ɔ","u"];
-const ROWS=["","p","b","kp","gb","t","ky","tw","d","gy","j","dw","k","g","kw","f","v","hw","s","hy","z","h","m","n","ny","ni","my","w","y","r","l"];
-const ROLE={radical:"radical",vowel:"vowel",modifier:"modifier",glide:"glide",prefix:"ni prefix"};
-let G,GH,st={mode:"inspect",fam:"all",q:"",cur:"kya",W:98,ghost:false};
-try{Object.assign(st,JSON.parse(localStorage.getItem("lab2")||"{}"))}catch(e){}
-function famOf(k,g){const c=g.comp||"";if(c==="radical")return"radical";if(/bracket/.test(c))return"bracket";if(/mini/.test(c))return"glide";if(/^ni|^ny/.test(c))return"ny";if(/bar|modifier/.test(c))return"bar";return"other"}
-function keys(){const out=[];for(const r of ROWS)for(const v of V){const k=r+v;if(G[k])out.push(k)}return out.filter(k=>(st.fam==="all"||famOf(k,G[k])===st.fam)&&(!st.q||k.includes(st.q)))}
-const col=(i,s)=>`var(--ro-${s.role||"radical"})`;
-function tiles(){const ks=keys();$("cnt").textContent=`${ks.length} sign${ks.length===1?"":"s"}`;
-  $("tiles").innerHTML=ks.map(k=>`<button class="tile" data-k="${k}" aria-current="${k===st.cur}">${KS.glyphSVG(G[k].strokes,98,{guides:false,color:col})}<span>${k}</span></button>`).join("");
-  $("tiles").querySelectorAll(".tile").forEach(b=>b.onclick=()=>{st.cur=b.dataset.k;st.mode="inspect";render()})}
-function scripts(k){
-  const t=[["Kɔradin Modular 2","KM2",TwiScript.toKradin(k)],["Modular 1","KM1",TwiScript.toKradin(k)],["Koradin Dua","KDua",TwiScript.toKradin(k)],
-    ["Adinkra alphabet (2:1)","AAM",TwiScript.toAdinkraModular(k)],["Adinkra alphabet","AAO",TwiScript.toAdinkra(k)],["Adinkra symbols","ASY",TwiScript.toAdinkraModular(k)]];
-  return t.map(([l,f,s])=>`<div><div class="g" style="font-family:'${f}'">${s}</div><div class="l">${l}</div></div>`).join("")}
-function inspect(){
-  const g=G[st.cur]; if(!g){st.cur="a";return inspect()}
-  const svg=KS.glyphSVG(g.strokes,st.W,{nums:true,ghost:st.ghost&&GH[st.cur]?GH[st.cur].d:null,color:col,attr:(i)=>` class="stk" data-i="${i}"`});
-  const order=g.strokes.map((s,i)=>`<div><span class="n">${i+1}</span><span>${ROLE[s.role]||"radical"}</span></div>`).join("");
-  $("view").innerHTML=`<div class="head"><div class="title">${st.cur}<small>${g.comp.replace(/\(([^)]*)\)/,"· $1")}</small></div>
-    <div class="toolbar"><div class="group card2" style="padding:8px 14px"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="${st.W}" style="width:160px"><span class="val">${st.W}</span></div>
-    <div class="group card2" style="padding:8px 14px"><span class="lbl">Kɔradin guide</span><label class="switch"><input type="checkbox" id="gh"${st.ghost?" checked":""}><span></span></label></div>
-    <button class="btn fill" id="play">▶ Stroke order</button></div></div>
-    <div class="canvas">${svg}<span class="pill">${g.strokes.length} stroke${g.strokes.length>1?"s":""}</span></div>
-    <div class="cols"><div class="card2"><h3>Stroke order: ${g.strokes.length} stroke${g.strokes.length>1?"s":""}</h3><div class="order">${order}</div>
-      <p class="note" style="padding:10px 0 0">Left before right, top before bottom, vertical before horizontal where they cross; the modifier comes last. ${g.status==="composed"?"Composed automatically from its radical.":`<a href="generator.html#${encodeURIComponent(st.cur)}">Edit this radical in the stroke generator</a>.`}</p></div>
-      <div class="card2"><h3>The same syllable in other scripts</h3><div class="scripts">${scripts(st.cur)}</div></div></div>`;
-  $("w").oninput=e=>{st.W=+e.target.value;render()};
-  $("gh").onchange=e=>{st.ghost=e.target.checked;render()};
-  $("play").onclick=()=>{const ps=[...$("view").querySelectorAll(".stk")];let t=0;
-    ps.forEach(p=>{p.setAttribute("pathLength","1000");p.style.strokeDasharray="1000 3000";p.style.strokeDashoffset="1000"});
-    ps.forEach(p=>{p.animate([{strokeDashoffset:1000},{strokeDashoffset:0}],{duration:650,delay:t,fill:"forwards",easing:"ease-in-out"});t+=800});
-    setTimeout(render,t+500)};
-}
-function overview(){
-  const ks=keys();
-  $("view").innerHTML=`<div class="head"><div class="title">Overview<small>${ks.length} signs · number of strokes under each</small></div></div>
-    <div class="over">${ks.map(k=>`<button class="tile" data-k="${k}">${KS.glyphSVG(G[k].strokes,st.W,{guides:false,color:col})}<span>${k} · ${G[k].strokes.length}</span></button>`).join("")}</div>`;
-  $("view").querySelectorAll(".tile").forEach(b=>b.onclick=()=>{st.cur=b.dataset.k;st.mode="inspect";render()})}
-function segThumb(el){const b=el.querySelector('[aria-checked="true"]'),t=el.querySelector(".thumb");if(b&&t){t.style.width=b.offsetWidth+"px";t.style.transform=`translateX(${b.offsetLeft-2}px)`}}
-function render(){
-  document.querySelectorAll("#mode button").forEach(b=>b.setAttribute("aria-checked",b.dataset.v===st.mode));segThumb($("mode"));
-  $("fam").value=st.fam;tiles();(st.mode==="inspect"?inspect:overview)();
-  document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
-  try{localStorage.setItem("lab2",JSON.stringify(st))}catch(e){}
-}
-document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{st.mode=b.dataset.v;render()});
-$("fam").onchange=e=>{st.fam=e.target.value;render()};
-$("q").oninput=e=>{st.q=TwiScript.twiLatin(e.target.value).toLowerCase();render()};
-Promise.all([fetch("glyphs.json").then(r=>r.json()),fetch("radicals-ghost.json").then(r=>r.json())]).then(([g,gh])=>{G=g.glyphs;GH=gh;render()});
-</script>
+<script src="kr.js"></script>
+<script src="editor.js"></script>
 </body>
 </html>

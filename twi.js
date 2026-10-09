@@ -102,10 +102,7 @@
     const M = { c: "k", q: "k", x: "ks", j: "gy", v: "f", z: "s", C: "K", Q: "K", X: "Ks", J: "Gy", V: "F", Z: "S" };
     return s.replace(/[cqxjvzCQXJVZ]/g, (m) => M[m]).replace(/ŋ/g, "ng");
   }
-  /* For the stroke-built Adinkra fonts: ɛ and ɔ have their own Unicode glyphs. */
-  function toAdinkraModular(s) { return twiLatin(s).toLowerCase(); }
-
-  const api = { detect, toKradin, toAdinkra, toAdinkraModular, twiLatin, shortcuts, words, SYL };
+  const api = { detect, toKradin, toAdinkra, twiLatin, shortcuts, words, SYL };
   if (typeof module !== "undefined") module.exports = api;
   root.TwiScript = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

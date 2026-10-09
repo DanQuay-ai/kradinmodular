@@ -25,12 +25,12 @@ h2 small{font:400 14px var(--font);color:var(--label2)}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
 th,td{text-align:left;padding:9px 14px;border-bottom:.5px solid var(--sep)}
 th{color:var(--label2);font-weight:500;font-size:13px}
-.seg{min-width:280px}
+@media(max-width:700px){.wrap{padding:20px 14px 40px}h1{font-size:32px}.rg{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.rc svg{height:110px}table{font-size:13px}th,td{padding:8px 10px}}
 </style>
 </head>
 <body>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
   <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html">Construction lab</a></div>
 </nav>
 <div class="wrap">
@@ -45,38 +45,34 @@ th{color:var(--label2);font-weight:500;font-size:13px}
   <table>
     <tr><th>Rule</th><th>Value</th></tr>
     <tr><td>Body</td><td>baseline 0, top 700. Axes: base, mid 350, top (half a stroke inside the body at every weight)</td></tr>
-    <tr><td>Elements</td><td>stems and bars (2 points each), one diagonal at 60°, circular arcs: arc, bowl (180°), curl (270°), loop (360°), spirals as chains of half turns. fa keeps its own angles</td></tr>
+    <tr><td>Elements</td><td>stems and bars (2 points each), diagonals on 30° steps (60° preferred), circular arcs: arc, bowl (180°), curl (270°), loop (360°), spirals as chains of half turns. fa keeps its own angles</td></tr>
     <tr><td>Spirals</td><td>o turns anticlockwise; ɔ turns clockwise and winds in less (about 270° past the ring)</td></tr>
     <tr><td>Ends</td><td>a line that runs past the baseline or the top is cut flat there, always with 2 points</td></tr>
     <tr><td>Junctions</td><td>a stroke ends on the centreline of the stroke it joins; separate strokes keep at least 0.4 × stroke of white between them</td></tr>
     <tr><td>Stroke order</td><td>left before right, top before bottom, vertical before horizontal where they cross, a stem before what hangs from it, the modifier last</td></tr>
     <tr><td>Modifier</td><td>the rightmost element branches into the bar, which runs about 170 past the sign</td></tr>
   </table>
-  <div id="rows"></div>
+  <p class="lead" id="prog" style="margin-top:28px"></p><div id="rows"></div>
 </div>
-<script src="stroke.js"></script>
+<script src="twi.js"></script><script src="stroke.js"></script><script src="kr.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const V=["a","e","ɛ","i","o","ɔ","u"];
-const RAD=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]];
-const COMP=[["b","b","p + top bar"],["kp","kp","p + bracket"],["gb","gb","b + bracket"],["ky","ky","t + bar"],["tw","tw","t + bar"],["gy (= j)","gy","d + bar"],["dw","dw","d + bar"],["hy","hy","s + bar"],["z","z","s + bar"],["v","v","f + bar"],["hw","hw","f + bar"],["l","l","r + bar"],["g","g","k + bar"],["m","m","n + bar"],["h","h","vowel + bar"],["y","y","mini i + vowel"],["w","w","mini ɔ + vowel"],["ny (= ni)","ny","ni + medium vowel"],["my","my","ny + mid bar"]];
-let RD,GL,GH;
-function local(){try{return JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){return {}}}
-function card(k,g,href){
-  const W=+$("w").value,e=(href?local()[k]:null)||{},st=e.strokes||g.strokes;
-  const status=e.fix?"fix":e.approved||g.status==="approved"?"ok":g.status==="draft"?"draft":"comp";
-  const lbl={ok:"approved",fix:"needs fix",draft:"drafted",comp:"composed"}[status];
-  const svg=KS.glyphSVG(st,W,{nums:$("nb").checked,ghost:$("gh").checked&&GH[k]?GH[k].d:null});
-  const m=href?`${st.length} stroke${st.length>1?"s":""}`:`${st.length} strokes · ${(g.comp||"").replace(/\(.*\)/,"").trim()}`;
-  return `<${href?`a href="${href}"`:"div"} class="rc">${svg}<div class="t"><b>${k}</b><span class="badge ${status}">${lbl}</span></div><div class="m">${m}</div></${href?"a":"div"}>`}
+let GH={};
+function card(k,editable){
+  const W=+$("w").value,st=KR.resolve(k),s=KR.status(k),b=KR.def(k).type==="composite"&&KR.blockedBy(k).length;
+  const lbl={approved:"approved",fix:"needs fix",draft:"draft"}[s];
+  const svg=KS.glyphSVG(st,W,{nums:$("nb").checked,ghost:$("gh").checked&&GH[k]?GH[k].d:null,color:(i,x)=>x.role==="modifier"||x.role==="glide"?"#ff3b30":"var(--ink)"});
+  return `<a class="rc" href="${editable?"generator":"lab"}.html#${encodeURIComponent(k)}">${svg}<div class="t"><b>${k}</b><span class="badge ${s==="approved"?"ok":s==="fix"?"fix":"draft"}">${b?"🔒 ":""}${lbl}</span></div><div class="m">${st.length} stroke${st.length>1?"s":""}</div></a>`}
 function draw(){
   $("wv").textContent=$("w").value;
-  let h=RAD.map(([n,on])=>`<h2>${n}<small>radicals</small></h2><div class="rg">${V.map(v=>RD[on+v]?card(on+v,RD[on+v],"generator.html#"+encodeURIComponent(on+v)):"").join("")}</div>`).join("");
-  h+=COMP.map(([n,on,how])=>`<h2>${n}<small>${how}</small></h2><div class="rg">${V.map(v=>GL[on+v]?card(on+v,GL[on+v]):"").join("")}</div>`).join("");
+  const rows=[["Vowels",""]].concat(KR.RAD_ROWS.slice(1).map(r=>[r,r]));
+  let h=rows.map(([n,on])=>`<h2>${n}<small>radicals</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]?card(on+v,true):"").join("")}</div>`).join("");
+  h+=KR.COMP_ROWS.map(([on,how])=>`<h2>${on}<small>${how}</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]&&KR.DEF[on+v].type==="composite"?card(on+v,false):"").join("")}</div>`).join("");
+  const p=KR.progress();$("prog").textContent=`${p.ok} of ${p.total} glyphs approved`;
   $("rows").innerHTML=h;
   document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
 }
-Promise.all(["radicals.json","glyphs.json","radicals-ghost.json"].map(u=>fetch(u).then(r=>r.json()))).then(([r,g,gh])=>{RD=r;GL=g.glyphs;GH=gh;draw()});
+Promise.all([KR.load(),fetch("radicals-ghost.json").then(r=>r.json())]).then(([_,gh])=>{GH=gh;draw()});
 ["w","gh","nb"].forEach(i=>$(i).oninput=draw);
 </script>
 </body>

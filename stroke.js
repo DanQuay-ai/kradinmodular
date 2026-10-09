@@ -91,6 +91,65 @@ const KS = (() => {
       return [Math.round(Math.min(...xs) / 120), -Math.round(Math.max(...ys) / 120), vert]; };
     return strokes.map((s, i) => [key(s), i, s]).sort((a, b) => { for (let k = 0; k < 3; k++) if (a[0][k] !== b[0][k]) return a[0][k] - b[0][k]; return a[1] - b[1]; }).map(x => x[2]);
   }
+
+  // ---------- outline polygon for fonts (port of gen/outline.py): fixed point structure, flat cuts at 0 / 700
+  function centreline(st) {
+    let x = st.x, y = st.y, h = st.h; const P = [[x, y, h, h, "end"]];
+    for (const g of st.segs) {
+      if (g.t === "C") { h += g.ang; P[P.length - 1][3] = h; P[P.length - 1][4] = "corner"; continue; }
+      if (g.t === "L") { if (Math.abs(g.len) < 1e-6) continue; x += g.len * Math.cos(h * R); y += g.len * Math.sin(h * R); P.push([x, y, h, h, "pt"]); continue; }
+      const sg = g.ang > 0 ? 1 : -1, r = Math.max(1, g.r);
+      const cx = x + r * Math.cos((h + 90 * sg) * R), cy = y + r * Math.sin((h + 90 * sg) * R), a0 = Math.atan2(y - cy, x - cx);
+      const n = Math.max(2, Math.ceil(Math.abs(g.ang) / 9));
+      for (let i = 1; i <= n; i++) { const a = a0 + g.ang * R * i / n, hh = h + g.ang * i / n; P.push([cx + r * Math.cos(a), cy + r * Math.sin(a), hh, hh, "pt"]); }
+      x = P[P.length - 1][0]; y = P[P.length - 1][1]; h += g.ang;
+    }
+    P[P.length - 1][4] = "end";
+    const Q = [P[0]];
+    for (const p of P.slice(1)) { const q = Q[Q.length - 1]; if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-6) { q[3] = p[3]; if (p[4] === "corner") q[4] = "corner"; } else Q.push(p); }
+    return Q;
+  }
+  function trimCL(P, s, e) {
+    if (s <= 0.0005 && e >= 0.9995) return P;
+    const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+    const T = L[L.length - 1]; s *= T; e *= T; const out = [];
+    for (let i = 0; i < P.length - 1; i++) {
+      const a = P[i], b = P[i + 1];
+      for (const t0 of [s, e]) if (L[i] <= t0 && t0 <= L[i + 1] && L[i + 1] > L[i]) { const u = (t0 - L[i]) / (L[i + 1] - L[i]); out.push([a[0] + u * (b[0] - a[0]), a[1] + u * (b[1] - a[1]), b[2], b[2], "end", t0]); }
+      if (s < L[i] && L[i] < e) out.push(a.concat([L[i]]));
+    }
+    if (s < T && T <= e) out.push(P[P.length - 1].concat([T]));
+    out.sort((p, q) => p[5] - q[5]);
+    const o = out.map(p => p.slice(0, 5)); o[0][4] = "end"; o[o.length - 1][4] = "end"; return o;
+  }
+  const CUT_TOL = 0.75 * 98;
+  function cutDecision(p, hOut, back) {
+    const hh = hOut + (back ? 180 : 0), sy = Math.sin(hh * R);
+    if (Math.abs(sy) < 0.2) return null;
+    if (sy < 0 && p[1] <= CUT_TOL) return 0; if (sy > 0 && p[1] >= 700 - CUT_TOL) return 700; return null;
+  }
+  // returns a clockwise polygon [[x,y]...]; tf(x,y) -> [x,y] is applied last (width, slant)
+  function polygon(st, W, tf) {
+    const k = K(W), P = trimCL(centreline(st), st.s ?? 0, st.e ?? 1), n = P.length, hw = W / 2;
+    const c0 = st.cap0 !== "butt" ? cutDecision(P[0], P[0][3], true) : null, c1 = st.cap1 !== "butt" ? cutDecision(P[n - 1], P[n - 1][2], false) : null;
+    const C = P.map(p => [p[0] * k, 350 + (p[1] - 350) * k]); const left = [], right = [];
+    P.forEach((p, i) => {
+      let hin = p[2], hout = p[3]; if (i === 0) hin = hout; if (i === n - 1) hout = hin;
+      const [x, y] = C[i], a = (((hout - hin) + 180) % 360 + 360) % 360 - 180;
+      if (Math.abs(a) < 1e-6) { const nx = -Math.sin(hin * R), ny = Math.cos(hin * R); left.push([x + nx * hw, y + ny * hw]); right.push([x - nx * hw, y - ny * hw]); }
+      else { const bis = (hin + a / 2) * R, m = hw / Math.max(0.25, Math.cos(a / 2 * R)), nx = -Math.sin(bis), ny = Math.cos(bis); left.push([x + nx * m, y + ny * m]); right.push([x - nx * m, y - ny * m]); }
+    });
+    const cut = (E, iE, iN, lim, h) => { const dy = Math.sin(h * R), dx = Math.cos(h * R); if (Math.abs(dy) < 1e-6) return; const t = (lim - E[iE][1]) / dy; E[iE] = [E[iE][0] + t * dx, lim]; };
+    if (c1 !== null) { cut(left, n - 1, n - 2, c1, P[n - 1][2]); cut(right, n - 1, n - 2, c1, P[n - 1][2]); }
+    if (c0 !== null) { cut(left, 0, 1, c0, P[0][3]); cut(right, 0, 1, c0, P[0][3]); }
+    return left.concat(right.reverse()).map(([x, y]) => tf ? tf(x, y) : [x, y]);
+  }
+  // components: {ref, dx, dy, s} applied to a stroke (scale about the origin, then move)
+  function place(st, c) {
+    const s = c.s ?? 1;
+    return Object.assign({}, st, { x: st.x * s + (c.dx || 0), y: st.y * s + (c.dy || 0),
+      segs: st.segs.map(g => g.t === "L" ? Object.assign({}, g, { len: g.len * s }) : g.t === "A" ? Object.assign({}, g, { r: g.r * s }) : Object.assign({}, g)) });
+  }
   // whole-glyph SVG with an automatic viewBox. o: {ghost (path d), nums, guides, color(i), cl (centrelines), cls, order}
   let _id = 0;
   function glyphSVG(strokes, W, o = {}) {
@@ -106,5 +165,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 -60 ${r + 100} 820" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="0" width="${r + 600}" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, place, centreline, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

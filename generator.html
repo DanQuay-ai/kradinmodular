@@ -2,209 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Kɔradin Stroke Generator</title>
 <link rel="stylesheet" href="apple.css">
-<style>
-body{overflow-x:hidden}
-.gen{display:grid;grid-template-columns:200px minmax(0,1fr) 340px;gap:16px;padding:16px;min-height:calc(100vh - 52px)}
-@media(max-width:1100px){.gen{grid-template-columns:1fr}}
-.pane{background:var(--card);border-radius:16px;padding:14px}
-.pick h3{font-size:12px;color:var(--label2);font-weight:500;margin:12px 0 6px}
-.pick h3:first-child{margin-top:0}
-.chips{display:flex;flex-wrap:wrap;gap:5px}
-.chips button{appearance:none;border:0;background:var(--fill);border-radius:9px;min-width:38px;padding:6px 7px;font:500 14px var(--text,system-ui);color:inherit;cursor:pointer;position:relative}
-.chips button[aria-current="true"]{background:var(--tint);color:var(--tint-ink)}
-.chips button.ok::after,.chips button.fix::after,.chips button.dr::after{content:"";position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:9px;background:#34c759}
-.chips button.fix::after{background:#ff9500}.chips button.dr::after{background:var(--tint)}
-.chips button[aria-current="true"]::after{background:var(--tint-ink)}
-.stage{display:flex;flex-direction:column;gap:10px;position:sticky;top:64px;align-self:start}
-.pick,.ins{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow-y:auto;overscroll-behavior:contain}
-@media(max-width:1100px){.stage,.pick,.ins{position:static;max-height:none}}
-.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.top .group{display:flex;align-items:center;gap:10px;padding:6px 14px}
-#cv{width:100%;height:calc(100vh - 210px);min-height:420px;background:var(--canvas);border-radius:16px;touch-action:none;user-select:none}
-.ins h4{font-size:12px;color:var(--label2);font-weight:500;margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center}
-.ins h4:first-child{margin-top:0}
-.slist{display:flex;flex-direction:column;gap:4px}
-.srow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:var(--fill);cursor:pointer;font-size:13px}
-.srow[aria-current="true"]{outline:2px solid var(--tint)}
-.srow .n{width:20px;height:20px;border-radius:20px;background:#ff3b30;color:#fff;font:700 11px system-ui;display:grid;place-items:center;flex:none}
-.srow .e{flex:1;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f{display:grid;grid-template-columns:58px minmax(0,1fr) 70px;gap:8px;align-items:center;font-size:13px;margin:5px 0}
-.f input[type=number]{width:64px;padding:4px 6px;border-radius:8px;border:.5px solid var(--sep);background:var(--canvas);color:inherit;font:13px system-ui}
-.f select,.sg select{padding:4px 6px;border-radius:8px;border:.5px solid var(--sep);background:var(--canvas);color:inherit;font:13px system-ui}
-.sg{background:var(--fill);border-radius:10px;padding:8px;margin:6px 0}
-.sg .hd{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--label2)}
-.sg .hd select{flex:1;min-width:0}
-.f input[type=range]{width:100%;min-width:0}
-.ins h4{flex-wrap:wrap;gap:6px}
-.mini{appearance:none;border:0;background:var(--fill);border-radius:8px;padding:5px 9px;font:500 12px system-ui;color:inherit;cursor:pointer}
-.mini:hover{background:color-mix(in srgb,var(--tint) 18%,var(--fill))}
-.mini.pri{background:var(--tint);color:var(--tint-ink)}
-.btns{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
-.hb{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.hb button{appearance:none;border:0;background:var(--fill);border-radius:7px;padding:3px 7px;font:12px system-ui;color:inherit;cursor:pointer}
-textarea{width:100%;min-height:64px;border-radius:10px;border:.5px solid var(--sep);background:var(--canvas);color:inherit;padding:8px;font:13px system-ui}
-.hint{font-size:12px;color:var(--label2);line-height:1.45}
-</style>
+<link rel="stylesheet" href="editor.css">
 </head>
 <body>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
   <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="generator.html" aria-current="page">Stroke generator</a><a href="lab.html">Construction lab</a></div>
 </nav>
 <div class="gen">
-  <aside class="pane pick" id="pick"></aside>
+  <aside class="pane pick" id="pick" aria-label="Glyphs"></aside>
   <main class="stage">
     <div class="top">
-      <div class="pane group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
+      <div class="pane group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98" aria-label="Stroke weight"><span class="val" id="wv">98</span></div>
       <div class="pane group"><span class="lbl">Guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label>
-        <span class="lbl">Centrelines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label>
-        <span class="lbl">Hide glyph</span><label class="switch"><input type="checkbox" id="hide"><span></span></label></div>
-      <div class="pane group"><button class="mini pri" id="play">▶ Play strokes</button><button class="mini" id="undo">Undo</button></div>
+        <span class="lbl">Lines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label>
+        <span class="lbl">Hide</span><label class="switch"><input type="checkbox" id="hide"><span></span></label></div>
+      <div class="pane group"><button class="mini pri" id="play">▶ Play</button><button class="mini" id="undo">Undo</button></div>
+      
     </div>
     <svg id="cv" viewBox="-100 -100 1000 900"></svg>
-    <p class="hint">Positions and lengths are in Black (98) units; at other weights the drawing scales so the edges stay on the baseline and the top. Drag the white handle to move a stroke's start; it snaps to the guides and to other strokes. Arrow keys nudge it (Shift = 25). Click a stroke to select it.</p>
+    <p class="hint">Positions and lengths are in Black (98) units; other weights scale so the edges stay on the baseline and the top. Drag the white handle to move a stroke's start; it snaps to the guides and to other strokes. Arrow keys nudge it (Shift = 25).</p>
   </main>
   <aside class="pane ins" id="ins"></aside>
 </div>
+<script>window.EDITOR_MODE="radicals"</script>
+<script src="twi.js"></script>
 <script src="stroke.js"></script>
-<script>
-const $=id=>document.getElementById(id);
-const VOW=["a","e","ɛ","i","o","ɔ","u"],ROWS=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]];
-let DATA,GH,EDIT={},cur=null,sel=0,hist=[];
-const load=()=>{try{EDIT=JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){EDIT={}}
-  // a new set of drafts: keep the edits you approved (they are already in the drafts), park the rest in a backup
-  try{if(localStorage.getItem("kr-ver")!==DATA._version){
-    const back={};for(const k in EDIT)if(!EDIT[k].approved){back[k]=EDIT[k];delete EDIT[k]}
-    if(Object.keys(back).length)localStorage.setItem("kr-edits-backup-"+(localStorage.getItem("kr-ver")||"v1"),JSON.stringify(back));
-    localStorage.setItem("kr-ver",DATA._version);localStorage.setItem("kr-edits",JSON.stringify(EDIT))}}catch(e){}};
-const save=()=>{try{localStorage.setItem("kr-edits",JSON.stringify(EDIT))}catch(e){}};
-const clone=o=>JSON.parse(JSON.stringify(o));
-function G(k=cur){if(!EDIT[k])EDIT[k]={strokes:clone(DATA[k].strokes),note:""};return EDIT[k]}
-const view=k=>EDIT[k]||DATA[k];
-function commit(){hist.push(JSON.stringify(G()));if(hist.length>80)hist.shift()}
-function changed(){save();render()}
-const W=()=>+$("w").value;
-
-function pick(){
-  $("pick").innerHTML=ROWS.map(([n,on])=>`<h3>${n}</h3><div class="chips">${VOW.map(v=>{const k=on+v,e=EDIT[k],d=DATA[k];
-    const c=e&&e.fix?"fix":(e&&e.approved)||d.status==="approved"?"ok":"dr";
-    return `<button class="${c}" aria-current="${k===cur}" data-k="${k}">${k}</button>`}).join("")}</div>`).join("")+
-    `<p class="hint" style="margin-top:14px">● gold drafted · ● green approved · ● orange needs fix. Radicals only: every other row is composed from these with modifiers (see Construction lab).</p>`;
-  $("pick").querySelectorAll("button").forEach(b=>b.onclick=()=>{location.hash=encodeURIComponent(b.dataset.k)});
-}
-function openG(k){if(!DATA[k])k="a";cur=k;sel=0;hist=[];pick();render()}
-
-function canvas(){
-  const w=W(),g=view(cur),st=g.strokes,cl=$("cl").checked;
-  let s=`<defs><clipPath id="body"><rect x="-300" y="0" width="1600" height="700"/></clipPath></defs><g id="flip" transform="translate(0,700) scale(1,-1)">`;
-  for(let x=0;x<=900;x+=100)s+=`<line x1="${x}" x2="${x}" y1="-60" y2="760" stroke="var(--sep)" stroke-width="1.5"/><text transform="translate(${x},-90) scale(1,-1)" font-size="20" fill="var(--label2)" text-anchor="middle" font-family="system-ui">${x}</text>`;
-  s+=KS.guides(w,-100,900);
-  [["0",0],["base",w/2],["mid",350],["top",700-w/2],["700",700]].forEach(([n,y])=>s+=`<text transform="translate(-95,${y+6}) scale(1,-1)" font-size="18" fill="var(--tint)" font-family="system-ui">${n}</text>`);
-  if($("gh").checked)s+=`<path d="${GH[cur].d}" fill="#ff9500" fill-opacity=".22"/>`;
-  if(!$("hide").checked)s+=`<g clip-path="url(#body)">`+st.map((t,i)=>KS.svgStroke(t,w,{color:i===sel?"var(--tint)":"var(--ink)",attr:` data-i="${i}" class="stk" style="cursor:pointer" opacity="${i===sel?0.92:0.85}"`})).join("")+`</g>`;
-  const sc=st.map(t=>KS.scaled(t,w));
-  if(cl)s+=sc.map(t=>`<path d="${KS.trace(t).d}" fill="none" stroke="#ff3b30" stroke-width="3" pointer-events="none"/>`).join("");
-  const t=sc[sel];
-  if(t){const tr=KS.trace(t);
-    s+=tr.joints.slice(1).map(j=>`<circle cx="${j.x}" cy="${j.y}" r="9" fill="#ff3b30" pointer-events="none"/>`).join("");
-    s+=`<g transform="translate(${tr.x},${tr.y}) rotate(${tr.h})" pointer-events="none"><path d="M0,0 L-26,13 L-26,-13Z" fill="#ff3b30"/></g>`;
-    s+=`<circle id="hdl" cx="${t.x}" cy="${t.y}" r="20" fill="#fff" stroke="#ff3b30" stroke-width="6" style="cursor:grab"/>`;}
-  s+=sc.map((t,i)=>`<g transform="translate(${t.x},${t.y}) scale(1,-1)" pointer-events="none"><circle cx="-34" cy="-34" r="20" fill="#ff3b30"/><text x="-34" y="-27" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="system-ui">${i+1}</text></g>`).join("");
-  $("cv").innerHTML=s+"</g>";
-  $("cv").querySelectorAll(".stk").forEach(p=>p.addEventListener("pointerdown",e=>{if(e.target.id==="hdl")return;sel=+p.dataset.i;render()}));
-}
-
-const num=(lbl,key,v,min,max,step,obj)=>`<div class="f"><span>${lbl}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-k="${key}" data-o="${obj}"><input type="number" min="${min}" max="${max}" step="${step}" value="${v}" data-k="${key}" data-o="${obj}"></div>`;
-function inspector(){
-  const g=view(cur),st=g.strokes,t=st[sel],e=EDIT[cur]||{};
-  let s=`<h4>Strokes in ${cur}<span class="btns"><button class="mini" id="order" title="Left before right, top before bottom, vertical before horizontal">Auto order</button></span></h4><div class="slist">`+
-    st.map((x,i)=>`<div class="srow" data-i="${i}" aria-current="${i===sel}"><span class="n">${i+1}</span><span class="e">${KS.elements(x).filter(q=>q!=="corner").join(" → ")||"empty"}</span></div>`).join("")+`</div>
-    <div class="btns" style="margin-top:8px"><button class="mini pri" id="finish" title="Start a new stroke where this one ends">Finish stroke → new</button><button class="mini" id="new">New stroke</button></div>`;
-  if(t){const tr=KS.trace(t);
-    s+=`<h4>Stroke ${sel+1}<span class="btns"><button class="mini" data-a="up">↑</button><button class="mini" data-a="down">↓</button><button class="mini" data-a="dup">Duplicate</button><button class="mini" data-a="mir">Mirror</button><button class="mini" data-a="rev">Reverse</button><button class="mini" data-a="del">Delete</button></span></h4>
-    ${num("Start x","x",t.x,-100,900,1,"s")}${num("Start y","y",t.y,0,700,1,"s")}${num("Heading","h",t.h,0,359,1,"s")}
-    <div class="hb">${[0,60,90,120,180,240,270,300].map(a=>`<button data-h="${a}">${a}°</button>`).join("")}</div>
-    <h4>Endpoint</h4>${num("Start","s",Math.round((t.s??0)*100),0,100,1,"p")}${num("End","e",Math.round((t.e??1)*100),0,100,1,"p")}
-    <div class="f"><span>Start cap</span><select data-cap="cap0"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
-    <div class="f"><span>End cap</span><select data-cap="cap1"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
-    <p class="hint">Ends at x ${Math.round(tr.x)}, y ${Math.round(tr.y)}, heading ${Math.round(((tr.h%360)+360)%360)}° · length ${Math.round(tr.len)}</p>
-    <h4>Segments<span class="btns"><button class="mini" data-add="L">+ Line</button><button class="mini" data-add="A">+ Arc</button><button class="mini" data-add="C">+ Corner</button></span></h4>`+
-    t.segs.map((q,j)=>`<div class="sg"><div class="hd"><span>${j+1}</span><select data-ty="${j}"><option value="L"${q.t==="L"?" selected":""}>Line</option><option value="A"${q.t==="A"?" selected":""}>Arc</option><option value="C"${q.t==="C"?" selected":""}>Corner</option></select><button class="mini" data-sx="${j}">✕</button></div>
-      ${q.t==="L"?num("Length","len",q.len,0,900,1,j):q.t==="A"?num("Radius","r",q.r,10,400,1,j)+num("Turn","ang",q.ang,-720,720,5,j):num("Turn","ang",q.ang,-180,180,5,j)}</div>`).join("")+
-    `<p class="hint">Turn: positive turns left (anticlockwise), negative turns right. Arc 180 = bowl, 270 = curl, 360 = loop; chain several to make a spiral.</p>`;}
-  s+=`<h4>Notes for ${cur}</h4><textarea id="note" placeholder="What's wrong, which elements are where…">${e.note||""}</textarea>
-    <div class="btns" style="margin-top:8px"><button class="mini${e.approved?" pri":""}" id="ok">✓ Approve</button><button class="mini${e.fix?" pri":""}" id="fix">Needs fix</button><button class="mini" id="reset">Reset to draft</button></div>
-    <h4>Data</h4><div class="btns"><button class="mini" id="exp">Download all edits</button><button class="mini" id="copy">Copy ${cur} JSON</button><label class="mini" style="cursor:pointer">Import<input type="file" id="imp" accept=".json" hidden></label></div>
-    <p class="hint">Edits are saved in this browser. Download them and send me the file, and I'll fold them into the font build.</p>`;
-  $("ins").innerHTML=s;
-  if(t){$("ins").querySelectorAll("[data-cap]").forEach(x=>x.value=t[x.dataset.cap]||"auto");}
-  wire();
-}
-function wire(){
-  const I=$("ins");
-  I.querySelectorAll(".srow").forEach(r=>r.onclick=()=>{sel=+r.dataset.i;render()});
-  I.querySelectorAll("input[data-k]").forEach(inp=>{
-    inp.onfocus=()=>commit();inp.onpointerdown=()=>commit();
-    inp.oninput=()=>{const v=+inp.value,t=G().strokes[sel],o=inp.dataset.o,k=inp.dataset.k;
-      if(o==="s")t[k]=v;else if(o==="p")t[k]=v/100;else t.segs[+o][k]=v;
-      I.querySelectorAll(`input[data-k="${k}"][data-o="${o}"]`).forEach(x=>{if(x!==inp)x.value=inp.value});
-      inp.style.setProperty("--p",(inp.value-inp.min)/(inp.max-inp.min)*100+"%");save();canvas();I.querySelectorAll(".srow .e")[sel].textContent=KS.elements(t).filter(q=>q!=="corner").join(" → ")}
-    inp.onchange=()=>render();});
-  I.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{commit();G().strokes[sel].h=+b.dataset.h;changed()});
-  I.querySelectorAll("[data-cap]").forEach(x=>x.onchange=()=>{commit();G().strokes[sel][x.dataset.cap]=x.value;changed()});
-  I.querySelectorAll("[data-ty]").forEach(x=>x.onchange=()=>{commit();const j=+x.dataset.ty;G().strokes[sel].segs[j]=x.value==="L"?{t:"L",len:100}:x.value==="A"?{t:"A",r:100,ang:90}:{t:"C",ang:90};changed()});
-  I.querySelectorAll("[data-sx]").forEach(x=>x.onclick=()=>{commit();G().strokes[sel].segs.splice(+x.dataset.sx,1);changed()});
-  I.querySelectorAll("[data-add]").forEach(x=>x.onclick=()=>{commit();const a=x.dataset.add;G().strokes[sel].segs.push(a==="L"?{t:"L",len:100}:a==="A"?{t:"A",r:100,ang:-90}:{t:"C",ang:90});changed()});
-  I.querySelectorAll("[data-a]").forEach(x=>x.onclick=()=>{commit();const st=G().strokes,t=st[sel],a=x.dataset.a;
-    if(a==="up"&&sel>0){[st[sel-1],st[sel]]=[st[sel],st[sel-1]];sel--}
-    if(a==="down"&&sel<st.length-1){[st[sel+1],st[sel]]=[st[sel],st[sel+1]];sel++}
-    if(a==="dup"){st.splice(sel+1,0,clone(t));sel++}
-    if(a==="del"){st.splice(sel,1);sel=Math.max(0,sel-1)}
-    if(a==="mir"){const xs=st.flatMap(s=>KS.trace(s).joints.map(j=>j.x)),cx=(Math.min(...xs)+Math.max(...xs))/2,m=clone(t);
-      m.x=2*cx-t.x;m.h=(540-t.h)%360;m.segs.forEach(q=>{if("ang"in q)q.ang=-q.ang});st.splice(sel+1,0,m);sel++}
-    if(a==="rev"){const tr=KS.trace(t);st[sel]=Object.assign(clone(t),{x:Math.round(tr.x*10)/10,y:Math.round(tr.y*10)/10,h:Math.round(((tr.h+180)%360+360)%360),segs:t.segs.slice().reverse().map(q=>"ang"in q?Object.assign({},q,{ang:-q.ang}):Object.assign({},q)),s:1-(t.e??1),e:1-(t.s??0),cap0:t.cap1,cap1:t.cap0})}
-    changed()});
-  $("finish").onclick=()=>{commit();const st=G().strokes,t=st[sel];const tr=t?KS.trace(t):{x:300,y:350,h:0};
-    st.push({x:Math.round(tr.x),y:Math.round(tr.y),h:Math.round(((tr.h%360)+360)%360),segs:[{t:"L",len:100}],s:0,e:1,cap0:"auto",cap1:"auto"});sel=st.length-1;changed()};
-  $("new").onclick=()=>{commit();const st=G().strokes;st.push({x:300,y:350,h:0,segs:[{t:"L",len:200}],s:0,e:1,cap0:"auto",cap1:"auto"});sel=st.length-1;changed()};
-  $("order").onclick=()=>{commit();const g=G(),t=g.strokes[sel];g.strokes=KS.autoOrder(g.strokes);sel=Math.max(0,g.strokes.indexOf(t));changed()};
-  $("note").oninput=e=>{G().note=e.target.value;save()};
-  $("ok").onclick=()=>{const g=G();g.approved=!g.approved;if(g.approved)g.fix=false;save();pick();render()};
-  $("fix").onclick=()=>{const g=G();g.fix=!g.fix;if(g.fix)g.approved=false;save();pick();render()};
-  $("reset").onclick=()=>{if(confirm(`Reset ${cur} to my draft? Your edits to it are lost.`)){delete EDIT[cur];save();sel=0;pick();render()}};
-  $("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(EDIT,null,1)],{type:"application/json"}));a.download="kradin-radical-edits.json";a.click()};
-  $("copy").onclick=()=>{navigator.clipboard?.writeText(JSON.stringify({[cur]:view(cur)}));$("copy").textContent="Copied"};
-  $("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{Object.assign(EDIT,JSON.parse(t));save();pick();render()}catch(err){alert("Not a valid edits file")}})};
-}
-function render(){canvas();inspector();prog()}
-
-// dragging the start handle, with snapping
-function pt(e){const m=$("flip").getScreenCTM().inverse(),p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m),k=KS.K(W());return {x:p.x/k,y:350+(p.y-350)/k}}
-function snap(x,y){const w=98;let sx=Math.round(x/5)*5,sy=Math.round(y/5)*5;
-  for(const a of [0,w/2,350,700-w/2,700])if(Math.abs(y-a)<14)sy=a;
-  view(cur).strokes.forEach((t,i)=>{if(i===sel)return;KS.trace(t).joints.forEach(j=>{if(Math.hypot(j.x-x,j.y-y)<16){sx=Math.round(j.x*10)/10;sy=Math.round(j.y*10)/10}})});
-  return [sx,sy]}
-let drag=false;
-$("cv").addEventListener("pointerdown",e=>{if(e.target.id!=="hdl")return;commit();drag=true;$("cv").setPointerCapture(e.pointerId)});
-$("cv").addEventListener("pointermove",e=>{if(!drag)return;const p=pt(e),t=G().strokes[sel];[t.x,t.y]=snap(p.x,p.y);save();canvas()});
-$("cv").addEventListener("pointerup",()=>{if(drag){drag=false;render()}});
-document.addEventListener("keydown",e=>{if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
-  const t=view(cur).strokes[sel];if(!t)return;const d=e.shiftKey?25:5,m={ArrowLeft:[-d,0],ArrowRight:[d,0],ArrowUp:[0,d],ArrowDown:[0,-d]}[e.key];
-  if(m){e.preventDefault();commit();const g=G().strokes[sel];g.x+=m[0];g.y+=m[1];changed()}
-  if((e.metaKey||e.ctrlKey)&&e.key==="z"){e.preventDefault();$("undo").click()}});
-$("undo").onclick=()=>{if(!hist.length)return;EDIT[cur]=JSON.parse(hist.pop());changed()};
-$("play").onclick=()=>{const ps=[...$("cv").querySelectorAll(".stk")];let t=0;
-  ps.forEach(p=>{p.setAttribute("pathLength","1000");p.style.strokeDasharray="1000 3000";p.style.strokeDashoffset="1000"});
-  ps.forEach((p,i)=>{const dur=700;p.animate([{strokeDashoffset:1000},{strokeDashoffset:0}],{duration:dur,delay:t,fill:"forwards",easing:"ease-in-out"});t+=dur+150});
-  setTimeout(render,t+400)};
-["w","gh","cl","hide"].forEach(i=>$(i).oninput=()=>{$("wv").textContent=W();prog();canvas()});
-function prog(){document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"))}
-window.addEventListener("hashchange",()=>openG(decodeURIComponent(location.hash.slice(1))));
-Promise.all([fetch("radicals.json").then(r=>r.json()),fetch("radicals-ghost.json").then(r=>r.json())]).then(([d,g])=>{DATA=d;GH=g;load();openG(decodeURIComponent(location.hash.slice(1))||"a")});
-</script>
+<script src="kr.js"></script>
+<script src="editor.js"></script>
 </body>
 </html>
