@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Construction Lab</title>
+<meta name="description" content="Inspect how every Kɔradin sign is built: radical, modifier, glides, elements, guides, and the no-touch rule from Thin to Black.">
+<link rel="stylesheet" href="apple.css">
+<style>
+@font-face{font-family:"KM-Regular";src:url(fonts/KoradinModular-Regular-VF.woff2) format("woff2");font-display:block}
+:root{--el-STEM:#0a84ff;--el-BAR:#30b45a;--el-DIAG:#bf5af2;--el-ARC:#ff9f0a;--el-CURL:#ff375f;--el-SPIRAL:#5e5ce6;--el-LOOP:#64d2ff;--el-EAR:#ac8e68;
+  --ro-radical:var(--ink);--ro-vowel:var(--ink);--ro-modifier:#ff3b30;--ro-glide:#0a84ff;--ro-prefix:#af52de;--src:rgba(120,120,128,.22);--guide:rgba(184,134,11,.55)}
+@media (prefers-color-scheme:dark){:root{--src:rgba(160,160,170,.22);--guide:rgba(242,181,58,.55)}}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px}
+.tile{appearance:none;border:0;background:var(--fill);border-radius:10px;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .15s}
+.tile svg{width:100%;height:46px}
+.tile span{font-size:11px;color:var(--label2)}
+.tile[aria-current="true"]{background:var(--tint)}
+.tile[aria-current="true"] span{color:var(--tint-ink)}
+.tile[aria-current="true"] .ink-s{stroke:var(--tint-ink)}
+.tile[aria-current="true"] .ink-f{fill:var(--tint-ink)}
+.tile .dot{position:absolute}
+.tile.bad{box-shadow:inset 0 0 0 2px rgba(255,59,48,.55)}
+.view{padding:24px 28px 40px;display:flex;flex-direction:column;gap:18px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.title{font:700 44px/1.05 var(--display);letter-spacing:-.5px}
+.title small{display:block;font:400 15px/1.4 var(--font);color:var(--label2);letter-spacing:-.2px;margin-top:6px}
+.canvas{background:var(--canvas);border-radius:18px;border:.5px solid var(--sep);position:relative;overflow:hidden}
+.canvas svg{display:block;width:100%;height:min(62vh,640px)}
+.status{position:absolute;top:14px;right:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:12px;font-weight:500;padding:5px 11px;border-radius:980px;background:var(--glass);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:.5px solid var(--sep)}
+.pill.ok{color:#248a3d}.pill.bad{color:#d70015}
+@media (prefers-color-scheme:dark){.pill.ok{color:#30d158}.pill.bad{color:#ff453a}}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.strip .tile svg{height:70px}
+.over{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.over .tile svg{height:96px}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.toolbar .seg{min-width:240px}
+.wctl{display:flex;align-items:center;gap:12px;flex:1;min-width:260px}
+.wctl .val{min-width:110px;text-align:right}
+.sumline{font-size:13px;color:var(--label2)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="lab.html" aria-current="page">Construction lab</a></div>
+</nav>
+<div class="shell">
+  <aside class="side" aria-label="Signs">
+    <p class="h-sec">Show</p>
+    <div class="group"><div class="row col">
+      <div class="seg" id="mode" role="radiogroup" aria-label="View"><span class="thumb"></span><button data-v="inspect">Inspect</button><button data-v="overview">Overview</button></div>
+      <select id="fam" aria-label="Family" style="border:0;border-radius:10px;background:var(--fill);color:var(--label);font:15px var(--font);padding:9px 10px">
+        <option value="all">All signs</option><option value="traced">Radicals (traced)</option><option value="bar">Bar rows</option>
+        <option value="snap">Bar rows where snap missed</option><option value="bracket">Bracket rows</option><option value="glide">Glide rows (y, w)</option>
+        <option value="ny">ni / ny / my</option><option value="bad">Breaks the rule somewhere</option>
+      </select>
+      <input type="search" id="q" placeholder="Search a syllable, e.g. kya" aria-label="Search">
+    </div></div>
+    <p class="note" id="count"></p>
+    <div class="tiles" id="tiles"></div>
+  </aside>
+
+  <main class="main">
+    <div class="view">
+      <div class="head">
+        <div class="title" id="ttl">…<small id="comp"></small></div>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="toolbar">
+        <div class="seg" id="colour" role="radiogroup" aria-label="Colour"><span class="thumb"></span><button data-v="el">Elements</button><button data-v="role">Roles</button><button data-v="plain">Plain</button></div>
+        <div class="wctl"><span class="lbl">Weight</span><input type="range" id="w" min="100" max="900" value="400" aria-label="Weight"><span class="val" id="wv"></span></div>
+      </div>
+      <div class="group" style="display:flex;flex-wrap:wrap">
+        <div class="row" style="flex:1;min-width:180px"><span class="lbl">Koradin Dua</span><label class="switch"><input type="checkbox" id="tSrc" checked><span></span></label></div>
+        <div class="row" style="flex:1;min-width:180px"><span class="lbl">Guides</span><label class="switch"><input type="checkbox" id="tGuide" checked><span></span></label></div>
+        <div class="row" style="flex:1;min-width:180px"><span class="lbl">Centrelines</span><label class="switch"><input type="checkbox" id="tSkel"><span></span></label></div>
+        <div class="row" style="flex:1;min-width:180px"><span class="lbl">Rule check</span><label class="switch"><input type="checkbox" id="tViol" checked><span></span></label></div>
+      </div>
+      <section id="inspect">
+        <div class="canvas"><svg id="big" role="img" aria-label="Selected sign"></svg><div class="status" id="status"></div></div>
+        <p class="h-sec" style="margin-top:18px;padding-left:2px">Same row</p>
+        <div class="strip" id="strip"></div>
+      </section>
+      <section id="overview" hidden>
+        <p class="sumline" id="osum"></p>
+        <div class="over" id="over"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const EL={STEM:"Stem",BAR:"Bar",DIAG:"Diagonal",ARC:"Arc / bowl / cup",CURL:"Curl",SPIRAL:"Spiral","LOOP-floating":"Floating loop","LOOP-drooping":"Drooping loop",EAR:"Ear"};
+const ELCOL=k=>`var(--el-${k.startsWith("LOOP")?"LOOP":k})`;
+const ROLE={radical:"Radical",vowel:"Vowel",modifier:"Modifier",glide:"Glide",prefix:"ni prefix"};
+let D=null, cur=null, S={mode:"inspect",colour:"el",w:400,src:true,guide:true,skel:false,viol:true,fam:"all",q:""};
+try{const s=JSON.parse(localStorage.getItem("klab")||"{}");Object.assign(S,s)}catch(e){}
+function save(){try{localStorage.setItem("klab",JSON.stringify({colour:S.colour,src:S.src,guide:S.guide,skel:S.skel,viol:S.viol}))}catch(e){}}
+
+// weight -> stroke width + positions (piecewise linear over the exported masters)
+function keysSorted(){return Object.keys(D.wmap).sort((a,b)=>D.wmap[a]-D.wmap[b])}
+function at(g,w){
+  const K=keysSorted(); let a=K[0],b=K[K.length-1];
+  for(let i=0;i<K.length-1;i++){if(w>=D.wmap[K[i]]&&w<=D.wmap[K[i+1]]){a=K[i];b=K[i+1];break}}
+  const t=D.wmap[b]===D.wmap[a]?0:(w-D.wmap[a])/(D.wmap[b]-D.wmap[a]);
+  const A=g.P[a],B=g.P[b],X=new Float32Array(A.length);for(let i=0;i<A.length;i++)X[i]=A[i]+(B[i]-A[i])*t;
+  const sw=D.masters[a]+(D.masters[b]-D.masters[a])*t;
+  const near=t<.5?a:b;
+  return {X,sw,near};
+}
+function pts(X,idx){return idx.map(i=>`${X[2*i].toFixed(1)},${X[2*i+1].toFixed(1)}`).join(" ")}
+function glyphSVG(g,w,opt){
+  const {X,sw,near}=at(g,w); let s="";
+  const ink=opt.ink||"var(--ink)";
+  if(opt.src) s+=`<path d="${g.src}" fill="var(--src)"/>`;
+  // base strokes
+  for(const st of g.strokes){
+    const col=opt.colour==="role"?`var(--ro-${st.r})`:ink;
+    const p=pts(X,st.i);
+    s+=st.c?`<polygon class="ink-s" points="${p}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/>`
+           :`<polyline class="ink-s" points="${p}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="butt"/>`;
+    if(!st.c) st.e.forEach((e,k)=>{if(e==="node"){const i=k?st.i[st.i.length-1]:st.i[0];
+      let c=col; if(opt.colour==="el"&&st.g.length){const sg=k?st.g[st.g.length-1]:st.g[0];c=ELCOL(sg[2])}
+      s+=`<circle class="ink-f" cx="${X[2*i]}" cy="${X[2*i+1]}" r="${sw/2}" fill="${c}"/>`}});
+    if(opt.colour==="el") for(const [a,b,el] of st.g){
+      const ids=st.i.slice(a,b+1); if(st.c&&a===0&&b===st.i.length-1) ids.push(st.i[0]);
+      s+=`<polyline points="${pts(X,ids)}" fill="none" stroke="${ELCOL(el)}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="butt"/>`;
+    }
+  }
+  for(let k=0;k<g.dots;k++){const i=g.np+k;s+=`<rect class="ink-f" x="${X[2*i]-sw/2}" y="${X[2*i+1]-sw/2}" width="${sw}" height="${sw}" fill="${ink}"/>`}
+  if(opt.skel) for(const st of g.strokes) s+=`<polyline points="${pts(X,st.c?st.i.concat([st.i[0]]):st.i)}" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="5" stroke-linejoin="round"/>`;
+  if(opt.viol) for(const [x,y,sev] of (g.viol[near]||[])) s+=`<circle cx="${x}" cy="${y}" r="${60}" fill="none" stroke="#ff3b30" stroke-width="12"/>`;
+  return {svg:s,sw,near};
+}
+function frame(g,inner,guides){
+  const x0=-60,x1=Math.max(g.adv,700)+60;
+  let gl="";
+  if(guides){
+    for(const [y,lab,dash] of [[700,"top 700",0],[669,"top axis",1],[342,"mid axis 342",0],[31,"base axis",1],[0,"baseline 0",0],[-38,"marks",1]])
+      gl+=`<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--guide)" stroke-width="${dash?2:3}" ${dash?'stroke-dasharray="10 10"':''}/><text x="${x1-8}" y="${-y-8}" transform="scale(1,-1)" text-anchor="end" font-size="22" fill="var(--guide)" font-family="-apple-system,BlinkMacSystemFont,sans-serif">${lab}</text>`;
+  }
+  return `<svg viewBox="${x0} -150 ${x1-x0} 1000" preserveAspectRatio="xMidYMid meet"><g transform="translate(0,700) scale(1,-1)">${gl}${inner}</g></svg>`;
+}
+function thumb(g,w,cls=""){
+  const {svg}=glyphSVG(g,w,{colour:"plain",src:false,skel:false,viol:false});
+  const x1=Math.max(g.adv,700)+40;
+  return `<svg viewBox="-40 -60 ${x1+40} 860" aria-hidden="true"><g transform="translate(0,700) scale(1,-1)">${svg}</g></svg>`;
+}
+function famOf(g){
+  if(S.fam==="all")return true;
+  const c=g.comp;
+  if(S.fam==="traced")return c==="traced";
+  if(S.fam==="bar")return / bar/.test(c)&&!/ny/.test(c);
+  if(S.fam==="snap")return /snap missed/.test(c);
+  if(S.fam==="bracket")return /bracket/.test(c);
+  if(S.fam==="glide")return /mini/.test(c);
+  if(S.fam==="ny")return /ni \+|ny \+/.test(c);
+  if(S.fam==="bad")return g.worst>=1;
+  return true;
+}
+function list(){return D.glyphs.filter(g=>famOf(g)&&(!S.q||g.s.includes(S.q.trim().toLowerCase())||g.n.includes(S.q.trim())))}
+function setSeg(id,val){const seg=$(id),bs=[...seg.querySelectorAll("button")],i=Math.max(0,bs.findIndex(b=>b.dataset.v===val));
+  bs.forEach((b,j)=>b.setAttribute("aria-checked",j===i));const th=seg.querySelector(".thumb");th.style.width=`calc((100% - 4px)/${bs.length})`;th.style.transform=`translateX(${i*100}%)`}
+function wLabel(w){const {sw}=at(D.glyphs[0],w);return `${w} · stroke ${Math.round(sw)}`}
+function drawTiles(){
+  const L=list(); $("count").textContent=`${L.length} signs`;
+  $("tiles").innerHTML=L.map(g=>`<button class="tile${g.worst>=1?" bad":""}" data-n="${g.n}" aria-current="${cur&&cur.n===g.n}" title="${g.s}: ${g.comp}">${thumb(g,400)}<span>${g.s}</span></button>`).join("");
+  $("tiles").querySelectorAll(".tile").forEach(b=>b.onclick=()=>{select(b.dataset.n)});
+}
+function legend(){
+  if(S.colour==="el"){const used=new Set();for(const st of cur.strokes)for(const s of st.g)used.add(s[2]);
+    $("legend").innerHTML=[...used].map(k=>`<span class="chip"><i style="background:${ELCOL(k)}"></i>${EL[k]||k}</span>`).join("")}
+  else if(S.colour==="role"){const used=new Set(cur.strokes.map(s=>s.r));$("legend").innerHTML=[...used].map(k=>`<span class="chip"><i style="background:var(--ro-${k})"></i>${ROLE[k]}</span>`).join("")}
+  else $("legend").innerHTML="";
+}
+function drawBig(){
+  if(!cur)return;
+  const r=glyphSVG(cur,S.w,{colour:S.colour,src:S.src,skel:S.skel,viol:S.viol});
+  $("big").outerHTML=frame(cur,r.svg,S.guide).replace("<svg",'<svg id="big" role="img" aria-label="'+cur.s+'"');
+  const v=(cur.viol[r.near]||[]).length;
+  $("status").innerHTML=`<span class="pill ${v?"bad":"ok"}">${v?`${v} new touch${v>1?"es":""} at this weight`:"No new touching at this weight"}</span>`+
+    `<span class="pill">${cur.worst<1?"Passes at every weight":"Worst overlap "+cur.worst.toFixed(0)+" units"}</span>`;
+  $("ttl").firstChild.textContent=cur.s; $("comp").textContent=cur.comp==="traced"?"Radical, traced from Koradin Dua":cur.comp;
+  legend();
+  $("wv").textContent=wLabel(S.w);
+}
+function drawStrip(){
+  const row=D.glyphs.filter(g=>g.row===cur.row);
+  $("strip").innerHTML=row.map(g=>`<button class="tile" data-n="${g.n}" aria-current="${g.n===cur.n}">${thumb(g,S.w)}<span>${g.s}</span></button>`).join("");
+  $("strip").querySelectorAll(".tile").forEach(b=>b.onclick=()=>select(b.dataset.n));
+}
+function drawOver(){
+  const L=list(); const bad=L.filter(g=>{const {near}=at(g,S.w);return (g.viol[near]||[]).length}).length;
+  $("osum").textContent=`${L.length} signs at weight ${wLabel(S.w)}. ${bad} break the no-touch rule here (red rings).`;
+  $("over").innerHTML=L.map(g=>{const r=glyphSVG(g,S.w,{colour:S.colour,src:S.src,skel:false,viol:S.viol});const x1=Math.max(g.adv,700)+40;
+    return `<button class="tile" data-n="${g.n}"><svg viewBox="-40 -60 ${x1+40} 860"><g transform="translate(0,700) scale(1,-1)">${r.svg}</g></svg><span>${g.s}</span></button>`}).join("");
+  $("over").querySelectorAll(".tile").forEach(b=>b.onclick=()=>{S.mode="inspect";applyMode();select(b.dataset.n)});
+}
+function select(n){cur=D.glyphs.find(g=>g.n===n);history.replaceState(null,"","#"+encodeURIComponent(cur.s));
+  document.querySelectorAll("#tiles .tile").forEach(t=>t.setAttribute("aria-current",t.dataset.n===n));drawBig();drawStrip()}
+function applyMode(){setSeg("mode",S.mode);$("inspect").hidden=S.mode!=="inspect";$("overview").hidden=S.mode!=="overview";if(S.mode==="overview")drawOver();else drawBig()}
+function bind(){
+  const w=$("w");w.value=S.w;const prog=()=>w.style.setProperty("--p",((w.value-100)/8)+"%");prog();
+  let raf=0;w.oninput=()=>{S.w=+w.value;prog();cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{if(S.mode==="inspect"){drawBig();drawStrip()}else drawOver()})};
+  for(const [id,key] of [["tSrc","src"],["tGuide","guide"],["tSkel","skel"],["tViol","viol"]]){$(id).checked=S[key];$(id).onchange=e=>{S[key]=e.target.checked;save();S.mode==="inspect"?drawBig():drawOver()}}
+  $("colour").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.colour=b.dataset.v;setSeg("colour",S.colour);save();S.mode==="inspect"?drawBig():drawOver()});
+  $("mode").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.mode=b.dataset.v;applyMode()});
+  $("fam").onchange=e=>{S.fam=e.target.value;drawTiles();if(S.mode==="overview")drawOver()};
+  $("q").oninput=e=>{S.q=e.target.value;drawTiles();if(S.mode==="overview")drawOver()};
+  setSeg("colour",S.colour);
+}
+fetch("lab.json").then(r=>r.json()).then(d=>{D=d;bind();drawTiles();
+  const h=decodeURIComponent(location.hash.slice(1));const g=D.glyphs.find(x=>x.s===h)||D.glyphs.find(x=>x.s==="kya")||D.glyphs[0];
+  select(g.n);applyMode();
+  addEventListener("hashchange",()=>{const h=decodeURIComponent(location.hash.slice(1));const g=D.glyphs.find(x=>x.s===h);if(g&&(!cur||g.n!==cur.n)){S.mode="inspect";applyMode();select(g.n)}})});
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Adinkra Alphabet</title>
+<style>
+@font-face{font-family:AD;src:url(fonts/AdinkraAlphabet.ttf)}
+:root{--bg:#f2f2f7;--card:#fff;--label:#000;--label2:rgba(60,60,67,.6);--sep:rgba(60,60,67,.14);--fill:rgba(118,118,128,.12);--tint:#b8860b;--tint-ink:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--label:#fff;--label2:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--fill:rgba(118,118,128,.24);--tint:#f2b53a;--tint-ink:#1c1c1e}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--label);font:15px/1.47 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-.24px}
+.wrap{max-width:980px;margin:0 auto;padding:56px 22px 72px}
+header{margin-bottom:40px}
+h1{font:700 48px/1.08 -apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;letter-spacing:-.5px}
+h1 .ad{display:block;font-family:AD;font-weight:400;font-size:44px;color:var(--tint);margin-bottom:12px;letter-spacing:4px}
+.lead{font-size:19px;line-height:1.42;color:var(--label2);max-width:620px;margin-top:14px;letter-spacing:.1px}
+h2{font:600 24px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;margin:48px 0 6px;letter-spacing:.1px}
+.note{color:var(--label2);max-width:640px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.cell{background:var(--card);border-radius:16px;padding:16px 8px 12px;text-align:center}
+.cell .g{font-family:AD;font-size:50px;line-height:1.1}
+.cell .l{font-size:22px;font-weight:600;margin-top:8px}
+.cell .k{font-size:12px;color:var(--label2)}
+.cell.open{background:var(--tint);color:var(--tint-ink)}
+.cell.open .k{color:var(--tint-ink);opacity:.8}
+.cell.loan .l{color:var(--label2)}
+.table{background:var(--card);border-radius:16px;overflow:hidden}
+.tr{display:grid;grid-template-columns:72px 1fr 1fr 1.4fr;align-items:center;gap:12px;padding:10px 18px;min-height:56px;position:relative}
+.tr + .tr::before{content:"";position:absolute;top:0;left:18px;right:0;height:.5px;background:var(--sep)}
+.tr.head{min-height:40px;color:var(--label2);font-size:13px}
+.tr .g{font-family:AD;font-size:32px;line-height:1}
+.words .tr{grid-template-columns:1fr 2fr}
+.ref{display:grid;grid-template-columns:repeat(13,1fr);gap:6px}
+.ref div{background:var(--card);border-radius:10px;text-align:center;padding:8px 2px 6px}
+.ref .g{font-family:AD;font-size:28px;line-height:1.2}
+.ref .k{font-size:11px;color:var(--label2)}
+footer{margin-top:56px;color:var(--label2);font-size:13px}
+@media (max-width:640px){h1{font-size:36px}.ref{grid-template-columns:repeat(7,1fr)}.tr{grid-template-columns:52px 1fr 1fr 1.2fr;padding:10px 14px}}
+@media print{body{background:#fff}.cell,.table,.ref div{border:1px solid #ddd}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="ad" aria-hidden="true">adinkra</span>The Adinkra alphabet for Twi</h1>
+    <p class="lead">One sign for each Latin letter. The 22 letters of Twi use the font's lowercase forms. The open vowels ɛ and ɔ take the capital forms of E and O, so they never read as e and o.</p>
+  </header>
+
+  <h2>Twi letters</h2>
+  <p class="note">Type 3 for ɛ and ) for ɔ.</p>
+  <div class="grid" id="twi"></div>
+
+  <h2>Loan letters</h2>
+  <p class="note">Outside the Twi alphabet, kept for names and borrowed words.</p>
+  <div class="grid" id="loan"></div>
+
+  <h2>Digraphs</h2>
+  <p class="note">Written letter by letter, as in Latin Twi.</p>
+  <div class="table" id="dig"></div>
+
+  <h2>Words</h2>
+  <div class="table words" id="words"></div>
+
+  <h2>Every glyph in the font</h2>
+  <p class="note">Capitals and lowercase are different designs for 20 letters.</p>
+  <div class="ref" id="ref"></div>
+
+  <footer>Made for Charles Korankye.</footer>
+</div>
+<script src="twi.js"></script>
+<script src="table.js"></script>
+</body>
+</html>
