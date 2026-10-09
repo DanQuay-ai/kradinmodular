@@ -47,7 +47,16 @@ const KS = (() => {
     if (st.cap0 !== "butt" && st.s <= 0.001) { const p = ext(st.x, st.y, st.h, W, true); if (p) { pre = `M${f(p.x)},${f(p.y)} L${f(st.x)},${f(st.y)}`; d = pre + d.replace(/^M[^A-Z]*/, " "); tot += Math.hypot(p.x - st.x, p.y - st.y); } }
     return { d, t, tot };
   }
+  // weight scaling: designs are drawn at Black (98). At other weights the centrelines scale about the mid axis
+  // so the outer edges still sit on the baseline and the top (circles stay circles).
+  const K = W => (700 - W) / 602;
+  function scaled(st, W) {
+    const k = K(W); if (Math.abs(k - 1) < 1e-6) return st;
+    return Object.assign({}, st, { x: st.x * k, y: 350 + (st.y - 350) * k,
+      segs: st.segs.map(g => g.t === "L" ? Object.assign({}, g, { len: g.len * k }) : g.t === "A" ? Object.assign({}, g, { r: g.r * k }) : g) });
+  }
   function svgStroke(st, W, o = {}) {
+    st = scaled(st, W);
     const { d, t } = path(st, W), s = st.s ?? 0, e = st.e ?? 1;
     const dash = (s > 0 || e < 1) ? ` pathLength="1000" stroke-dasharray="0 ${f(s * 1000)} ${f((e - s) * 1000)} 3000"` : "";
     return `<path d="${d}" fill="none" stroke="${o.color || "var(--ink)"}" stroke-width="${W}" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10"${dash}${o.attr || ""}/>`;
@@ -82,5 +91,5 @@ const KS = (() => {
       return [Math.round(Math.min(...xs) / 120), -Math.round(Math.max(...ys) / 120), vert]; };
     return strokes.map((s, i) => [key(s), i, s]).sort((a, b) => { for (let k = 0; k < 3; k++) if (a[0][k] !== b[0][k]) return a[0][k] - b[0][k]; return a[1] - b[1]; }).map(x => x[2]);
   }
-  return { trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

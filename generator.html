@@ -19,10 +19,12 @@ body{overflow-x:hidden}
 .chips button.ok::after,.chips button.fix::after,.chips button.dr::after{content:"";position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:9px;background:#34c759}
 .chips button.fix::after{background:#ff9500}.chips button.dr::after{background:var(--tint)}
 .chips button[aria-current="true"]::after{background:var(--tint-ink)}
-.stage{display:flex;flex-direction:column;gap:10px}
+.stage{display:flex;flex-direction:column;gap:10px;position:sticky;top:64px;align-self:start}
+.pick,.ins{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:1100px){.stage,.pick,.ins{position:static;max-height:none}}
 .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .top .group{display:flex;align-items:center;gap:10px;padding:6px 14px}
-#cv{width:100%;aspect-ratio:1000/900;background:var(--canvas);border-radius:16px;touch-action:none;user-select:none}
+#cv{width:100%;height:calc(100vh - 210px);min-height:420px;background:var(--canvas);border-radius:16px;touch-action:none;user-select:none}
 .ins h4{font-size:12px;color:var(--label2);font-weight:500;margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center}
 .ins h4:first-child{margin-top:0}
 .slist{display:flex;flex-direction:column;gap:4px}
@@ -59,11 +61,12 @@ textarea{width:100%;min-height:64px;border-radius:10px;border:.5px solid var(--s
     <div class="top">
       <div class="pane group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
       <div class="pane group"><span class="lbl">Guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label>
-        <span class="lbl">Centrelines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label></div>
+        <span class="lbl">Centrelines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label>
+        <span class="lbl">Hide glyph</span><label class="switch"><input type="checkbox" id="hide"><span></span></label></div>
       <div class="pane group"><button class="mini pri" id="play">▶ Play strokes</button><button class="mini" id="undo">Undo</button></div>
     </div>
     <svg id="cv" viewBox="-100 -100 1000 900"></svg>
-    <p class="hint">Drag the white handle to move a stroke's start; it snaps to the guides and to other strokes. Arrow keys nudge it (Shift = 25). Click a stroke to select it.</p>
+    <p class="hint">Positions and lengths are in Black (98) units; at other weights the drawing scales so the edges stay on the baseline and the top. Drag the white handle to move a stroke's start; it snaps to the guides and to other strokes. Arrow keys nudge it (Shift = 25). Click a stroke to select it.</p>
   </main>
   <aside class="pane ins" id="ins"></aside>
 </div>
@@ -97,14 +100,15 @@ function canvas(){
   s+=KS.guides(w,-100,900);
   [["0",0],["base",w/2],["mid",350],["top",700-w/2],["700",700]].forEach(([n,y])=>s+=`<text transform="translate(-95,${y+6}) scale(1,-1)" font-size="18" fill="var(--tint)" font-family="system-ui">${n}</text>`);
   if($("gh").checked)s+=`<path d="${GH[cur].d}" fill="#ff9500" fill-opacity=".22"/>`;
-  s+=`<g clip-path="url(#body)">`+st.map((t,i)=>KS.svgStroke(t,w,{color:i===sel?"var(--tint)":"var(--ink)",attr:` data-i="${i}" class="stk" style="cursor:pointer" opacity="${i===sel?0.92:0.85}"`})).join("")+`</g>`;
-  if(cl)s+=st.map(t=>`<path d="${KS.trace(t).d}" fill="none" stroke="#ff3b30" stroke-width="3" pointer-events="none"/>`).join("");
-  const t=st[sel];
+  if(!$("hide").checked)s+=`<g clip-path="url(#body)">`+st.map((t,i)=>KS.svgStroke(t,w,{color:i===sel?"var(--tint)":"var(--ink)",attr:` data-i="${i}" class="stk" style="cursor:pointer" opacity="${i===sel?0.92:0.85}"`})).join("")+`</g>`;
+  const sc=st.map(t=>KS.scaled(t,w));
+  if(cl)s+=sc.map(t=>`<path d="${KS.trace(t).d}" fill="none" stroke="#ff3b30" stroke-width="3" pointer-events="none"/>`).join("");
+  const t=sc[sel];
   if(t){const tr=KS.trace(t);
     s+=tr.joints.slice(1).map(j=>`<circle cx="${j.x}" cy="${j.y}" r="9" fill="#ff3b30" pointer-events="none"/>`).join("");
     s+=`<g transform="translate(${tr.x},${tr.y}) rotate(${tr.h})" pointer-events="none"><path d="M0,0 L-26,13 L-26,-13Z" fill="#ff3b30"/></g>`;
     s+=`<circle id="hdl" cx="${t.x}" cy="${t.y}" r="20" fill="#fff" stroke="#ff3b30" stroke-width="6" style="cursor:grab"/>`;}
-  s+=st.map((t,i)=>`<g transform="translate(${t.x},${t.y}) scale(1,-1)" pointer-events="none"><circle cx="-34" cy="-34" r="20" fill="#ff3b30"/><text x="-34" y="-27" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="system-ui">${i+1}</text></g>`).join("");
+  s+=sc.map((t,i)=>`<g transform="translate(${t.x},${t.y}) scale(1,-1)" pointer-events="none"><circle cx="-34" cy="-34" r="20" fill="#ff3b30"/><text x="-34" y="-27" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="system-ui">${i+1}</text></g>`).join("");
   $("cv").innerHTML=s+"</g>";
   $("cv").querySelectorAll(".stk").forEach(p=>p.addEventListener("pointerdown",e=>{if(e.target.id==="hdl")return;sel=+p.dataset.i;render()}));
 }
@@ -143,7 +147,7 @@ function wire(){
     inp.oninput=()=>{const v=+inp.value,t=G().strokes[sel],o=inp.dataset.o,k=inp.dataset.k;
       if(o==="s")t[k]=v;else if(o==="p")t[k]=v/100;else t.segs[+o][k]=v;
       I.querySelectorAll(`input[data-k="${k}"][data-o="${o}"]`).forEach(x=>{if(x!==inp)x.value=inp.value});
-      save();canvas();I.querySelectorAll(".srow .e")[sel].textContent=KS.elements(t).filter(q=>q!=="corner").join(" → ")}
+      inp.style.setProperty("--p",(inp.value-inp.min)/(inp.max-inp.min)*100+"%");save();canvas();I.querySelectorAll(".srow .e")[sel].textContent=KS.elements(t).filter(q=>q!=="corner").join(" → ")}
     inp.onchange=()=>render();});
   I.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{commit();G().strokes[sel].h=+b.dataset.h;changed()});
   I.querySelectorAll("[data-cap]").forEach(x=>x.onchange=()=>{commit();G().strokes[sel][x.dataset.cap]=x.value;changed()});
@@ -171,11 +175,11 @@ function wire(){
   $("copy").onclick=()=>{navigator.clipboard?.writeText(JSON.stringify({[cur]:view(cur)}));$("copy").textContent="Copied"};
   $("imp").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{Object.assign(EDIT,JSON.parse(t));save();pick();render()}catch(err){alert("Not a valid edits file")}})};
 }
-function render(){canvas();inspector()}
+function render(){canvas();inspector();prog()}
 
 // dragging the start handle, with snapping
-function pt(e){const m=$("flip").getScreenCTM().inverse(),p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m);return p}
-function snap(x,y){const w=W();let sx=Math.round(x/5)*5,sy=Math.round(y/5)*5;
+function pt(e){const m=$("flip").getScreenCTM().inverse(),p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m),k=KS.K(W());return {x:p.x/k,y:350+(p.y-350)/k}}
+function snap(x,y){const w=98;let sx=Math.round(x/5)*5,sy=Math.round(y/5)*5;
   for(const a of [0,w/2,350,700-w/2,700])if(Math.abs(y-a)<14)sy=a;
   view(cur).strokes.forEach((t,i)=>{if(i===sel)return;KS.trace(t).joints.forEach(j=>{if(Math.hypot(j.x-x,j.y-y)<16){sx=Math.round(j.x*10)/10;sy=Math.round(j.y*10)/10}})});
   return [sx,sy]}
@@ -192,7 +196,8 @@ $("play").onclick=()=>{const ps=[...$("cv").querySelectorAll(".stk")];let t=0;
   ps.forEach(p=>{p.setAttribute("pathLength","1000");p.style.strokeDasharray="1000 3000";p.style.strokeDashoffset="1000"});
   ps.forEach((p,i)=>{const dur=700;p.animate([{strokeDashoffset:1000},{strokeDashoffset:0}],{duration:dur,delay:t,fill:"forwards",easing:"ease-in-out"});t+=dur+150});
   setTimeout(render,t+400)};
-["w","gh","cl"].forEach(i=>$(i).oninput=()=>{$("wv").textContent=W();canvas()});
+["w","gh","cl","hide"].forEach(i=>$(i).oninput=()=>{$("wv").textContent=W();prog();canvas()});
+function prog(){document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"))}
 window.addEventListener("hashchange",()=>openG(decodeURIComponent(location.hash.slice(1))));
 Promise.all([fetch("radicals.json").then(r=>r.json()),fetch("radicals-ghost.json").then(r=>r.json())]).then(([d,g])=>{DATA=d;GH=g;load();openG(decodeURIComponent(location.hash.slice(1))||"a")});
 </script>
