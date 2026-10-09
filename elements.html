@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Kɔradin Elements</title>
+<link rel="stylesheet" href="apple.css">
+<style>
+@font-face{font-family:"KM-Regular";src:url(fonts/KoradinModular-Regular-VF.woff2) format("woff2")}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 60px}
+h1{font:700 40px/1.1 var(--display);letter-spacing:-.5px}
+.lead{color:var(--label2);font-size:17px;max-width:720px;margin-top:10px}
+h2{font:600 22px/1.2 var(--display);margin:40px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--card);border-radius:16px;padding:12px 14px 14px}
+.card svg{width:100%;height:210px;display:block;background:var(--canvas);border-radius:10px}
+.card b{display:block;font-size:15px;margin-top:10px}
+.card p{font-size:13px;color:var(--label2);margin-top:2px}
+.card code{font-size:12px;color:var(--tint)}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:.5px solid var(--sep)}
+th{color:var(--label2);font-weight:500;font-size:13px}
+.ctl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.ctl .group{display:flex;align-items:center;gap:12px;padding:8px 16px;min-width:300px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="elements.html" aria-current="page">Elements</a><a href="lab.html">Construction lab</a></div>
+</nav>
+<div class="wrap">
+  <h1>Exploded elements</h1>
+  <p class="lead">Every Kɔradin sign is assembled from these parts only: straight lines, circular arcs, ellipses and one fixed diagonal. Shown at Black (stroke 98). Validate these first; the glyphs are rebuilt from them afterwards.</p>
+  <div class="ctl"><div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
+  <div class="group"><span class="lbl">Show centrelines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label></div></div>
+
+  <h2>Rules</h2>
+  <table>
+    <tr><th>Rule</th><th>Value</th></tr>
+    <tr><td>Body</td><td>baseline 0, top 700. Axes (centrelines): base 49, mid 350, top 651 at Black</td></tr>
+    <tr><td>Stems and bars</td><td>exactly two points each. Stems vertical, bars horizontal on an axis</td></tr>
+    <tr><td>Diagonal</td><td>one fixed angle: 60° from the baseline</td></tr>
+    <tr><td>Curves</td><td>circular arcs and ellipses only, tangent (G1) to the straight they meet</td></tr>
+    <tr><td>Junctions</td><td>a stroke ends exactly on the centreline of the stroke it joins: no gaps, no overshoot</td></tr>
+    <tr><td>Modifier</td><td>the rightmost element of the radical branches into the modifier bar; the bar continues it to the right (160 past the radical)</td></tr>
+    <tr><td>Symmetry</td><td>symmetric signs are built as one half, then mirrored about the vertical axis</td></tr>
+    <tr><td>Counters</td><td>white space inside any loop, bowl or spiral ≥ 0.4 × stroke; separate strokes never touch</td></tr>
+  </table>
+
+  <h2>Size limits (centreline radius)</h2>
+  <table id="limits"><tr><th>Element</th><th>Min</th><th>Max</th><th>Note</th></tr></table>
+
+  <h2>Elements</h2>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+let W=98;
+const GAP=()=>0.4*W, AX=()=>({base:W/2,mid:350,top:700-W/2});
+const T60=Math.tan(Math.PI/3);
+// limits scale with the stroke: min radius keeps the counter open, max keeps it inside the body
+const LIM={
+  bowl:{min:()=>W+GAP()/2,max:()=>260,note:"half-circle trough; legs optional"},
+  arc:{min:()=>W+GAP()/2,max:()=>320,note:"quarter or half circle joining two straights"},
+  ear:{min:()=>0.9*W,max:()=>1.6*W,note:"quarter circle turning into a bar on an axis"},
+  curl:{min:()=>0.8*W,max:()=>1.3*W,note:"270° hook on a free end"},
+  loopF:{min:()=>0.7*W+GAP()/2,max:()=>1.4*W,note:"floating ring, not attached"},
+  loopD:{min:()=>0.7*W+GAP()/2,max:()=>1.2*W,note:"ring hanging on a stem"},
+  spiralBig:{min:()=>350-W/2,max:()=>350-W/2,note:"o, yo, wo: outer radius fills the body"},
+  spiralMed:{min:()=>0.72*(350-W/2),max:()=>0.72*(350-W/2),note:"nyo, myo: 0.72 × big"},
+};
+const NAMES={bowl:"Bowl / cup",arc:"Arc",ear:"Ear",curl:"Curl",loopF:"Floating loop",loopD:"Drooping loop",spiralBig:"Spiral, big",spiralMed:"Spiral, medium"};
+function spiral(cx,cy,R,p,turns){ // semicircle chain, pitch p, two alternating centres
+  let d=`M${cx+R},${cy}`,r=R,x=cx+R,s=0;
+  for(let i=0;i<turns*2&&r>0.72*W;i++){const nx=x-2*r*(s?-1:1);d+=` A${r},${r} 0 0 1 ${nx},${cy}`;x=nx;r-=p/2;s^=1}
+  return d;
+}
+function els(){
+  const a=AX(),g=GAP(),L=LIM;
+  const rb=L.bowl.min(),rB=L.bowl.max(),re=L.ear.min(),rc=L.curl.min(),rl=L.loopF.min(),rd=L.loopD.min();
+  const pitch=W+g, Rb=L.spiralBig.max(), Rm=L.spiralMed.max();
+  return [
+   ["Stem, full",`M300,0 L300,700`,"2 points, 0 → 700"],
+   ["Stem, half",`M300,0 L300,${a.mid}`,"2 points, ends on the mid axis"],
+   ["Bar, top / mid / base",`M100,${a.top} L500,${a.top} M100,${a.mid} L500,${a.mid} M100,${a.base} L500,${a.base}`,"2 points each, on an axis"],
+   ["Diagonal 60°",`M120,0 L${120+700/T60},700`,"one fixed angle"],
+   ["Bowl, smallest",`M${300-rb},700 L${300-rb},${a.base+rb} A${rb},${rb} 0 0 0 ${300+rb},${a.base+rb} L${300+rb},700`,`r = ${Math.round(rb)}: perfect half-circle trough`],
+   ["Bowl, largest",`M${320-rB},700 L${320-rB},${a.base+rB} A${rB},${rB} 0 0 0 ${320+rB},${a.base+rB} L${320+rB},700`,`r = ${rB}`],
+   ["Arc (quarter) into stem",`M100,${a.top} L${300-180},${a.top} A180,180 0 0 0 300,${a.top-180} L300,0`,"bar → arc → stem, tangent"],
+   ["Ear",`M200,${a.top-re-120} L200,${a.top-re} A${re},${re} 0 0 1 ${200+re},${a.top} L${200+re+220},${a.top}`,`r = ${Math.round(re)}: curve continuing into the top bar`],
+   ["Curl on a stem",`M300,0 L300,${a.top-rc} A${rc},${rc} 0 1 0 ${300+2*rc},${a.top-rc} A${rc},${rc} 0 0 0 ${300+rc},${a.top-2*rc}`,`r = ${Math.round(rc)}: 270° hook`],
+   ["Floating loop",`M${300+rl},350 A${rl},${rl} 0 1 1 ${300-rl},350 A${rl},${rl} 0 1 1 ${300+rl},350`,`r = ${Math.round(rl)} to ${Math.round(L.loopF.max())}`],
+   ["Drooping loop",`M300,0 L300,${a.top-rd} A${rd},${rd} 0 1 0 ${300-2*rd},${a.top-rd} A${rd},${rd} 0 1 0 300,${a.top-rd}`,`r = ${Math.round(rd)} to ${Math.round(L.loopD.max())}, tangent to the stem`],
+   ["Ellipse",`M${300+260},350 A260,${350-W/2} 0 1 1 ${300-260},350 A260,${350-W/2} 0 1 1 ${300+260},350`,"full-height ellipse"],
+   ["Spiral, big (o, yo, wo)",spiral(330,350,Rb,pitch,2.5),`outer r ${Math.round(Rb)}, pitch ${Math.round(pitch)}`],
+   ["Spiral, medium (nyo, myo)",spiral(330,350,Rm,pitch,2),`outer r ${Math.round(Rm)}`],
+   ["T-junction",`M100,${a.top} L500,${a.top} M300,${a.top} L300,0`,"stem ends on the bar's centreline"],
+   ["Modifier branch",`M100,0 L100,${a.top} L360,${a.top} M360,${a.top} L${360+160},${a.top}`,"rightmost element continues into the bar"],
+  ];
+}
+function draw(){
+  const g=document.getElementById("grid"),cl=document.getElementById("cl").checked,a=AX();
+  g.innerHTML=els().map(([n,d,note])=>`<div class="card"><svg viewBox="-60 -60 820 820"><g transform="translate(0,700) scale(1,-1)">
+    ${[0,700].map(y=>`<line x1="-60" x2="760" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity=".5" stroke-width="3"/>`).join("")}
+    ${[a.base,a.mid,a.top].map(y=>`<line x1="-60" x2="760" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity=".35" stroke-width="2" stroke-dasharray="12 10"/>`).join("")}
+    <path d="${d}" fill="none" stroke="var(--ink)" stroke-width="${W}" stroke-linecap="butt" stroke-linejoin="miter"/>
+    ${cl?`<path d="${d}" fill="none" stroke="#ff3b30" stroke-width="4"/>`:""}</g></svg><b>${n}</b><p>${note}</p></div>`).join("");
+  document.getElementById("limits").innerHTML="<tr><th>Element</th><th>Min</th><th>Max</th><th>Note</th></tr>"+
+    Object.entries(LIM).map(([k,v])=>`<tr><td>${NAMES[k]}</td><td>${Math.round(v.min())}</td><td>${Math.round(v.max())}</td><td>${v.note}</td></tr>`).join("");
+}
+document.getElementById("w").oninput=e=>{W=+e.target.value;document.getElementById("wv").textContent=W;draw()};
+document.getElementById("cl").onchange=draw;
+draw();
+</script>
+</body>
+</html>
