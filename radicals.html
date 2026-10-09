@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Kɔradin Radicals</title>
+<link rel="stylesheet" href="apple.css">
+<style>
+@font-face{font-family:"KM-Regular";src:url(fonts/KoradinModular-Regular-VF.woff2) format("woff2")}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 60px}
+h1{font:700 40px/1.1 var(--display);letter-spacing:-.5px}
+.lead{color:var(--label2);font-size:17px;max-width:720px;margin-top:10px}
+h2{font:600 22px/1.2 var(--display);margin:40px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:var(--card);border-radius:16px;padding:12px 14px 14px}
+.card svg{width:100%;height:210px;display:block;background:var(--canvas);border-radius:10px}
+.card b{display:block;font-size:15px;margin-top:10px}
+.card p{font-size:13px;color:var(--label2);margin-top:2px}
+.card code{font-size:12px;color:var(--tint)}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:.5px solid var(--sep)}
+th{color:var(--label2);font-weight:500;font-size:13px}
+.ctl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.ctl .group{display:flex;align-items:center;gap:12px;padding:8px 16px;min-width:300px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span>Kɔradin Modular</a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="elements.html">Elements</a><a href="radicals.html" aria-current="page">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html">Construction lab</a></div>
+</nav>
+<style>
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.rc{background:var(--card);border-radius:14px;padding:10px 12px 12px;text-decoration:none;color:inherit;display:block}
+.rc svg{width:100%;height:170px;display:block;background:var(--canvas);border-radius:9px}
+.rc .t{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+.rc .t b{font-size:17px}.badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--fill);color:var(--label2)}
+.badge.draft{background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}.badge.ok{background:#34c75933;color:#248a3d}.badge.fix{background:#ff950033;color:#c93400}
+.rc ol{margin:6px 0 0 18px;font-size:12px;color:var(--label2);line-height:1.45}
+</style>
+<div class="wrap">
+  <h1>Radicals</h1>
+  <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows. Every other row is built from these with modifiers and glides. Each radical is listed with its numbered strokes, in writing order, and the elements each stroke is made of. Click one to edit it in the stroke generator.</p>
+  <div class="ctl"><div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
+  <div class="group"><span class="lbl">Kɔradin guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label></div>
+  <div class="group"><span class="lbl">Numbers</span><label class="switch"><input type="checkbox" id="nb" checked><span></span></label></div></div>
+  <h2>Stroke order</h2>
+  <table><tr><th>Rule</th><th></th></tr>
+  <tr><td>1</td><td>Left before right</td></tr><tr><td>2</td><td>Top before bottom</td></tr>
+  <tr><td>3</td><td>Vertical before horizontal where they cross</td></tr><tr><td>4</td><td>A stem before the bowl, loop or curl hanging from it</td></tr>
+  <tr><td>5</td><td>The modifier is always last; it grows out of the rightmost element</td></tr></table>
+  <div id="rows"></div>
+</div>
+<script src="stroke.js"></script>
+<script>
+const ROWS=[["Vowels",""],["p","p"],["t","t"],["d","d"],["k","k"],["f","f"],["s","s"],["n","n"],["r","r"]],V=["a","e","ɛ","i","o","ɔ","u"];
+let DATA,GH;
+function local(){try{return JSON.parse(localStorage.getItem("kr-edits")||"{}")}catch(e){return {}}}
+function card(k,W,gs,nb){const g=Object.assign({},DATA[k],local()[k]||{}),st=g.strokes;
+  const status=g.approved?"ok":g.fix?"fix":g.status;
+  const body=st.map((s,i)=>KS.svgStroke(s,W)).join("");
+  const nums=nb?st.map((s,i)=>`<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="34" fill="#ff3b30"/><text y="12" text-anchor="middle" font-size="36" font-weight="700" fill="#fff" font-family="system-ui">${i+1}</text></g>`).join(""):"";
+  const els=st.map(s=>`<li>${[...new Set(KS.elements(s).filter(e=>e!=="corner"))].join(" → ")}</li>`).join("");
+  return `<a class="rc" href="generator.html#${encodeURIComponent(k)}"><svg viewBox="-80 -80 920 860"><defs><clipPath id="b${k}"><rect x="-200" y="0" width="1400" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${KS.guides(W,-80,840)}
+  ${gs?`<path d="${GH[k].d}" fill="#ff9500" fill-opacity=".25"/>`:""}<g clip-path="url(#b${k})">${body}</g>${nums}</g></svg>
+  <div class="t"><b>${k}</b><span class="badge ${status==="ok"?"ok":status==="fix"?"fix":status==="draft"?"draft":""}">${status==="ok"?"approved":status==="fix"?"needs fix":status==="draft"?"drafted":"traced, not drafted"}</span></div><ol>${els}</ol></a>`}
+function draw(){const W=+document.getElementById("w").value;document.getElementById("wv").textContent=W;
+  const gs=document.getElementById("gh").checked,nb=document.getElementById("nb").checked;
+  document.getElementById("rows").innerHTML=ROWS.map(([n,on])=>`<h2>${n}</h2><div class="rg">${V.map(v=>card(on+v,W,gs,nb)).join("")}</div>`).join("")}
+Promise.all([fetch("radicals.json").then(r=>r.json()),fetch("radicals-ghost.json").then(r=>r.json())]).then(([d,g])=>{DATA=d;GH=g;draw()});
+["w","gh","nb"].forEach(i=>document.getElementById(i).oninput=draw);
+</script></body></html>
