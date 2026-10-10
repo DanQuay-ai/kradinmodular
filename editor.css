@@ -69,3 +69,10 @@ textarea{width:100%;min-height:64px;border-radius:10px;border:.5px solid var(--s
   .hb button{padding:7px 9px;font-size:13px}
   .chips button{min-width:42px;padding:8px}
 }
+.chips button.del{opacity:.4;text-decoration:line-through}
+.chips button.del::after{background:var(--label2)}
+.chips button.det::before{content:"✎";font-size:9px;position:absolute;left:3px;top:1px}
+.badge.del{background:var(--fill);color:var(--label2)}
+.srow .n.x{background:#ff9500}
+.ext{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.ext select{flex:1;min-width:120px;padding:5px 6px;border-radius:8px;border:.5px solid var(--sep);background:var(--canvas);color:inherit;font:13px system-ui}

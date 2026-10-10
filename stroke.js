@@ -144,6 +144,55 @@ const KS = (() => {
     if (c0 !== null) { cut(left, 0, 1, c0, P[0][3]); cut(right, 0, 1, c0, P[0][3]); }
     return left.concat(right.reverse()).map(([x, y]) => tf ? tf(x, y) : [x, y]);
   }
+
+  // Tapered (brush / Mincho logic): thickness follows the stroke direction (thin horizontals, thick verticals),
+  // curves and diagonals sweep out to a point at a free end, horizontals end in a triangular scale (uroko),
+  // verticals end with an angled cut. Ends that run past the baseline or the top are still cut flat.
+  function polygonTapered(st, W, tf) {
+    const k = K(W), P = trimCL(centreline(st), st.s ?? 0, st.e ?? 1), n = P.length;
+    const c0 = st.cap0 !== "butt" ? cutDecision(P[0], P[0][3], true) : null, c1 = st.cap1 !== "butt" ? cutDecision(P[n - 1], P[n - 1][2], false) : null;
+    const C = P.map(p => [p[0] * k, 350 + (p[1] - 350) * k]);
+    const L = [0]; for (let i = 1; i < n; i++) L.push(L[i - 1] + Math.hypot(C[i][0] - C[i - 1][0], C[i][1] - C[i - 1][1]));
+    const T = L[n - 1] || 1;
+    const fdir = h => 0.3 + 0.7 * Math.abs(Math.sin(h * R));
+    const hEnd = P[n - 1][2], hStart = P[0][3];
+    const curvedEnd = st.segs.length && st.segs[st.segs.length - 1].t === "A";
+    const diagEnd = Math.abs(Math.sin(hEnd * R)) > 0.25 && Math.abs(Math.cos(hEnd * R)) > 0.25;
+    const taperEnd = c1 === null && (curvedEnd || diagEnd);
+    const curvedStart = st.segs.length && st.segs[0].t === "A";
+    const taperStart = c0 === null && curvedStart && Math.abs(Math.sin(hStart * R)) > 0.25;
+    const tl = Math.min(0.4 * T, 2.2 * W);
+    const hw = P.map((p, i) => {
+      const h = i === 0 ? p[3] : i === n - 1 ? p[2] : (p[2] + p[3]) / 2;
+      let f = fdir(h);
+      if (taperEnd && T - L[i] < tl) f *= Math.max(0.1, (T - L[i]) / tl);
+      if (taperStart && L[i] < tl * 0.6) f *= Math.max(0.35, L[i] / (tl * 0.6));
+      return W / 2 * Math.max(f, 0.06);
+    });
+    const left = [], right = [];
+    P.forEach((p, i) => {
+      let hin = p[2], hout = p[3]; if (i === 0) hin = hout; if (i === n - 1) hout = hin;
+      const [x, y] = C[i], a = (((hout - hin) + 180) % 360 + 360) % 360 - 180;
+      if (Math.abs(a) < 1e-6) { const nx = -Math.sin(hin * R), ny = Math.cos(hin * R); left.push([x + nx * hw[i], y + ny * hw[i]]); right.push([x - nx * hw[i], y - ny * hw[i]]); }
+      else { const bis = (hin + a / 2) * R, m = hw[i] / Math.max(0.25, Math.cos(a / 2 * R)), nx = -Math.sin(bis), ny = Math.cos(bis); left.push([x + nx * m, y + ny * m]); right.push([x - nx * m, y - ny * m]); }
+    });
+    const cut = (E, iE, lim, h) => { const dy = Math.sin(h * R), dx = Math.cos(h * R); if (Math.abs(dy) < 1e-6) return; const t = (lim - E[iE][1]) / dy; E[iE] = [E[iE][0] + t * dx, lim]; };
+    if (c1 !== null) { cut(left, n - 1, c1, hEnd); cut(right, n - 1, c1, hEnd); }
+    if (c0 !== null) { cut(left, 0, c0, hStart); cut(right, 0, c0, hStart); }
+    let L2 = left.slice(), R2 = right.slice();
+    const dx = Math.cos(hEnd * R), dy = Math.sin(hEnd * R);
+    if (c1 === null && !taperEnd && Math.abs(dy) < 0.2) {
+      // uroko: a small triangle on the upper side, just before the end of a horizontal
+      const up = dx > 0 ? L2 : R2, e = up[n - 1], hwE = hw[n - 1], base = W * 0.95, peak = W * 0.42;
+      const p1 = [e[0] - dx * base, e[1]], p2 = [e[0] - dx * peak * 0.6, e[1] + W * 0.48], p3 = [e[0], e[1] - hwE * 0.2];
+      up.splice(n - 1, 1, p1, p2, p3);
+    } else if (c1 === null && !taperEnd && Math.abs(dx) < 0.3) {
+      // vertical end: angled cut, the right side runs a little longer
+      const sideLong = dy < 0 ? R2 : L2, e = sideLong[sideLong.length - 1];
+      sideLong[sideLong.length - 1] = [e[0] + dx * W * 0.25, e[1] + dy * W * 0.25];
+    }
+    return L2.concat(R2.reverse()).map(([x, y]) => tf ? tf(x, y) : [x, y]);
+  }
   // components: {ref, dx, dy, s} applied to a stroke (scale about the origin, then move)
   function place(st, c) {
     const s = c.s ?? 1;
@@ -165,5 +214,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 -60 ${r + 100} 820" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="0" width="${r + 600}" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, place, centreline, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, place, centreline, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

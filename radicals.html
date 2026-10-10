@@ -31,11 +31,11 @@ th{color:var(--label2);font-weight:500;font-size:13px}
 <body>
 <nav class="nav">
   <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
-  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="generator.html">Stroke generator</a><a href="lab.html">Construction lab</a></div>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="lab.html">Construction lab</a></div>
 </nav>
 <div class="wrap">
   <h1>Radicals</h1>
-  <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows, drawn in the stroke generator. Every other row is composed from them: a modifier bar grown out of the rightmost element, a bracket, a glide, or the ni prefix. Strokes are numbered in writing order.</p>
+  <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows, drawn in the Construction lab. Every other row is composed from them: a modifier bar grown out of the rightmost element, a bracket, a glide, or the ni prefix. Strokes are numbered in writing order.</p>
   <div class="ctl">
     <div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
     <div class="group"><span class="lbl">Kɔradin guide</span><label class="switch"><input type="checkbox" id="gh"><span></span></label></div>
@@ -62,12 +62,14 @@ function card(k,editable){
   const W=+$("w").value,st=KR.resolve(k),s=KR.status(k),b=KR.def(k).type==="composite"&&KR.blockedBy(k).length;
   const lbl={approved:"approved",fix:"needs fix",draft:"draft"}[s];
   const svg=KS.glyphSVG(st,W,{nums:$("nb").checked,ghost:$("gh").checked&&GH[k]?GH[k].d:null,color:(i,x)=>x.role==="modifier"||x.role==="glide"?"#ff3b30":"var(--ink)"});
-  return `<a class="rc" href="${editable?"generator":"lab"}.html#${encodeURIComponent(k)}">${svg}<div class="t"><b>${k}</b><span class="badge ${s==="approved"?"ok":s==="fix"?"fix":"draft"}">${b?"🔒 ":""}${lbl}</span></div><div class="m">${st.length} stroke${st.length>1?"s":""}</div></a>`}
+  return `<a class="rc" href="${editable?"lab":"lab"}.html#${encodeURIComponent(k)}">${svg}<div class="t"><b>${KR.label(k)}</b><span class="badge ${s==="approved"?"ok":s==="fix"?"fix":"draft"}">${b?"🔒 ":""}${lbl}</span></div><div class="m">${st.length} stroke${st.length>1?"s":""}</div></a>`}
 function draw(){
   $("wv").textContent=$("w").value;
   const rows=[["Vowels",""]].concat(KR.RAD_ROWS.slice(1).map(r=>[r,r]));
   let h=rows.map(([n,on])=>`<h2>${n}<small>radicals</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]?card(on+v,true):"").join("")}</div>`).join("");
+  const other=KR.OTHER.map(([n,ks])=>{const c=ks.map(k=>"@"+k).filter(k=>KR.DEF[k]&&!KR.deleted(k)).map(k=>card(k,true)).join("");return c?`<h2>${n}<small>other glyphs</small></h2><div class="rg">${c}</div>`:""}).join("");
   h+=KR.COMP_ROWS.map(([on,how])=>`<h2>${on}<small>${how}</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]&&KR.DEF[on+v].type==="composite"?card(on+v,false):"").join("")}</div>`).join("");
+  h+=other;
   const p=KR.progress();$("prog").textContent=`${p.ok} of ${p.total} glyphs approved`;
   $("rows").innerHTML=h;
   document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
