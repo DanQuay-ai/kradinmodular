@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Akan Calendar</title>
+<meta name="description" content="The Akan calendar in Kɔradin: 42-day adaduanan, eight or nine to a year, with Fɔdwoo, Awukudae, Fofie and Akwasidae.">
+<link rel="stylesheet" href="apple.css">
+<style>
+:root{--sacred:#b48a5a}
+@media (prefers-color-scheme:dark){:root{--sacred:#d2a877}}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 22px 64px}
+h1{font:700 40px/1.1 var(--display);letter-spacing:-.5px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+h1 .kr{font-size:44px;font-weight:400}
+.lead{color:var(--label2);font-size:17px;max-width:780px;margin-top:10px}
+h2{font:600 24px/1.2 var(--display);margin:44px 0 14px}
+.under{font:600 12px/1.2 var(--font);letter-spacing:.08em;color:var(--label2);margin-top:2px}
+body.nolat .under,body.nolat .lt,body.nolat .sub{display:none}
+.gold{color:var(--sacred)}
+.kr-s{font-family:var(--kr),var(--font);font-feature-settings:"liga","calt";font-size:1.35em;margin-right:8px;vertical-align:-.12em}
+/* today */
+.today{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:26px}
+.today>div,.today>ul{background:var(--card);border-radius:18px;padding:22px 24px}
+.eyebrow{font:600 13px var(--font);color:var(--label2);text-transform:uppercase;letter-spacing:.06em}
+.big{font-size:76px;line-height:1.1;margin-top:10px}
+.big .kr{display:inline-block}
+.meta{margin-top:8px;color:var(--label2)}.meta b{color:var(--label)}
+.meta .inl{font-family:var(--kr);font-size:1.3em;margin-right:4px;vertical-align:-.1em;color:var(--label)}
+.next{list-style:none;padding:12px 20px!important;display:flex;flex-direction:column}
+.next li{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--sep)}
+.next li:last-child{border:0}
+.next .kr-s{font-size:26px;color:var(--sacred);margin:0;min-width:70px}
+.next b{display:block}.next small{color:var(--label2);font-size:13px}
+.next em{font-style:normal;font-size:13px;color:var(--label2)}
+/* toolbar */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:36px;position:sticky;top:52px;z-index:6;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:10px 0}
+.tools .group{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:12px;background:var(--card)}
+.yr{font:600 20px var(--display);min-width:92px;text-align:center}
+.ib{appearance:none;border:0;background:var(--fill);border-radius:99px;width:32px;height:32px;cursor:pointer;font-size:17px}
+.btn2{appearance:none;border:0;background:var(--fill);border-radius:99px;padding:7px 14px;cursor:pointer;font:500 14px var(--font)}
+select.sel{border:0;border-radius:9px;background:var(--fill);color:var(--label);font:14px var(--font);padding:7px 8px;max-width:230px}
+#ymeta{color:var(--label2);font-size:14px;margin-top:4px}
+/* cycle cards, after the printed pages */
+.cycles{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px;margin-top:14px}
+.cyc{background:var(--card);border-radius:20px;overflow:hidden;scroll-margin-top:130px;display:flex;flex-direction:column}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 22px 12px}
+.kt{font-size:46px;line-height:1.1}
+.kt.sm{font-size:34px;text-align:right}
+.lt{font:600 12px/1.2 var(--font);letter-spacing:.1em;color:var(--label2);margin-top:4px}
+.th{text-align:right}.lt.it{font-style:italic;font-weight:400;letter-spacing:.06em}
+.ph{margin:0;aspect-ratio:5/4;background:var(--fill);overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.noimg{width:100%;height:100%;display:grid;place-items:center}
+.emb{display:block;width:84px;height:84px;background:currentColor;-webkit-mask:url(cal/emblem.svg) center/contain no-repeat;mask:url(cal/emblem.svg) center/contain no-repeat}
+.ph .emb{width:120px;height:120px;color:var(--label3)}
+.cal{padding:18px 22px 22px}
+.cal h3{font:800 26px/1 var(--display);letter-spacing:.01em}
+.rg{font-size:14px;margin-top:4px;color:var(--label2)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);border-top:3px solid var(--label);border-bottom:2px solid var(--label);margin-top:10px;padding:4px 0 8px}
+.grid>div{border-left:2px solid var(--label);text-align:center;padding:4px 0 3px;min-width:0}
+.grid>div:nth-child(7n+1){border-left:0}
+.dh{font:800 22px/1.2 var(--display);padding:6px 0 8px!important}
+.d b{display:block;font:800 22px/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.d small{display:block;font-size:8.5px;line-height:1.3;color:var(--label2);white-space:nowrap;overflow:hidden;letter-spacing:0}
+.d.s b{color:var(--sacred)}
+.d.now b{display:inline-block;background:var(--label);color:var(--bg);border-radius:6px;padding:1px 4px}
+.d.kese b::after{content:"✦";font-size:10px;vertical-align:top;color:var(--sacred);margin-left:1px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;align-items:center}
+.legend span{display:flex;align-items:center;gap:8px;font-size:14px}
+.legend i{width:26px;height:26px;border-radius:99px;background:var(--label);color:var(--bg);display:grid;place-items:center;font:700 11px var(--font)}
+.legend .kr-s{margin:0;color:var(--sacred)}
+/* tables */
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:.5px solid var(--sep);vertical-align:top}
+th{color:var(--label2);font-weight:500;font-size:13px}
+td small{display:block;color:var(--label2);font-size:12px}
+td.now{font-weight:700}td.kese{color:var(--sacred);font-weight:600}
+td a{color:inherit}
+.tw{overflow-x:auto;border-radius:14px}
+.rules{color:var(--label2);max-width:820px;padding-left:20px}.rules li{margin:6px 0}.rules b{color:var(--label)}
+.hero{display:flex;gap:18px;align-items:center;margin-top:6px}
+.hero .emb{width:64px;height:64px;flex:none}
+body.loading .kr{opacity:.25}
+@media(max-width:800px){
+  .wrap{padding:20px 14px 48px}h1{font-size:32px}h1 .kr{font-size:36px}
+  .today{grid-template-columns:1fr}.big{font-size:58px}
+  .cycles{grid-template-columns:1fr}
+  .tools{gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:8px 14px}.tools::-webkit-scrollbar{display:none}.tools>*{flex:none}.tools .group{padding:5px 8px}select.sel{max-width:150px}
+  .kt{font-size:38px}.kt.sm{font-size:28px}
+  .d b,.dh{font-size:18px}.d small{font-size:7.5px}
+  th,td{padding:8px 10px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="k" data-lat="Kɔradin">kɔ</span><span class="bt">Kɔradin Modular</span></a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html">Construction lab</a><a href="serif.html">Serif lab</a><a href="calendar.html" aria-current="page">Calendar</a></div>
+</nav>
+<div class="wrap">
+  <div class="hero"><i class="emb" aria-hidden="true"></i><div>
+    <h1><span data-tw="adaduanan"></span><span>Akan calendar</span></h1>
+    <p class="lead">Forty-two days make one adaduanan: the six-day and the seven-day weeks meeting again. Eight or nine of them make a year. Four days in each are sacred, for the ancestors and the abosom: no farming or heavy work on these days. Hover or tap any Kɔradin to read it in Latin.</p>
+  </div></div>
+  <div class="legend" id="legend"></div>
+
+  <section class="today" id="today" aria-label="Today"></section>
+
+  <div class="tools" role="toolbar" aria-label="Calendar controls">
+    <div class="group"><button class="ib" id="prev" aria-label="Previous year">‹</button><span class="yr" id="ylabel"></span><button class="ib" id="next" aria-label="Next year">›</button></div>
+    <button class="btn2" id="now">Today</button>
+    <div class="group"><span class="lbl">Font</span><select class="sel" id="font" aria-label="Kɔradin font"></select></div>
+    <div class="group"><span class="lbl">Latin under Kɔradin</span><label class="switch"><input type="checkbox" id="latin" checked><span></span></label></div>
+  </div>
+  <p id="ymeta"></p>
+  <div class="cycles" id="cycles"></div>
+
+  <h2>Sacred days this year</h2>
+  <div class="tw"><table id="sacred"></table></div>
+
+  <h2>How it is counted</h2>
+  <ul class="rules">
+    <li><b>Adaduanan.</b> 42 days, always starting on a Dwoada (Monday) with Fɔdwoo. Then every nine days: Awukudae on day 10 (a Wukuada), Fofie on day 19 (a Fiada), Akwasidae on day 28 (a Kwasiada).</li>
+    <li><b>Anchor.</b> Adommerɛ began on Monday 21 July 2025 (your calendar graphics). The count runs unbroken in both directions, and every Akwasidae reported below lands on day 28.</li>
+    <li><b>Year.</b> 9 adaduanan are 378 days and 8 are 336, so neither matches the sun. A year opens with the adaduanan that starts nearest 28 July: two years in three have 9, the third has 8. That puts Adommerɛ's Akwasidae between late July and mid September, and it lands exactly on the 2026 Akwasidae Kɛseɛ (30 August).</li>
+    <li><b>The ninth.</b> Your pages name eight adaduanan. The ninth, in years that have one, is shown as Odwira for now: tell me its name and it changes everywhere.</li>
+    <li><b>Akwasidae Kɛseɛ</b> (✦) is called by the Asantehene, not fixed by the count, so only the recorded ones are marked.</li>
+  </ul>
+
+  <h2>Anchors</h2>
+  <div class="tw"><table id="anchors"></table></div>
+</div>
+<script src="twi.js"></script>
+<script src="stroke.js"></script>
+<script src="kr.js"></script>
+<script src="vendor/opentype.min.js"></script>
+<script src="kfont.js"></script>
+<script src="calendar.js"></script>
+<script>
+document.getElementById("legend").innerHTML=[1,10,19,28].map(d=>`<span><i>${d}</i><span class="kr-s" data-tw="${AK.SACRED[d].toLowerCase()}"></span><span class="sub">${AK.SACRED[d]}</span></span>`).join("");
+</script>
+</body>
+</html>

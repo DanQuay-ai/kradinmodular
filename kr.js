@@ -1,35 +1,39 @@
 /* Kɔradin data layer: glyph definitions + your edits, resolution of composites, statuses,
    exported font snapshots, text shaping and in-browser font generation (needs opentype.js for fonts). */
 (function (root) {
+ function make(SCRIPT) {
+  const AD = SCRIPT === "adinkra", P = AD ? "ad-" : "kr-";
   const LS = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   };
-  const VOW = ["a", "e", "ɛ", "i", "o", "ɔ", "u"];
-  const RAD_ROWS = ["", "p", "t", "d", "k", "f", "s", "n", "r"];
-  const COMP_ROWS = [["b", "p + bar"], ["kp", "p + bracket"], ["gb", "b + bracket"], ["ky", "t + bar"], ["tw", "t + bar"], ["gy", "d + bar (= j)"], ["dw", "d + bar"],
+  const VOW = AD ? ["a", "b", "d", "e", "ɛ", "f", "g", "h", "i", "k", "l", "m", "n", "o", "ɔ", "p", "r", "s", "t", "u", "w", "y", "c", "j", "q", "v", "x", "z"] : ["a", "e", "ɛ", "i", "o", "ɔ", "u"];
+  const RAD_ROWS = AD ? [""] : ["", "p", "t", "d", "k", "f", "s", "n", "r"];
+  const FIRST_ROW = AD ? "Letters" : "Vowels";
+  const COMP_ROWS = AD ? [] : [["b", "p + bar"], ["kp", "p + bracket"], ["gb", "b + bracket"], ["ky", "t + bar"], ["tw", "t + bar"], ["gy", "d + bar (= j)"], ["dw", "d + bar"],
     ["hy", "s + bar"], ["z", "s + bar"], ["v", "f + bar"], ["hw", "f + bar"], ["l", "r + bar"], ["g", "k + bar"], ["m", "n + bar"], ["h", "vowel + bar"],
     ["y", "mini i + vowel"], ["w", "mini ɔ + vowel"], ["kw", "kɔ + a / e"], ["ny", "ni + vowel (= ni)"], ["my", "mi + vowel"]];
-  const OTHER = [["Numbers", ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]],
+  const OTHER = AD ? [["Punctuation", ["period", "comma", "hyphen", "exclam", "question"]]] : [["Numbers", ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]],
     ["Nasal marks", ["m.pre", "n.pre", "ng.pre", "m", "n", "ng"]], ["Punctuation", ["period", "comma", "exclam", "question"]],
     ["Standalone consonants", ["b", "c", "d", "f", "g", "h", "j", "k", "l", "p", "q", "r", "s", "t", "v", "w", "y", "z"]]];
   const LABEL = { zero: "0", one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", period: ".", comma: ",", exclam: "!", question: "?",
-    "m.pre": "m-", "n.pre": "n-", "ng.pre": "ŋ-", m: "-m", n: "-n", ng: "-ŋ" };
+    "m.pre": "m-", "n.pre": "n-", "ng.pre": "ŋ-", m: "-m", n: "-n", ng: "-ŋ", hyphen: "-" };
   const label = k => k.startsWith("@") ? (LABEL[k.slice(1)] || k.slice(1)) : k;
   let DEF = null, VER = "", EDIT = {};
 
   async function load() {
-    const d = await fetch("glyphs.json").then(r => r.json());
+    const d = await fetch(AD ? "adinkra.json" : "glyphs.json").then(r => r.json());
     DEF = d.glyphs; VER = d._version;
-    EDIT = LS.get("kr-edits", {});
+    EDIT = LS.get(P + "edits", {});
     // a new set of glyphs: your edits so far are baked into it, so park them in a backup and start clean
-    if (LS.get("kr-ver2", "") !== VER) {
-      if (Object.keys(EDIT).length) LS.set("kr-edits-backup-" + (LS.get("kr-ver2", "") || "v1"), EDIT);
-      EDIT = {}; LS.set("kr-ver2", VER); save();
+    const VK = AD ? "ad-ver" : "kr-ver2";
+    if (LS.get(VK, "") !== VER) {
+      if (Object.keys(EDIT).length) LS.set(P + "edits-backup-" + (LS.get(VK, "") || "v1"), EDIT);
+      EDIT = {}; LS.set(VK, VER); save();
     }
     return api;
   }
-  const save = () => LS.set("kr-edits", EDIT);
+  const save = () => LS.set(P + "edits", EDIT);
   const clone = o => JSON.parse(JSON.stringify(o));
   const base = k => DEF[k] && DEF[k].type === "alias" ? DEF[k].of : k;
   function rowKeys(rows) { const o = []; for (const r of rows) for (const v of VOW) if (DEF[r + v]) o.push(r + v); return o; }
@@ -91,7 +95,7 @@
   function progress() { const ks = liveKeys(); const ok = ks.filter(k => status(k) === "approved").length; return { ok, total: ks.length, all: ok === ks.length }; }
 
   // ---------------- exported fonts (snapshots of resolved strokes; deleted glyphs are left out)
-  const fonts = () => LS.get("kr-fonts", []);
+  const fonts = () => LS.get(P + "fonts", []);
   function snapshot() {
     const glyphs = {};
     for (const k of Object.keys(DEF)) { if (deleted(k)) continue; glyphs[k] = resolve(k).map(s => ({ x: s.x, y: s.y, h: s.h, segs: s.segs, s: s.s ?? 0, e: s.e ?? 1, cap0: s.cap0, cap1: s.cap1 })); }
@@ -101,17 +105,17 @@
     const list = fonts();
     const f = { id: "f" + Date.now().toString(36), name: name || ("Kɔradin build " + (list.length + 1)), date: new Date().toISOString(), test: !!test, glyphs: snapshot() };
     list.push(f);
-    if (!LS.set("kr-fonts", list)) { list.pop(); throw new Error("Browser storage is full: delete an older build first."); }
+    if (!LS.set(P + "fonts", list)) { list.pop(); throw new Error("Browser storage is full: delete an older build first."); }
     return f;
   }
-  function deleteFont(id) { LS.set("kr-fonts", fonts().filter(f => f.id !== id)); }
+  function deleteFont(id) { LS.set(P + "fonts", fonts().filter(f => f.id !== id)); }
 
   // ---------------- shaping: Latin -> glyph names (the source font's ligatures and prefix rule)
   let MAP = null;
   async function fontmap() { if (!MAP) { MAP = await fetch("fontmap.json").then(r => r.json()); MAP.lig = new Map(MAP.liga.map(([seq, g]) => [seq.join("|"), g])); MAP.idx = new Map(MAP.glyphs.map((g, i) => [g.n, i])); MAP.key = new Map(MAP.glyphs.map(g => [g.n, g.k])); } return MAP; }
   // has: set of glyph keys present in the font (deleted glyphs fall back to plain text)
-  function shape(text, has) {
-    const s = TwiScript.toKradin(text), out = [];
+  function shape(text, has, half) {
+    const s = TwiScript.toKradin(text.replace(/ŋ/g, "ng").replace(/Ŋ/g, "Ng")), out = [];
     let names = [];
     const flush = () => {
       const res = [];
@@ -125,8 +129,19 @@
     };
     for (const ch of s) { const g = MAP.cmap[ch]; if (g && g !== "space") names.push({ g, ch }); else { flush(); out.push({ ch }); } }
     flush();
-    return out.map(o => { if (!o.g) return o.ch; const k = MAP.key.get(o.g); if (k && has && !has.has(k)) return o.src || o.ch; return String.fromCodePoint(0xE000 + MAP.idx.get(o.g)); }).join("");
+    // coda nasals (m, n, ŋ after a syllable) are marks centred under the glyph before them (the source font's GPOS rule)
+    const H = half && HALF[half];
+    let prev = null;
+    return out.map(o => {
+      if (!o.g) { prev = null; return o.ch; }
+      const k = MAP.key.get(o.g); if (k && has && !has.has(k)) { prev = null; return o.src || o.ch; }
+      const i = MAP.idx.get(o.g), mi = CODA.indexOf(o.g);
+      if (mi >= 0 && H) { const h = prev != null && H.has(prev) ? H.get(prev) : H.get(-1); if (h != null) return String.fromCodePoint(0xF0000 + mi * 0x1000 + h); }
+      if (mi < 0) prev = i;
+      return String.fromCodePoint(0xE000 + i);
+    }).join("");
   }
+  const CODA = ["m", "n", "ng.liga"], HALF = {};
 
   // ---------------- font generation (opentype.js)
   function svgToPath(d, P, dx) {
@@ -148,19 +163,59 @@
   function buildFont(snapshot, W, wdth, slnt, family, style) {
     const SB = 50, t = Math.tan((-slnt || 0) * Math.PI / 180), xs = (wdth || 100) / 100;
     const tf = (x, y) => [x * xs + (y - 350) * t, y];
+    // style: "regular" | "tapered" | {P, ov} (a rule-based style from styles.js / the Serif lab)
+    const rule = style && typeof style === "object" && style.P && typeof KST !== "undefined" ? style : null;
     const poly = style === "tapered" ? KS.polygonTapered : KS.polygon;
+    const polysOf = (key, strokes, tfn) => rule ? KST.glyph(strokes, W, tfn, rule.P, (rule.ov || {})[key]) : strokes.map(s => poly(s, W, tfn));
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
       new opentype.Glyph({ name: "space", unicode: 32, advanceWidth: 300, path: new opentype.Path() })];
+    if (AD) { // Adinkra alphabet: one glyph per letter, on the Latin letters themselves (both cases)
+      const PUN = { "@period": ".", "@comma": ",", "@hyphen": "-", "@exclam": "!", "@question": "?" };
+      Object.keys(snapshot).forEach((k, i) => {
+        const ch = PUN[k] || k; if (ch.length !== 1 || !snapshot[k].length) return;
+        const P = new opentype.Path(), polys = polysOf(k, snapshot[k], tf), un = polysOf(k, snapshot[k], (x, y) => [x * xs, y]);
+        let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
+        if (!isFinite(x0)) { x0 = 0; x1 = 300; }
+        for (const pg of polys) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
+        const up = ch.toUpperCase(), adv = Math.round(x1 - x0 + 2 * SB);
+        glyphs.push(new opentype.Glyph({ name: "ad" + i, unicode: ch.codePointAt(0), advanceWidth: adv, path: P }));
+        if (up !== ch) glyphs.push(new opentype.Glyph({ name: "adU" + i, unicode: up.codePointAt(0), advanceWidth: adv, path: P }));
+      });
+      return new opentype.Font({ familyName: family, styleName: "Regular", unitsPerEm: 1000, ascender: 900, descender: -250, glyphs });
+    }
+    const half = new Map(), marks = [];
     MAP.glyphs.forEach((g, i) => {
       if (!g.k || !snapshot[g.k]) return;
       const P = new opentype.Path();
-      const polys = snapshot[g.k].map(s => poly(s, W, tf));
-      const un = snapshot[g.k].map(s => poly(s, W, (x, y) => [x * xs, y]));
+      const polys = polysOf(g.k, snapshot[g.k], tf);
+      const un = polysOf(g.k, snapshot[g.k], (x, y) => [x * xs, y]);
       let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
       if (!isFinite(x0)) { x0 = 0; x1 = 300; }
       for (const pg of polys) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
-      glyphs.push(new opentype.Glyph({ name: g.n.replace(/\W/g, "_") + "_" + i, unicode: 0xE000 + i, advanceWidth: Math.round(x1 - x0 + 2 * SB), path: P }));
+      const adv = Math.round(x1 - x0 + 2 * SB);
+      if (CODA.includes(g.n)) { marks.push([CODA.indexOf(g.n), g, i, un]); return; }
+      half.set(i, Math.round(adv / 2));
+      glyphs.push(new opentype.Glyph({ name: g.n.replace(/\W/g, "_") + "_" + i, unicode: 0xE000 + i, advanceWidth: adv, path: P }));
     });
+    // coda nasal marks: zero width, one copy per distinct half advance of the glyph they sit under,
+    // centred under it, a little under the baseline
+    const hs = [...new Set(half.values())]; half.set(-1, hs.length ? hs.sort((a, b) => a - b)[hs.length >> 1] : 200);
+    const gap = Math.max(36, 0.55 * W);
+    for (const [mi, g, i, un] of marks) {
+      let x0 = 1e9, x1 = -1e9, y1 = -1e9; un.forEach(p => p.forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }));
+      if (!isFinite(x0)) continue;
+      const cx = (x0 + x1) / 2, dy = -gap - y1;
+      for (const h of new Set(half.values())) {
+        const P = new opentype.Path();
+        for (const pg of un) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => { const Y = y + dy, X = x - cx - h + (Y - 350) * t; j ? P.lineTo(X, Y) : P.moveTo(X, Y); }); P.close(); }
+        glyphs.push(new opentype.Glyph({ name: "mark" + mi + "_" + h, unicode: 0xF0000 + mi * 0x1000 + h, advanceWidth: 0, path: P }));
+      }
+      // plain PUA code keeps a centred fallback
+      const P = new opentype.Path(), h = half.get(-1);
+      for (const pg of un) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => { const Y = y + dy, X = x - cx - h + (Y - 350) * t; j ? P.lineTo(X, Y) : P.moveTo(X, Y); }); P.close(); }
+      glyphs.push(new opentype.Glyph({ name: g.n.replace(/\W/g, "_") + "_" + i, unicode: 0xE000 + i, advanceWidth: 0, path: P }));
+    }
+    HALF[family] = half;
     return new opentype.Font({ familyName: family, styleName: "Regular", unitsPerEm: 1000, ascender: 900, descender: -250, glyphs });
   }
   async function fontFace(snapshot, W, wdth, slnt, family, style) {
@@ -172,6 +227,10 @@
 
   const api = { load, save, def, edit, status, setStatus, setDeleted, deleted, unlock, relock, blockedBy, resolve, progress, radicalKeys, compositeKeys, otherKeys, allKeys, liveKeys,
     fonts, exportFont, deleteFont, snapshot, fontmap, shape, buildFont, fontFace, label, VOW, RAD_ROWS, COMP_ROWS, OTHER,
-    get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base };
-  root.KR = api;
+    get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : "radicals-ghost.json" };
+  return api;
+ }
+ root.KR = make(root.KR_SCRIPT === "adinkra" ? "adinkra" : "kradin");
+ root.KRA = root.KR.SCRIPT === "adinkra" ? root.KR : make("adinkra");
+ root.KRK = root.KR.SCRIPT === "kradin" ? root.KR : make("kradin");
 })(typeof globalThis !== "undefined" ? globalThis : this);

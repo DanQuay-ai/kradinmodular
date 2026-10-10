@@ -20,17 +20,21 @@
 .stage.inv{background:var(--ink);color:var(--canvas)}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 28px;font-size:13px;color:var(--label2);border-bottom:.5px solid var(--sep)}
 .stage.inv .bar{color:color-mix(in srgb,var(--canvas) 70%,transparent);border-color:color-mix(in srgb,var(--canvas) 20%,transparent)}
+.sample [data-lat]{cursor:help}.sample [data-lat]:hover{background:color-mix(in srgb,var(--tint) 14%,transparent);border-radius:6px}
 .sample{flex:1;padding:44px 28px;word-break:break-word;white-space:pre-wrap;font-feature-settings:"liga","calt";outline:none}
 .latin{padding:14px 28px 22px;font-size:13px;color:var(--label2);white-space:pre-wrap;border-top:.5px solid var(--sep)}
 .seg{width:100%}
 #sys button{font-size:13px;padding:6px 2px}
 .dl .btn{font-size:14px}
-@media(max-width:900px){.stage{min-height:auto}.sample{padding:24px 16px;min-height:38vh}.bar{padding:10px 16px}.latin{padding:10px 16px 16px}.glyphs{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}.glyphs .gg{font-size:30px}}
+@media(max-width:600px){#sty{display:none}.bar{font-size:12px}}
+@media(max-width:900px){.main{position:sticky;top:52px;z-index:5;box-shadow:0 .5px 0 var(--sep)}.stage{min-height:auto;max-height:44vh;overflow:auto;overscroll-behavior:contain}.sample{padding:18px 16px;min-height:24vh}.bar{padding:10px 16px}.latin{padding:10px 16px 16px}.glyphs{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}.glyphs .gg{font-size:30px}}
 select.sel{width:100%;border:0;border-radius:10px;background:var(--fill);color:var(--label);font:15px var(--font);padding:9px 10px}
 .styles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .styles button{appearance:none;border:0;cursor:pointer;background:var(--fill);border-radius:12px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .styles .g{font-size:28px;line-height:1.05;height:32px;font-feature-settings:"liga","calt"}
-.styles .t{font-size:11px;color:var(--label2)}
+.styles .t{font-size:11px;color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.styles .gs svg{height:32px;width:auto;display:block}
+.stylelink{grid-column:1/-1;font-size:13px;padding:4px 2px}
 .styles button[aria-checked="true"]{background:var(--tint);color:var(--tint-ink)}
 .styles button[aria-checked="true"] .t{color:var(--tint-ink);opacity:.85}
 .dl{display:flex;flex-wrap:wrap;gap:8px}
@@ -44,8 +48,8 @@ select.sel{width:100%;border:0;border-radius:10px;background:var(--fill);color:v
 </head>
 <body>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
-  <div class="tabs"><a href="index.html" aria-current="page">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html">Construction lab</a></div>
+  <a class="brand" href="index.html"><span class="k" data-lat="Kɔradin">kɔ</span><span class="bt">Kɔradin Modular</span></a>
+  <div class="tabs"><a href="index.html" aria-current="page">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html">Construction lab</a><a href="serif.html">Serif lab</a><a href="calendar.html">Calendar</a></div>
 </nav>
 <div class="shell">
   <aside class="side" aria-label="Controls">
@@ -70,7 +74,14 @@ Akwaaba. Kyerɛw. Nyame.</textarea>
         <option value="dua">Koradin Dua: the original</option>
         <optgroup label="Your exports" id="exports"></optgroup>
       </select>
-      <div class="dl" id="expctl" hidden><button class="btn" id="delfont">Delete this font</button><span class="note" id="expinfo" style="padding:0"></span></div></div>
+</div>
+    <div class="row col" id="r-aver" hidden><div class="line"><span class="lbl">Adinkra alphabet iteration</span></div>
+      <select class="sel" id="aver">
+        <option value="live">Modular, from the Construction lab (live)</option>
+        <option value="aao">The original Adinkra Alphabet font</option>
+        <optgroup label="Your exports" id="aexports"></optgroup>
+      </select></div>
+    <div class="row col" id="expctl" hidden><div class="dl"><button class="btn" id="delfont">Delete this font</button><span class="note" id="expinfo" style="padding:0"></span></div></div>
     
     </div>
     <p class="note" id="sysnote"></p>
@@ -111,9 +122,12 @@ Akwaaba. Kyerɛw. Nyame.</textarea>
 <script src="twi.js"></script>
 <script src="stroke.js"></script>
 <script src="kr.js"></script>
+<script src="kfont.js"></script>
+<script src="styles.js"></script>
 <script src="vendor/opentype.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
 const FONTS={
   km2:{name:"Kɔradin Modular 2",styles:["Regular","Rounded"],fam:s=>"KM2-"+s,axes:["wght","wdth","slnt"],dl:[["dl/KoradinModular2.zip","Modular 2 (variable + statics)"]]},
   km1:{name:"Kɔradin Modular 1",styles:["Regular","Rounded","Serif","Stencil"],fam:s=>"KM1-"+s,axes:["wght","wdth","slnt"],dl:[["dl/KoradinModular-All.zip","Modular 1 (all styles)"]]},
@@ -123,36 +137,57 @@ const FONTS={
 const NOTE={kradin:"Each syllable is one sign. Ligatures draw it from the Latin you type.",
   aalpha:"One sign per letter (Adinkra Alphabet font). ɛ and ɔ use its E and O.",
   latin:"Only the 22 letters of the Twi alphabet; loan letters are respelled (c → k, j → gy, v → f, z → s)."};
-const st={sys:"kradin",kver:"live",style:"Regular",wght:400,wdth:100,slnt:0,size:96,lead:1.3};
+const st={sys:"kradin",kver:"live",aver:"live",style:"Regular",wght:400,wdth:100,slnt:0,size:96,lead:1.3};
 try{Object.assign(st,JSON.parse(localStorage.getItem("tt")||"{}"))}catch(e){}
 if(!["kradin","aalpha","latin"].includes(st.sys))st.sys="kradin";
 if(matchMedia('(max-width:900px)').matches){st.size=Math.min(st.size,48)}
 // exported fonts (built in the Construction lab), generated here at the current weight, width and slant
 const isExp=k=>k&&k.startsWith("f");
 const isGen=k=>k==="live"||isExp(k);
-function exportsList(){return KR.fonts()}
-function fillExports(){const L=exportsList();$("exports").innerHTML=L.map(f=>`<option value="${f.id}">${f.name}${f.test?" (test)":""}</option>`).join("");$("exports").hidden=!L.length}
+// the script in use: Kɔradin (KR) or the Adinkra alphabet (KRA), each with live glyphs and exports
+const AL=()=>st.sys==="aalpha";
+const KK=()=>AL()?KRA:KR;
+const ver=()=>AL()?st.aver:st.kver;
+const setVer=v=>{if(AL())st.aver=v;else st.kver=v};
+const genOn=()=>(st.sys==="kradin"&&isGen(st.kver))||(AL()&&isGen(st.aver));
+function exportsList(){return KK().fonts()}
+function fillExports(){
+  const opt=f=>`<option value="${f.id}">${esc(f.name)}${f.test?" (test)":""}</option>`;
+  const L=KR.fonts();$("exports").innerHTML=L.map(opt).join("");$("exports").hidden=!L.length;
+  const A=KRA.fonts();$("aexports").innerHTML=A.map(opt).join("");$("aexports").hidden=!A.length}
 let built={key:"",fam:""},buildTimer=null;
-let snapCache=null;
-function snapFor(k){if(k==="live"){return snapCache||(snapCache=KR.snapshot())}const f=exportsList().find(x=>x.id===k);return f?f.glyphs:null}
+const snapCache={};
+function snapFor(k){const K=KK();if(k==="live"){return snapCache[K.SCRIPT]||(snapCache[K.SCRIPT]=K.snapshot())}const f=K.fonts().find(x=>x.id===k);return f?f.glyphs:null}
 async function ensureExport(){
-  const g=snapFor(st.kver); if(!g){st.kver="live";return ensureExport()}
-  const W=22+(st.wght-100)/800*76, key=[st.kver,W.toFixed(1),st.wdth,st.slnt,st.style].join("|");
+  const g=snapFor(ver()); if(!g){setVer("live");return ensureExport()}
+  const W=22+(st.wght-100)/800*76, key=[st.sys,ver(),W.toFixed(1),st.wdth,st.slnt,st.style].join("|");
   if(built.key===key)return built.fam;
-  const fam="KX-"+st.kver+"-"+(++built.n||(built.n=1));
-  await KR.fontFace(g,W,st.wdth,st.slnt,fam,st.style==="Tapered"?"tapered":"regular");
+  const fam="KX-"+st.sys+"-"+ver()+"-"+(++built.n||(built.n=1));
+  const so=styleObj(st.style);
+  await KK().fontFace(g,W,st.wdth,st.slnt,fam,so.P?so:so.id);
   built={key,fam,n:built.n}; return fam;
 }
 const fontKey=()=>st.sys==="kradin"?st.kver:st.sys==="aalpha"?"aao":"lat";
 function convert(raw){
-  if(st.sys==="kradin")return isGen(st.kver)?KR.shape(raw,new Set(Object.keys(snapFor(st.kver)||{}))):TwiScript.toKradin(raw);
-  if(st.sys==="aalpha")return TwiScript.toAdinkra(raw);
+  if(st.sys==="kradin")return isGen(st.kver)?KR.shape(raw,new Set(Object.keys(snapFor(st.kver)||{})),built.fam):TwiScript.toKradin(raw);
+  if(st.sys==="aalpha")return isGen(st.aver)?TwiScript.twiLatin(raw):TwiScript.toAdinkra(raw);
   return TwiScript.twiLatin(raw);
 }
 function segThumb(el){const b=el.querySelector('[aria-checked="true"]'),t=el.querySelector(".thumb");if(b&&t){t.style.width=b.offsetWidth+"px";t.style.transform=`translateX(${b.offsetLeft-2}px)`}}
 document.querySelectorAll("#sys button").forEach(b=>{b.setAttribute("role","radio");b.onclick=()=>{st.sys=b.dataset.v;render()}});
-$("kver").onchange=e=>{st.kver=e.target.value;st.style="Regular";render()};
-$("delfont").onclick=()=>{const f=exportsList().find(x=>x.id===st.kver);if(f&&confirm(`Delete "${f.name}"? This can't be undone.`)){KR.deleteFont(f.id);st.kver="live";fillExports();render()}};
+$("kver").onchange=e=>{st.kver=e.target.value;render()};
+$("aver").onchange=e=>{st.aver=e.target.value;render()};
+// generated fonts take any style: Regular, Tapered, the rule presets and the styles saved in the Serif lab
+const GSTY=()=>KST.all();
+const styleObj=id=>GSTY().find(s=>s.id===id)||GSTY()[0];
+const legacy={Regular:"regular",Tapered:"tapered"};
+function styleThumb(s,key){
+  const g=snapFor(ver()); key=AL()?"a":key; const strokes=g&&(g[key]||g["kɔ"]||g[Object.keys(g)[0]]); if(!strokes)return "";
+  const W=70, polys=s.P?KST.glyph(strokes,W,null,s.P,(s.ov||{})[key]):strokes.map(x=>(s.id==="tapered"?KS.polygonTapered:KS.polygon)(x,W));
+  let x0=1e9,x1=-1e9;polys.forEach(p=>p.forEach(([x])=>{x0=Math.min(x0,x);x1=Math.max(x1,x)}));
+  return `<svg viewBox="${x0-40} -140 ${x1-x0+80} 980" aria-hidden="true"><path transform="translate(0,700) scale(1,-1)" fill="currentColor" d="${KST.svgPath(polys)}"/></svg>`;
+}
+$("delfont").onclick=()=>{const f=exportsList().find(x=>x.id===ver());if(f&&confirm(`Delete "${f.name}"? This can't be undone.`)){KK().deleteFont(f.id);setVer("live");fillExports();render()}};
 const ON=["","p","b","t","d","k","g","kp","gb","ky","gy","f","s","h","hy","m","n","ny","w","y","r","l","tw","dw","hw"],VW=["a","e","ɛ","i","o","ɔ","u"];
 const TWI=["a","b","d","e","ɛ","f","g","h","i","k","l","m","n","o","ɔ","p","r","s","t","u","w","y"];
 function glyphSet(){
@@ -160,34 +195,41 @@ function glyphSet(){
   $("glyphs").innerHTML=items.map(t=>`<div><div class="gg">${convert(t)}</div><div class="gl">${t}</div></div>`).join("");
 }
 async function render(){
-  const exp=st.sys==="kradin"&&isGen(st.kver);
-  const F=exp?{name:st.kver==="live"?"Construction lab glyphs":(exportsList().find(x=>x.id===st.kver)||{}).name||"Export",styles:["Regular","Tapered"],gen:true,axes:["wght","wdth","slnt"],dl:[]}:FONTS[fontKey()];
-  if(!F.styles.includes(st.style))st.style=F.styles[0]||"";
+  const exp=genOn();
+  const F=exp?{name:ver()==="live"?(AL()?"Adinkra Alphabet Modular":"Construction lab glyphs"):(exportsList().find(x=>x.id===ver())||{}).name||"Export",styles:GSTY().map(s=>s.id),gen:true,axes:["wght","wdth","slnt"],dl:[]}:FONTS[fontKey()];
+  if(exp&&legacy[st.style])st.style=legacy[st.style];
+  if(!exp&&!F.styles.includes(st.style))st.style=F.styles[0]||"";
+  if(exp&&!F.styles.includes(st.style))st.style="regular";
   let fam=exp?null:F.fam(st.style);
   if(exp){await KR.fontmap();fam=await ensureExport()||F.fam}
   const raw=$("txt").value,conv=convert(raw),s=$("sample");
-  s.textContent=conv; $("latin").textContent=TwiScript.twiLatin(raw);
+  // every word carries its Latin Twi: hover or tap it for the bubble
+  if(st.sys==="latin")s.textContent=conv;
+  else s.innerHTML=raw.split(/(\s+)/).map(t=>!t.trim()?esc(t):`<span data-lat="${esc(TwiScript.twiLatin(t))}">${esc(convert(t))}</span>`).join("");
+  $("latin").textContent=TwiScript.twiLatin(raw);
   const fv=!exp&&F.axes.length?F.axes.map(a=>`"${a}" ${st[a]}`).join(", "):"normal";
   for(const el of [s,$("glyphs")]){el.style.fontFamily=fam.startsWith("var")?fam:`"${fam}", var(--font)`;el.style.fontVariationSettings=fv}
   s.style.fontSize=st.size+"px"; s.style.lineHeight=st.lead;
   document.querySelectorAll("#sys button").forEach(b=>b.setAttribute("aria-checked",b.dataset.v===st.sys)); segThumb($("sys"));
   $("r-kver").hidden=st.sys!=="kradin"; $("kver").value=st.kver;
-  $("expctl").hidden=!(exp&&isExp(st.kver));
-  if(exp){const f=exportsList().find(x=>x.id===st.kver);$("expinfo").textContent=f?`Exported ${new Date(f.date).toLocaleString()}${f.test?" · test build":""}`:""}
-  $("sysnote").textContent=NOTE[st.sys];
+  $("r-aver").hidden=!AL(); $("aver").value=st.aver;
+  $("expctl").hidden=!(exp&&isExp(ver()));
+  if(exp){const f=exportsList().find(x=>x.id===ver());$("expinfo").textContent=f?`Exported ${new Date(f.date).toLocaleString()}${f.test?" · test build":""}`:""}
+  $("sysnote").textContent=AL()&&exp?"One sign per letter, rebuilt from strokes twice as tall as wide. Draw and approve it in the Construction lab (Adinkra alphabet).":NOTE[st.sys];
   $("stylebox").hidden=!F.styles.length;
-  $("styles").innerHTML=F.styles.map(n=>`<button role="radio" aria-checked="${n===st.style}" data-v="${n}"><span class="g" style="font-family:'${F.gen?"var(--font)":F.fam(n)}';${F.gen?"font-size:15px;line-height:32px":""}">${F.gen?(n==="Tapered"?"brush":"mono"):"kɔ"}</span><span class="t">${n}</span></button>`).join("");
+  $("styles").innerHTML=F.gen?GSTY().map(s=>`<button role="radio" aria-checked="${s.id===st.style}" data-v="${s.id}" title="${esc(s.name)}"><span class="g gs">${styleThumb(s,AL()?"a":"kɔ")}</span><span class="t">${esc(s.name)}${s.mine?" ✎":""}</span></button>`).join("")+`<a class="stylelink" href="serif.html">Make a style in the Serif lab →</a>`
+    :F.styles.map(n=>`<button role="radio" aria-checked="${n===st.style}" data-v="${n}"><span class="g" style="font-family:'${F.fam(n)}'">kɔ</span><span class="t">${n}</span></button>`).join("");
   $("styles").querySelectorAll("button").forEach(b=>b.onclick=()=>{st.style=b.dataset.v;render()});
   for(const a of ["wght","wdth","slnt"]){$("r-"+a).classList.toggle("dis",!F.axes.includes(a))}
   $("axes").textContent=F.axes.length?`Weight ${st.wght} · Width ${st.wdth} · Slant ${st.slnt}°`:"Static font";
-  $("sty").textContent=F.name+(F.styles.length?" "+st.style:"");
+  $("sty").textContent=F.name+(F.styles.length?" "+(F.gen?styleObj(st.style).name:st.style):"");
   $("dl").innerHTML=F.dl.map(([h,t],i)=>`<a class="btn${i?"":" fill"}" href="${h}" download>${t}</a>`).join("")+`<a class="btn" href="dl/twi-script-extension.zip" download>Browser extension</a>`;
   const d=TwiScript.detect(raw); $("det").textContent=d.n?(d.isTwi?"Twi detected.":"Not detected as Twi."):"";
   if(!$("glyphs").hidden)glyphSet();
   document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
   try{localStorage.setItem("tt",JSON.stringify(st))}catch(e){}
 }
-const later=()=>{clearTimeout(buildTimer);buildTimer=setTimeout(render,isGen(st.kver)&&st.sys==="kradin"?120:0)};
+const later=()=>{clearTimeout(buildTimer);buildTimer=setTimeout(render,genOn()?120:0)};
 for(const k of ["wght","wdth","slnt","size","lead"]){$(k).value=st[k];$("o-"+k).textContent=k==="slnt"?st[k]+"°":st[k];
   $(k).addEventListener("input",e=>{st[k]=+e.target.value;$("o-"+k).textContent=k==="slnt"?st[k]+"°":st[k];later()})}
 $("txt").addEventListener("input",later);
@@ -196,8 +238,9 @@ $("lat").onchange=e=>$("latin").hidden=!e.target.checked;
 $("grid").onchange=e=>{$("glyphs").hidden=!e.target.checked;render()};
 addEventListener("resize",()=>segThumb($("sys")));
 document.fonts.ready.then(()=>segThumb($("sys")));
-KR.load().then(()=>{fillExports();
-  if(location.hash==="#font=latest"){const L=exportsList();if(L.length){st.sys="kradin";st.kver=L[L.length-1].id}history.replaceState(null,"",location.pathname)}
+Promise.all([KR.load(),KRA.load()]).then(()=>{fillExports();
+  if(location.hash==="#font=latest"){const L=KR.fonts();if(L.length){st.sys="kradin";st.kver=L[L.length-1].id}history.replaceState(null,"",location.pathname)}
+  if(location.hash==="#adfont=latest"){const L=KRA.fonts();if(L.length){st.sys="aalpha";st.aver=L[L.length-1].id}history.replaceState(null,"",location.pathname)}
   render()});
 </script>
 </body>

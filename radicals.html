@@ -21,6 +21,7 @@ h2 small{font:400 14px var(--font);color:var(--label2)}
 .rc .t b{font-size:17px}
 .badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--fill);color:var(--label2);white-space:nowrap}
 .badge.draft{background:color-mix(in srgb,var(--tint) 18%,transparent);color:var(--tint)}.badge.ok{background:#34c75933;color:#248a3d}.badge.fix{background:#ff950033;color:#c93400}
+.segl{padding:6px 14px;border-radius:7px;font:500 13px var(--font);color:var(--label);text-decoration:none}.segl[aria-current="true"]{background:var(--thumb);box-shadow:var(--thumb-shadow)}
 .rc .m{font-size:12px;color:var(--label2);margin-top:4px;line-height:1.4}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;font-size:14px}
 th,td{text-align:left;padding:9px 14px;border-bottom:.5px solid var(--sep)}
@@ -30,11 +31,12 @@ th{color:var(--label2);font-weight:500;font-size:13px}
 </head>
 <body>
 <nav class="nav">
-  <a class="brand" href="index.html"><span class="k" aria-hidden="true">kɔ</span><span class="bt">Kɔradin Modular</span></a>
-  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="lab.html">Construction lab</a></div>
+  <a class="brand" href="index.html"><span class="k" data-lat="Kɔradin">kɔ</span><span class="bt">Kɔradin Modular</span></a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html" aria-current="page">Radicals</a><a href="lab.html">Construction lab</a><a href="serif.html">Serif lab</a><a href="calendar.html">Calendar</a></div>
 </nav>
 <div class="wrap">
-  <h1>Radicals</h1>
+  <div class="ctl" style="margin:0 0 14px"><div class="seg" style="width:auto;display:inline-grid"><a class="segl" data-s="kradin" href="radicals.html">Kɔradin</a><a class="segl" data-s="adinkra" href="radicals.html?s=adinkra">Adinkra alphabet</a></div></div>
+  <h1 id="ttl">Radicals</h1>
   <p class="lead">The base signs: the vowels and the p, t, d, k, f, s, n and r rows, drawn in the Construction lab. Every other row is composed from them: a modifier bar grown out of the rightmost element, a bracket, a glide, or the ni prefix. Strokes are numbered in writing order.</p>
   <div class="ctl">
     <div class="group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98"><span class="val" id="wv">98</span></div>
@@ -54,7 +56,9 @@ th{color:var(--label2);font-weight:500;font-size:13px}
   </table>
   <p class="lead" id="prog" style="margin-top:28px"></p><div id="rows"></div>
 </div>
+<script>window.KR_SCRIPT=new URLSearchParams(location.search).get("s")==="adinkra"?"adinkra":"kradin"</script>
 <script src="twi.js"></script><script src="stroke.js"></script><script src="kr.js"></script>
+<script src="kfont.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let GH={};
@@ -62,10 +66,10 @@ function card(k,editable){
   const W=+$("w").value,st=KR.resolve(k),s=KR.status(k),b=KR.def(k).type==="composite"&&KR.blockedBy(k).length;
   const lbl={approved:"approved",fix:"needs fix",draft:"draft"}[s];
   const svg=KS.glyphSVG(st,W,{nums:$("nb").checked,ghost:$("gh").checked&&GH[k]?GH[k].d:null,color:(i,x)=>x.role==="modifier"||x.role==="glide"?"#ff3b30":"var(--ink)"});
-  return `<a class="rc" href="${editable?"lab":"lab"}.html#${encodeURIComponent(k)}">${svg}<div class="t"><b>${KR.label(k)}</b><span class="badge ${s==="approved"?"ok":s==="fix"?"fix":"draft"}">${b?"🔒 ":""}${lbl}</span></div><div class="m">${st.length} stroke${st.length>1?"s":""}</div></a>`}
+  return `<a class="rc" href="lab.html${location.search}#${encodeURIComponent(k)}">${svg}<div class="t"><b>${KR.label(k)}</b><span class="badge ${s==="approved"?"ok":s==="fix"?"fix":"draft"}">${b?"🔒 ":""}${lbl}</span></div><div class="m">${st.length} stroke${st.length>1?"s":""}</div></a>`}
 function draw(){
   $("wv").textContent=$("w").value;
-  const rows=[["Vowels",""]].concat(KR.RAD_ROWS.slice(1).map(r=>[r,r]));
+  const rows=[[KR.FIRST_ROW,""]].concat(KR.RAD_ROWS.slice(1).map(r=>[r,r]));
   let h=rows.map(([n,on])=>`<h2>${n}<small>radicals</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]?card(on+v,true):"").join("")}</div>`).join("");
   const other=KR.OTHER.map(([n,ks])=>{const c=ks.map(k=>"@"+k).filter(k=>KR.DEF[k]&&!KR.deleted(k)).map(k=>card(k,true)).join("");return c?`<h2>${n}<small>other glyphs</small></h2><div class="rg">${c}</div>`:""}).join("");
   h+=KR.COMP_ROWS.map(([on,how])=>`<h2>${on}<small>${how}</small></h2><div class="rg">${KR.VOW.map(v=>KR.DEF[on+v]&&KR.DEF[on+v].type==="composite"?card(on+v,false):"").join("")}</div>`).join("");
@@ -74,7 +78,9 @@ function draw(){
   $("rows").innerHTML=h;
   document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
 }
-Promise.all([KR.load(),fetch("radicals-ghost.json").then(r=>r.json())]).then(([_,gh])=>{GH=gh;draw()});
+if(KR.SCRIPT==="adinkra"){document.getElementById("ttl").textContent="Adinkra alphabet";document.querySelector(".lead").textContent="The Adinkra alphabet rebuilt from strokes, twice as tall as it is wide, on the same axes and weights as Kɔradin. The orange guide is the original font. Open a letter to edit it in the Construction lab.";document.title="Adinkra Alphabet Modular"}
+document.querySelectorAll(".segl").forEach(a=>a.setAttribute("aria-current",a.dataset.s===KR.SCRIPT));
+Promise.all([KR.load(),fetch(KR.GHOST).then(r=>r.json())]).then(([_,gh])=>{GH=gh;draw()});
 ["w","gh","nb"].forEach(i=>$(i).oninput=draw);
 </script>
 </body>

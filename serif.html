@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Kɔradin Serif Lab</title>
+<link rel="stylesheet" href="apple.css">
+<style>
+.main{padding:18px 22px 40px;display:flex;flex-direction:column;gap:16px}
+.canvasbox{background:var(--canvas);border-radius:18px;position:relative}
+.cvtop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:.5px solid var(--sep);font-size:14px;color:var(--label2)}
+.cvtop b{color:var(--label);font-size:17px}
+.cvtop .nav2{display:flex;gap:6px;align-items:center}
+#cv{display:block;width:100%;height:min(58vh,560px);touch-action:manipulation}
+.endm{cursor:pointer}
+.endm circle{transition:r .12s}
+.endm:hover circle.o{r:44}
+.legend2{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 16px 14px;font-size:12px;color:var(--label2);border-top:.5px solid var(--sep)}
+.legend2 i{display:inline-block;width:12px;height:12px;border-radius:99px;vertical-align:-2px;margin-right:5px}
+.mini{appearance:none;border:0;background:var(--fill);border-radius:8px;padding:6px 10px;font:500 13px var(--font);color:inherit;cursor:pointer}
+.mini.pri{background:var(--tint);color:var(--tint-ink)}
+.mini:disabled{opacity:.4;cursor:not-allowed}
+.spec{background:var(--canvas);border-radius:18px;overflow:hidden}
+.spec input{width:100%;border:0;border-bottom:.5px solid var(--sep);background:transparent;color:var(--label);font:15px var(--font);padding:12px 16px;outline:none}
+.spec .out{padding:18px 16px 22px;font-size:64px;line-height:1.35;white-space:pre-wrap;word-break:break-word;color:var(--ink);min-height:120px}
+.spec .out [data-lat]:hover{background:color-mix(in srgb,var(--tint) 14%,transparent);border-radius:6px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
+.gl button{appearance:none;border:0;background:var(--canvas);border-radius:10px;padding:6px 2px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;color:var(--ink);position:relative}
+.gl button svg{height:46px;width:auto;max-width:100%}
+.gl button span{font-size:11px;color:var(--label2)}
+.gl button[aria-current="true"]{outline:2.5px solid var(--tint)}
+.gl button.has::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:9px;background:var(--tint)}
+h3.sec{font:600 15px var(--font);color:var(--label2);margin:6px 2px -6px}
+select.sel{width:100%;border:0;border-radius:10px;background:var(--fill);color:var(--label);font:15px var(--font);padding:9px 10px}
+.seg button[aria-checked="true"]{font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+input[type=range]{width:100%}
+@media(max-width:900px){
+  .main{padding:10px 12px 20px;position:sticky;top:52px;z-index:5;background:var(--bg);gap:10px}
+  #cv{height:34vh}
+  .spec,.gl,h3.sec{display:none}
+  .side .mob{display:block}
+}
+.side .mob{display:none}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="index.html"><span class="k" data-lat="Kɔradin">kɔ</span><span class="bt">Kɔradin Modular</span></a>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html">Construction lab</a><a href="serif.html" aria-current="page">Serif lab</a><a href="calendar.html">Calendar</a></div>
+</nav>
+<div class="shell">
+  <aside class="side" aria-label="Style controls">
+    <p class="h-sec">Style</p>
+    <div class="group"><div class="row col">
+      <select class="sel" id="pick" aria-label="Style"></select>
+      <div class="btns"><button class="mini pri" id="saveNew">Save as new style</button><button class="mini" id="rename">Rename</button><button class="mini" id="del">Delete</button></div>
+      <p class="note" id="savedNote" style="padding:0"></p>
+    </div></div>
+
+    <p class="h-sec">Contrast</p>
+    <div class="group">
+      <div class="row col"><div class="line"><span class="lbl">Verticals</span> <span class="val" id="o-vert"></span></div><input type="range" id="vert" min="0.2" max="1.6" step="0.02" aria-label="Vertical thickness"></div>
+      <div class="row col"><div class="line"><span class="lbl">Horizontals</span> <span class="val" id="o-horz"></span></div><input type="range" id="horz" min="0.2" max="1.6" step="0.02" aria-label="Horizontal thickness"></div>
+      <div class="row"><span class="lbl">Vice versa</span><button class="mini" id="swap">Swap</button></div>
+    </div>
+
+    <p class="h-sec">Ends</p>
+    <div class="group">
+      <div class="row col"><div class="seg" id="ends" role="radiogroup" aria-label="Ends"><button data-v="flat">Flat</button><button data-v="taper">Tapered</button><button data-v="flare">Flared</button></div></div>
+      <div class="row col"><div class="line"><span class="lbl">Amount</span> <span class="val" id="o-endAmt"></span></div><input type="range" id="endAmt" min="0" max="1" step="0.02" aria-label="End amount"></div>
+      <div class="row col"><div class="line"><span class="lbl">Length</span> <span class="val" id="o-endLen"></span></div><input type="range" id="endLen" min="0.6" max="5" step="0.1" aria-label="End length"></div>
+    </div>
+
+    <p class="h-sec">Serifs</p>
+    <div class="group">
+      <div class="row col"><select class="sel" id="serif" aria-label="Serif type"><option value="none">None</option><option value="slab">Slab</option><option value="wedge">Wedge</option><option value="bracket">Bracketed</option><option value="hair">Hairline</option><option value="ball">Ball terminal</option></select></div>
+      <div class="row col"><div class="line"><span class="lbl">Length</span> <span class="val" id="o-serifLen"></span></div><input type="range" id="serifLen" min="0" max="1.2" step="0.02" aria-label="Serif length"></div>
+      <div class="row col"><div class="line"><span class="lbl">Thickness</span> <span class="val" id="o-serifThk"></span></div><input type="range" id="serifThk" min="0.06" max="1.2" step="0.02" aria-label="Serif thickness"></div>
+      <div class="row col"><span class="lbl">Side</span><div class="seg" id="serifSide" role="radiogroup" aria-label="Serif side"><button data-v="both">Both</button><button data-v="left">Left</button><button data-v="right">Right</button></div></div>
+      <div class="row col"><span class="lbl">Placed on</span><select class="sel" id="serifWhere" aria-label="Where serifs go"><option value="axes">Ends on the baseline and the top</option><option value="vertical">Vertical ends</option><option value="free">Every free end</option><option value="terminals">Curve terminals</option></select></div>
+    </div>
+    <p class="note">Tap an end on the glyph to place or remove a serif there, for that glyph only.</p>
+
+    <p class="h-sec">Preview</p>
+    <div class="group"><div class="row col"><div class="line"><span class="lbl">Weight</span> <span class="val" id="o-w"></span></div><input type="range" id="w" min="22" max="98" value="80" aria-label="Stroke weight"></div></div>
+    <p class="note">Monochrome outlines only: every style is solid fills, no shadows, no outlines. Saved styles appear under Style in the type tester for the live glyphs and your exports.</p>
+  </aside>
+
+  <main class="main">
+    <section class="canvasbox" aria-label="Glyph">
+      <div class="cvtop"><span><b id="gname"></b> <span id="ginfo"></span></span>
+        <span class="nav2"><button class="mini" id="prev" aria-label="Previous glyph">‹</button><button class="mini" id="next" aria-label="Next glyph">›</button><button class="mini" id="resetG">Reset glyph</button></span></div>
+      <svg id="cv" viewBox="-150 -140 1000 960" role="img" aria-label="Glyph in this style"></svg>
+      <div class="legend2"><span><i style="background:var(--tint)"></i>serif</span><span><i style="border:2.5px solid var(--label2)"></i>no serif</span><span><i style="background:var(--tint);outline:2px solid var(--label);outline-offset:2px"></i>set by hand for this glyph</span></div>
+    </section>
+    <section class="spec" aria-label="Specimen"><input id="txt" value="Akwaaba. Kyerɛw Nyame. Mpɛnua ne Asusuo." aria-label="Specimen text"><div class="out" id="out" lang="tw"></div></section>
+    <h3 class="sec">Every glyph in this style</h3>
+    <div class="gl" id="gl"></div>
+  </main>
+</div>
+<script src="twi.js"></script>
+<script src="stroke.js"></script>
+<script src="kr.js"></script>
+<script src="vendor/opentype.min.js"></script>
+<script src="kfont.js"></script>
+<script src="styles.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+let G={}, keys=[], cur=null, gi=0, dirty=false;
+const LSg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const LSs=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+function styles(){return KST.PRESETS.map(p=>({...p,ov:{}})).concat(KST.saved().map(s=>({...s,P:{...KST.DEF,...s.P},mine:true})))}
+function fillPick(){
+  const L=styles();
+  $("pick").innerHTML=`<optgroup label="Presets">${L.filter(s=>!s.mine).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`+
+    (L.some(s=>s.mine)?`<optgroup label="Your styles">${L.filter(s=>s.mine).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`:"");
+  $("pick").value=cur.id;
+}
+function load(id){const s=styles().find(x=>x.id===id)||styles()[0];cur=JSON.parse(JSON.stringify(s));dirty=false;LSs("sl-cur",cur.id);sync();draw();}
+function commit(){ // saved styles update as you go; presets wait for "Save as new style"
+  if(cur.mine){KST.save({id:cur.id,name:cur.name,P:cur.P,ov:cur.ov});$("savedNote").textContent="Saved · used by the type tester";}
+  else{dirty=true;$("savedNote").textContent="Preset changed: save it as a new style to keep it.";}
+}
+const SL=["vert","horz","endAmt","endLen","serifLen","serifThk"];
+function sync(){
+  for(const k of SL){$(k).value=cur.P[k];$("o-"+k).textContent=(+cur.P[k]).toFixed(2)}
+  $("serif").value=cur.P.serif;$("serifWhere").value=cur.P.serifWhere;
+  for(const g of ["ends","serifSide"])$(g).querySelectorAll("button").forEach(b=>b.setAttribute("aria-checked",b.dataset.v===cur.P[g]));
+  segThumbs();
+  $("rename").disabled=$("del").disabled=!cur.mine;
+  $("savedNote").textContent=cur.mine?"Your style · saves as you go":"Preset · change anything, then save it as a new style";
+  fillPick();
+  document.querySelectorAll("input[type=range]").forEach(el=>el.style.setProperty("--p",(el.value-el.min)/(el.max-el.min)*100+"%"));
+}
+function segThumbs(){document.querySelectorAll(".seg").forEach(el=>{let t=el.querySelector(".thumb");if(!t){t=document.createElement("span");t.className="thumb";el.prepend(t)}const b=el.querySelector('[aria-checked="true"]');if(b){t.style.width=b.offsetWidth+"px";t.style.transform=`translateX(${b.offsetLeft-2}px)`}})}
+const W=()=>+$("w").value;
+function polys(k,w){return KST.glyph(G[k],w,null,cur.P,(cur.ov||{})[k])}
+function thumb(k){const p=polys(k,70);let x0=1e9,x1=-1e9;p.forEach(q=>q.forEach(([x])=>{x0=Math.min(x0,x);x1=Math.max(x1,x)}));if(!isFinite(x0)){x0=0;x1=300}
+  return `<svg viewBox="${x0-30} -150 ${x1-x0+60} 1000" aria-hidden="true"><path transform="translate(0,700) scale(1,-1)" fill="currentColor" d="${KST.svgPath(p)}"/></svg>`}
+function drawGlyph(){
+  const k=keys[gi], w=W(), p=polys(k,w), kk=KS.K(w), E=KST.ends(G[k]), ov=(cur.ov||{})[k]||{};
+  let x0=1e9,x1=-1e9;p.forEach(q=>q.forEach(([x])=>{x0=Math.min(x0,x);x1=Math.max(x1,x)}));
+  const span=Math.max(760,x1-x0+260), cx=(x0+x1)/2;
+  $("cv").setAttribute("viewBox",`${cx-span/2} -150 ${span} 1000`);
+  const gd=[0,350,700].map(y=>`<path d="M${cx-span} ${y}H${cx+span}" stroke="var(--sep)" stroke-width="3" ${y===350?'stroke-dasharray="14 12"':""}/>`).join("");
+  const marks=E.filter(e=>e.free||ov[e.i+":"+e.e]!==undefined).map(e=>{
+    const on=KST.wants(e,cur.P,(cur.ov||{})[k]), set=ov[e.i+":"+e.e]!==undefined, x=e.x*kk, y=350+(e.y-350)*kk;
+    return `<g class="endm" data-e="${e.i}:${e.e}" role="button" tabindex="0" aria-label="${on?"Remove":"Add"} serif on stroke ${e.i+1} ${e.e?"end":"start"}"><circle class="o" cx="${x}" cy="${y}" r="36" fill="${on?"var(--tint)":"var(--canvas)"}" fill-opacity="${on?.85:.9}" stroke="${on?"var(--tint)":"var(--label2)"}" stroke-width="7"/>${set?`<circle cx="${x}" cy="${y}" r="50" fill="none" stroke="var(--label)" stroke-width="5"/>`:""}</g>`}).join("");
+  $("cv").innerHTML=`<g transform="translate(0,700) scale(1,-1)">${gd}<path fill="var(--ink)" d="${KST.svgPath(p)}"/>${marks}</g>`;
+  $("gname").textContent=KR.label(k);$("ginfo").textContent=`${G[k].length} stroke${G[k].length>1?"s":""} · ${gi+1} of ${keys.length}`;
+  $("cv").querySelectorAll(".endm").forEach(m=>{const go=()=>toggle(k,m.dataset.e);m.onclick=go;m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
+}
+function toggle(k,id){
+  cur.ov=cur.ov||{};const o=cur.ov[k]=cur.ov[k]||{};const e=KST.ends(G[k]).find(x=>x.i+":"+x.e===id);
+  const def=KST.wants(e,cur.P,null);
+  if(o[id]===undefined)o[id]=!def;else delete o[id];
+  if(!Object.keys(o).length)delete cur.ov[k];
+  commit();drawGlyph();markGrid();queueSpec();
+  const b=$("gl").querySelector(`[data-k="${CSS.escape(k)}"]`);if(b)b.firstElementChild.outerHTML=thumb(k);
+}
+function grid(){$("gl").innerHTML=keys.map((k,i)=>`<button data-k="${esc(k)}" data-i="${i}" aria-current="${i===gi}" class="${cur.ov&&cur.ov[k]?"has":""}">${thumb(k)}<span>${esc(KR.label(k))}</span></button>`).join("");
+  $("gl").querySelectorAll("button").forEach(b=>b.onclick=()=>{gi=+b.dataset.i;LSs("sl-g",keys[gi]);drawGlyph();markGrid();if(matchMedia("(max-width:900px)").matches)scrollTo({top:0,behavior:"smooth"})})}
+function markGrid(){$("gl").querySelectorAll("button").forEach(b=>{b.setAttribute("aria-current",+b.dataset.i===gi);b.classList.toggle("has",!!(cur.ov&&cur.ov[b.dataset.k]))})}
+let specT=null,specN=0;
+function queueSpec(){clearTimeout(specT);specT=setTimeout(spec,220)}
+async function spec(){
+  const fam="SL-"+(++specN), snap=G; await KR.fontFace(snap,W(),100,0,fam,{P:cur.P,ov:cur.ov||{}});
+  const has=new Set(Object.keys(snap)), raw=$("txt").value;
+  $("out").style.fontFamily=`"${fam}"`;
+  $("out").innerHTML=raw.split(/(\s+)/).map(t=>!t.trim()?esc(t):`<span data-lat="${esc(TwiScript.twiLatin(t))}">${esc(KR.shape(t,has,fam))}</span>`).join("");
+}
+function draw(){drawGlyph();grid();queueSpec()}
+// controls
+for(const k of SL)$(k).addEventListener("input",e=>{cur.P[k]=+e.target.value;$("o-"+k).textContent=cur.P[k].toFixed(2);e.target.style.setProperty("--p",(e.target.value-e.target.min)/(e.target.max-e.target.min)*100+"%");commit();drawGlyph();clearTimeout(window._gt);window._gt=setTimeout(grid,250);queueSpec()});
+for(const k of ["serif","serifWhere"])$(k).onchange=e=>{cur.P[k]=e.target.value;commit();draw()};
+for(const g of ["ends","serifSide"])$(g).querySelectorAll("button").forEach(b=>{b.setAttribute("role","radio");b.onclick=()=>{cur.P[g]=b.dataset.v;if(g==="ends"&&b.dataset.v!=="flat"&&!cur.P.endAmt)cur.P.endAmt=0.5;commit();sync();draw()}});
+$("swap").onclick=()=>{[cur.P.vert,cur.P.horz]=[cur.P.horz,cur.P.vert];commit();sync();draw()};
+$("w").oninput=e=>{$("o-w").textContent=e.target.value;e.target.style.setProperty("--p",(e.target.value-22)/76*100+"%");drawGlyph();clearTimeout(window._gt);window._gt=setTimeout(grid,250);queueSpec()};
+$("pick").onchange=e=>{if(dirty&&!confirm("Leave your unsaved changes to this preset?")){$("pick").value=cur.id;return}load(e.target.value)};
+$("saveNew").onclick=()=>{const name=prompt("Name this style",cur.mine?cur.name+" 2":cur.name+" (mine)");if(!name)return;const s={id:"s"+Date.now().toString(36),name,P:{...cur.P},ov:JSON.parse(JSON.stringify(cur.ov||{}))};if(!KST.save(s)){alert("Browser storage is full.");return}load(s.id)};
+$("rename").onclick=()=>{const name=prompt("Rename style",cur.name);if(!name)return;cur.name=name;commit();fillPick()};
+$("del").onclick=()=>{if(!cur.mine||!confirm(`Delete "${cur.name}"?`))return;KST.remove(cur.id);load(KST.PRESETS[0].id)};
+$("prev").onclick=()=>{gi=(gi-1+keys.length)%keys.length;LSs("sl-g",keys[gi]);drawGlyph();markGrid()};
+$("next").onclick=()=>{gi=(gi+1)%keys.length;LSs("sl-g",keys[gi]);drawGlyph();markGrid()};
+$("resetG").onclick=()=>{const k=keys[gi];if(cur.ov&&cur.ov[k]){delete cur.ov[k];commit();drawGlyph();markGrid();grid();queueSpec()}};
+$("txt").addEventListener("input",queueSpec);
+addEventListener("resize",segThumbs);
+addEventListener("keydown",e=>{if(e.target.matches("input,select,textarea"))return;if(e.key==="ArrowRight")$("next").click();if(e.key==="ArrowLeft")$("prev").click()});
+KR.load().then(async()=>{await KR.fontmap();G=KR.snapshot();
+  const order=KR.liveKeys?KR.liveKeys():Object.keys(G);keys=order.filter(k=>G[k]&&G[k].length);
+  const g0=LSg("sl-g","kɔ");gi=Math.max(0,keys.indexOf(g0));$("o-w").textContent=$("w").value;
+  load(LSg("sl-cur","slab"));
+});
+</script>
+</body>
+</html>

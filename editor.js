@@ -27,9 +27,9 @@
   }
   function pick() {
     const live = k => KR.DEF[k] && !KR.deleted(k);
-    const rows = [["Vowels", ""]].concat(KR.RAD_ROWS.slice(1).map(r => [r, r]));
-    let h = `<h3 class="sec">Radicals</h3>` + rows.map(([n, on]) => `<h3>${n}</h3><div class="chips">${KR.VOW.map(v => live(on + v) ? chip(on + v) : "").join("")}</div>`).join("");
-    h += `<h3 class="sec">Composed</h3>` + KR.COMP_ROWS.map(([on, how]) => {
+    const rows = [[KR.FIRST_ROW, ""]].concat(KR.RAD_ROWS.slice(1).map(r => [r, r]));
+    let h = `<h3 class="sec">${KR.SCRIPT === "adinkra" ? "Adinkra alphabet" : "Radicals"}</h3>` + rows.map(([n, on]) => `<h3>${n}</h3><div class="chips">${KR.VOW.map(v => live(on + v) ? chip(on + v) : "").join("")}</div>`).join("");
+    if (KR.COMP_ROWS.length) h += `<h3 class="sec">Composed</h3>` + KR.COMP_ROWS.map(([on, how]) => {
       const c = KR.VOW.map(v => live(on + v) && KR.DEF[on + v].type === "composite" ? chip(on + v) : "").join("");
       return c ? `<h3>${on} <small>${how}</small></h3><div class="chips">${c}</div>` : "";
     }).join("");
@@ -245,13 +245,13 @@
     };
     ["w", "gh", "cl", "hide"].forEach(i => $(i).oninput = () => { $("wv").textContent = W(); prog(); canvas(); });
     const doExport = test => {
-      const name = prompt(test ? "Name this test build" : "Name this font", test ? "Test " + new Date().toLocaleString() : "Kɔradin " + new Date().toLocaleDateString());
+      const name = prompt(test ? "Name this test build" : "Name this font", test ? "Test " + new Date().toLocaleString() : (KR.SCRIPT === "adinkra" ? "Adinkra " : "Kɔradin ") + new Date().toLocaleDateString());
       if (name === null) return;
-      try { KR.exportFont(name, test); location.href = "index.html#font=latest"; } catch (err) { alert(err.message); }
+      try { KR.exportFont(name, test); location.href = KR.SCRIPT === "adinkra" ? "index.html#adfont=latest" : "index.html#font=latest"; } catch (err) { alert(err.message); }
     };
     $("exportAll").onclick = () => doExport(false);
     $("exportTest").onclick = () => doExport(true);
     addEventListener("hashchange", () => openG(decodeURIComponent(location.hash.slice(1))));
   }
-  Promise.all([KR.load(), fetch("radicals-ghost.json").then(r => r.json())]).then(([_, g]) => { GH = g; init(); openG(decodeURIComponent(location.hash.slice(1)) || "a"); });
+  Promise.all([KR.load(), fetch(KR.GHOST).then(r => r.json())]).then(([_, g]) => { GH = g; init(); openG(decodeURIComponent(location.hash.slice(1)) || "a"); });
 })();

@@ -214,5 +214,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 -60 ${r + 100} 820" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="0" width="${r + 600}" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, polygonTapered, place, centreline, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();
