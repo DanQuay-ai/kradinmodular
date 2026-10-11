@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Kradin · Neo-Akan</title>
+<meta name="description" content="What's your Kradin? Find the Akan day name for any date, and read the adaduanan calendar in Kɔradin.">
+<link rel="stylesheet" href="apple.css">
+<link rel="stylesheet" href="cal.css">
+<style>
+:root{--bg:#fff;--card:#f4f4f4;--label:#000;--label2:#555;--label3:#aaa;--sep:#00000022;--fill:#0000000d;--tint:#000;--sacred:#000}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#121212;--label:#fff;--label2:#aaa;--label3:#555;--sep:#ffffff26;--fill:#ffffff14;--tint:#fff;--sacred:#fff}}
+html,body{background:var(--bg)}
+.switch input:checked + span{background:var(--label)}
+.top{max-width:1240px;margin:0 auto;padding:40px 22px 0}
+.top .ey{font:600 12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--label2)}
+.top h1{font:800 clamp(44px,8vw,96px)/.95 var(--display);letter-spacing:-.03em;margin-top:10px}
+.seg{display:inline-flex;background:var(--fill);border-radius:99px;padding:3px;margin-top:26px}
+.seg button{appearance:none;border:0;background:none;border-radius:99px;padding:8px 20px;font:600 14px var(--font);cursor:pointer;color:var(--label2);transition:background .2s,color .2s}
+.seg button[aria-selected=true]{background:var(--label);color:var(--bg)}
+.pane{max-width:1240px;margin:0 auto;padding:28px 22px 72px}
+.find{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+.box{background:var(--card);border-radius:20px;padding:26px}
+.box h2{margin:0 0 12px;font:700 24px var(--display)}
+.inp{display:flex;flex-direction:column;gap:12px}
+input[type=date]{font:600 22px var(--font);padding:12px 14px;border-radius:12px;border:1.5px solid var(--label);background:var(--bg);color:var(--label);width:100%}
+.dawn{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--label2)}
+.eyebrow{font:600 12px var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--label2)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+.pair h3{font:600 13px var(--font);color:var(--label2);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;border-radius:12px;border:1px solid var(--sep)}
+.chip .kr{font-size:26px;line-height:1.1}.chip b{font-size:13px;font-weight:600}
+.chip.main{background:var(--label);color:var(--bg);border-color:var(--label)}
+.pr{font-size:13px;color:var(--label2);margin-top:8px}
+.para{margin-top:16px;font-size:16px;line-height:1.55}
+.kname{margin-top:18px;font-size:44px;display:flex;gap:22px;flex-wrap:wrap}
+.src{margin-top:18px;font-size:12px;color:var(--label3)}
+.about{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.about p{margin-top:10px;font-size:16px;line-height:1.6;color:var(--label2)}.about p b{color:var(--label)}
+.about .kr{font-size:1.4em;color:var(--label)}
+.about a{text-decoration:underline}
+@media(max-width:800px){.find,.about,.pair{grid-template-columns:1fr}.kname{font-size:36px}.top{padding:28px 14px 0}.pane{padding:22px 14px 56px}}
+@media print{.top,.find,.about{display:none!important}.pane{padding:0}}
+</style>
+</head>
+<body>
+<header class="top">
+  <p class="ey">Neo-Akan · Kɔradin</p>
+  <h1>What’s your Kradin?</h1>
+  <div class="seg" role="tablist">
+    <button role="tab" data-p="p-kradin" aria-selected="true">Kradin</button>
+    <button role="tab" data-p="p-cal" aria-selected="false">Calendar</button>
+  </div>
+</header>
+
+<main class="pane" id="p-kradin" role="tabpanel">
+  <div class="find">
+    <div class="box inp">
+      <h2>Find a day</h2>
+      <input type="date" id="bd" aria-label="Date of birth or any date" min="1800-01-01" max="2100-12-31">
+      <label class="dawn"><input type="checkbox" id="dawn"> Born after midnight but before dawn</label>
+      <p class="pr">The Akan day begins at daybreak, not midnight. A birth in the small hours belongs to the day before.</p>
+    </div>
+    <div class="box" id="res" aria-live="polite"></div>
+  </div>
+  <section class="about">
+    <div>
+      <h2>Kradin, the soul name</h2>
+      <p><b>Kra</b> is the soul, <b>din</b> the name. Every Akan person carries the name of the weekday they were born on, and with it the ɔkra of that day: one of seven souls of the Creator, Onyankopɔn. Kwasi and Akosua belong to Ayisi on Sunday, Kwadwo and Adwoa to Adwo on Monday, and so on through the week.</p>
+      <p>The kradin was never only a label. It carried a temperament, praise names, taboos and a day of observance, and it placed each person inside the 42-day adaduanan that ordered Akan life.</p>
+    </div>
+    <div>
+      <h2><span data-tw="kɔradin"></span> Kɔradin, the script</h2>
+      <p><b>Kɔradin</b> is a syllabary for Twi that takes its name from kradin, spelled the way Twi says it. Each sign writes a syllable, built from a radical and its modifiers, so a name is written as it is spoken.</p>
+      <p>Every name on this page is shown in Kɔradin above its Latin form. Hover or tap any Kɔradin to read it. Try the script yourself in the <a href="https://kradinmodular.netlify.app/" target="_blank" rel="noopener">type tester</a>.</p>
+    </div>
+  </section>
+</main>
+
+<main class="pane wrap" id="p-cal" role="tabpanel" hidden>
+  <div class="legend" id="legend"></div>
+
+  <section class="today" id="today" aria-label="Today"></section>
+
+  <div class="tools" role="toolbar" aria-label="Calendar controls">
+    <div class="group"><button class="ib" id="prev" aria-label="Previous year">‹</button><span class="yr" id="ylabel"></span><button class="ib" id="next" aria-label="Next year">›</button></div>
+    <button class="btn2" id="now">Today</button>
+    <div class="group"><span class="lbl">Export afe</span><button class="btn2" id="exp-pdf">PDF</button><button class="btn2" id="exp-ics">Calendar (.ics)</button></div>
+    <div class="group"><span class="lbl">Font</span><select class="sel" id="font" aria-label="Kɔradin font"></select></div>
+    <div class="group"><span class="lbl">Latin under Kɔradin</span><label class="switch"><input type="checkbox" id="latin" checked><span></span></label></div>
+  </div>
+  <p id="ymeta"></p>
+  <p class="catkey"><span class="ck c-dapaa">dapaa · good day</span><span class="ck c-dabɔne">dabɔne · sacred, restricted</span><span class="ck c-dahunu">dahunu · ordinary</span><span class="hint">Hover or tap a day for its name among the 42 nnanson.</span></p>
+  <div class="cycles" id="cycles"></div>
+
+  <h2>Sacred days this year</h2>
+  <div class="tw"><table id="sacred"></table></div>
+
+  <h2>How it is counted</h2>
+  <ul class="rules">
+    <li><b>Adaduanan.</b> Six named prefixes (fo, nwona, nkyi, kuru, kwa, mono) turn against the seven weekday stems. They meet again after 42 days, and each of those days has its own name: the nnanson. Day 1 here is Fodwoɔ, a Monday, as in Takyiman and Kwawu; in Kumase the count is opened at Nwonawukuo, the same cycle read from another day.</li>
+    <li><b>Sacred days.</b> Awukudae (Kuruwukuo) on day 10, Fofie on day 19, Akwasidae (Kurukwasi) on day 28. Each day is also dapaa, dabɔne or dahunu, after Konadu 2012.</li>
+    <li><b>Anchor.</b> Adommerɛ began on Monday 21 July 2025. The count runs unbroken in both directions: every Akwasidae reported below lands on Kurukwasi, and all eight dated 19th-century Asante events in Konadu 2012 land on the day he names.</li>
+    <li><b>Year (afe).</b> Nine adaduanan, 378 days. One is dropped every three years so that Odwira stays between August and September (Danquah, cited by Konadu). Here the year opens with the adaduanan starting nearest 10 August: 9, 9, 8 in turn. In a year of 8, ɔpɛnimaa is the one left out.</li>
+    <li><b>Names.</b> The nine seasonal periods follow Konadu's Table 5. He notes these "months" were never fixed, so the sequence here is a standardisation.</li>
+    <li><b>Akwasidae Kɛseɛ</b> (✦) is called by the Asantehene, not fixed by the count, so only the recorded ones are marked.</li>
+  </ul>
+
+  <h2>Anchors</h2>
+  <div class="tw"><table id="anchors"></table></div>
+</main>
+<script src="twi.js"></script>
+<script src="kfont.js"></script>
+<script src="calendar.js"></script>
+<script>document.getElementById("legend").innerHTML=[1,10,19,28].map(d=>`<span><i>${d}</i><span class="kr-s" data-tw="${AK.SACRED[d].toLowerCase()}"></span><span class="sub">${AK.SACRED[d]}</span></span>`).join("");</script>
+<script src="kradin.js"></script>
+</body>
+</html>
