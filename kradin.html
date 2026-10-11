@@ -69,6 +69,47 @@ input[type=date]{display:block;font:600 20px var(--font);padding:12px 14px;borde
 .cta{margin-top:56px;border-top:1px solid var(--sep);padding-top:24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--label2)}
 .cta a{color:var(--label);font-weight:600}
 @media(max-width:800px){.find,.about,.pair{grid-template-columns:1fr}.kname .kr-i{font-size:34px}.top{padding:28px 16px 0}.pane{padding:22px 16px 56px}.box{padding:20px}}
+
+/* Kɔradin tab */
+.sx-hero{display:grid;grid-template-columns:auto 1fr;gap:28px 40px;align-items:center;padding:8px 0 8px}
+.sx-big .kr-i{font-size:clamp(72px,12vw,150px)}
+.sx-hero .ey{font:600 12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--label2)}
+.sx-lede{font:600 clamp(20px,2.4vw,28px)/1.3 var(--display);margin-top:10px;letter-spacing:-.01em;max-width:620px}
+#p-script section{margin-top:48px}
+#p-script h2{font:700 26px var(--display);margin:0 0 12px;letter-spacing:-.01em}
+.sx-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px 48px}
+.sx-cols p{margin-top:10px;font-size:16px;line-height:1.65;color:var(--label2)}
+.sx-list{margin-top:14px;padding:0;list-style:none}.sx-list li{padding:10px 0;border-top:1px solid var(--sep);font-size:15px;color:var(--label2)}.sx-list b{color:var(--label)}
+.sx-rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sx-rules>div{background:var(--card);border-radius:16px;padding:18px 20px}
+.sx-rules p{margin-top:6px;color:var(--label2);font-size:14px;line-height:1.55}
+.sx-note{color:var(--label2);margin:-4px 0 14px;max-width:720px}
+table.sy{background:var(--card);border-radius:14px}
+table.sy th,table.sy td{text-align:center;padding:6px 4px;border-bottom:1px solid var(--sep)}
+table.sy th{font:700 13px var(--font);color:var(--label2)}
+table.sy th:first-child{text-align:left;padding-left:16px;width:56px}
+table.sy tr.base th:first-child{color:var(--label)}
+table.sy tr.var th:first-child{padding-left:28px;font-weight:500}
+table.sy tr.base td,table.sy tr.base th{border-top:2px solid var(--sep)}
+table.sy td .kr-i{font-size:26px;transition:transform .2s}
+table.sy td small{display:block;font-size:10px;color:var(--label3);margin-top:2px}
+table.sy td.on{background:var(--label);color:var(--bg)}table.sy td.on small{color:var(--bg)}
+table.sy td.on .kr-i{transform:scale(1.12);color:var(--bg)}
+.dn{display:flex;flex-wrap:wrap;gap:8px}
+.dn button{appearance:none;cursor:pointer;display:inline-flex;flex-direction:column;align-items:center;gap:6px;padding:10px 14px;border-radius:12px;border:1px solid var(--sep);background:none;color:var(--label);min-width:0}
+.dn button .kr-i{font-size:26px}.dn button b{font:600 13px var(--font)}.dn button small{font-size:11px;color:var(--label2)}
+.dn button[aria-pressed=true]{background:var(--label);color:var(--bg);border-color:var(--label)}.dn button[aria-pressed=true] small{color:var(--bg)}
+.dn h3{width:100%;font:600 13px var(--font);color:var(--label2);margin:10px 0 2px}
+.sx-colors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sx-colors>div{border:1px solid var(--sep);border-radius:16px;padding:20px;min-height:180px;display:flex;flex-direction:column;gap:6px}
+.sx-colors .kr-i{font-size:34px}
+.sx-colors b{font:700 18px var(--font);margin-top:auto}
+.sx-colors p{font-size:14px;line-height:1.5;opacity:.85}
+.sx-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.sx-tools a{display:flex;flex-direction:column;gap:4px;background:var(--card);border-radius:16px;padding:18px 20px;color:var(--label)}
+.sx-tools a span{color:var(--label2);font-size:14px}
+.sx-tools a:hover{background:var(--fill2)}
+@media(max-width:800px){.sx-hero{grid-template-columns:1fr}.sx-cols,.sx-rules,.sx-colors,.sx-tools{grid-template-columns:1fr}table.sy td .kr-i{font-size:21px}}
 </style>
 </head>
 <body>
@@ -93,6 +134,7 @@ input[type=date]{display:block;font:600 20px var(--font);padding:12px 14px;borde
   <div class="seg" role="tablist">
     <button role="tab" data-p="p-kradin" aria-selected="true">Kradin</button>
     <button role="tab" data-p="p-cal" aria-selected="false">Calendar</button>
+    <button role="tab" data-p="p-script" aria-selected="false">Kɔradin</button>
   </div>
 </div>
 
@@ -135,10 +177,81 @@ input[type=date]{display:block;font:600 20px var(--font);padding:12px 14px;borde
   <div class="tw"><table id="sacred"></table></div>
   <p class="cta"><span>More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
 </main>
+
+<main class="pane" id="p-script" role="tabpanel" hidden>
+  <section class="sx-hero">
+    <div class="sx-big"><span class="kr-i" data-tw="kɔradin"></span></div>
+    <div>
+      <p class="ey">The Kɔradin writing system</p>
+      <p class="sx-lede">A syllabary for Twi, built so that Akan words are written the way they are spoken, one sign per syllable.</p>
+    </div>
+  </section>
+
+  <section class="sx-cols">
+    <div>
+      <h2>Origins</h2>
+      <p>Kɔradin was created in 2021, one of the first creations of Merankron. It takes its name from kradin, the soul name, spelled as Twi pronounces it.</p>
+      <p>West Africa already writes with symbols. Akan, Ga and Ewe signs have long carried ideas, proverbs and values rather than sounds, Adinkra being the best known. Such ideographic signs are shared across neighbouring peoples, not owned by one. Kɔradin draws on that inheritance, with Afaka, Adinkra, and Ewe and Ga symbols as references, and turns it into a phonetic script: every sign now stands for a sound.</p>
+    </div>
+    <div>
+      <h2>Ambition</h2>
+      <p>Latin letters were brought to Twi by missionaries and administrators, and each spelled Akan names their own way: Kwasi, Quassi, Kouassi, Kwesi. Kɔradin gives Twi a script made for its own sounds, so a word has one spelling wherever it is written.</p>
+      <ul class="sx-list">
+        <li><b>Everyday use.</b> A font family, a keyboard, and a browser extension that shows any Twi on the web in Kɔradin.</li>
+        <li><b>Learning.</b> Mnemonics and short lessons, so anyone can read their own name in an afternoon.</li>
+        <li><b>Recognition.</b> Documentation of the script towards registration and, in time, Unicode encoding.</li>
+        <li><b>Design.</b> A visual language for Neo-Akan art, fashion, architecture and media.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="sx-rules">
+      <div><b>One sign, one syllable.</b><p>Twi is built from consonant and vowel pairs. Each pair is one sign: ka, kɔ, kye, twe.</p></div>
+      <div><b>Families of signs.</b><p>Related sounds share a base sign. Variants are that base with a modifier: ky is k with a top bar, tw grows from t.</p></div>
+      <div><b>Seven vowels.</b><p>a, e, ɛ, i, o, ɔ, u. The open vowels ɛ and ɔ have their own forms, never mixed with e and o.</p></div>
+      <div><b>Nasals as marks.</b><p>m, n and ng become marks: under the sign they close, or before the sign they open (ka, kan, kang).</p></div>
+      <div><b>No clusters.</b><p>Consonant clusters take their vowel back: Brafo is written barafo, Frimpɔŋ firimpɔŋ.</p></div>
+      <div><b>Phonetic names.</b><p>Names are spelled as said: Mensah mɛnsa, Dontoh dontɔ, Kwesi with its own kwe sign.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The syllable table</h2>
+    <p class="sx-note">Onsets down the side, vowels across the top. Families are grouped: the base row first, its variants beneath. Tap any name below to light up its syllables.</p>
+    <div class="tw"><table class="sy" id="sy"></table></div>
+  </section>
+
+  <section>
+    <h2>Day names</h2>
+    <p class="sx-note">Every Akan child receives a kradin, the soul name of the day of birth.</p>
+    <div class="dn" id="dn"></div>
+  </section>
+
+  <section>
+    <h2>Surnames</h2>
+    <div class="dn" id="sn"></div>
+  </section>
+
+  <section>
+    <h2>Colours</h2>
+    <p class="sx-note">Akan sorts colours into three families rather than many hues.</p>
+    <div class="sx-colors" id="colors"></div>
+  </section>
+
+  <section class="sx-tools">
+    <a href="https://kradinmodular.netlify.app/" target="_blank" rel="noopener"><b>Type tester</b><span>Write in Kɔradin, in every style</span></a>
+    <a href="https://kradinmodular.netlify.app/dl/twi-script-extension.zip"><b>Browser extension</b><span>Twi on any page, shown in Kɔradin</span></a>
+    <a href="https://kradinmodular.netlify.app/dl/KoradinModular-All.zip"><b>Fonts</b><span>Download the Kɔradin Modular family</span></a>
+  </section>
+  <p class="cta"><span>More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
+</main>
 <script src="twi.js"></script>
 <script src="kfont.js"></script>
 <script src="calendar.js"></script>
 <script src="calview.js"></script>
 <script src="kradin.js"></script>
+<script src="script-tab.js"></script>
 </body>
 </html>
