@@ -16,7 +16,7 @@
 </nav>
 <div class="wrap">
   <div class="hero"><i class="emb" aria-hidden="true"></i><div>
-    <h1><span data-tw="adaduanan"></span><span>Akan calendar</span></h1>
+    <h1><span class="kr-i" data-tw="adaduanan"></span><span>Akan calendar</span></h1>
     <p class="lead">Forty-two days make one adaduanan: the six-day and the seven-day weeks meeting again. Eight or nine of them make a year. Four days in each are sacred, for the ancestors and the abosom: no farming or heavy work on these days. Hover or tap any Kɔradin to read it in Latin.</p>
   </div></div>
   <div class="legend" id="legend"></div>
@@ -31,7 +31,7 @@
     <div class="group"><span class="lbl">Latin under Kɔradin</span><label class="switch"><input type="checkbox" id="latin" checked><span></span></label></div>
   </div>
   <p id="ymeta"></p>
-  <p class="catkey"><span class="ck c-dapaa">dapaa · good day</span><span class="ck c-dabɔne">dabɔne · sacred, restricted</span><span class="ck c-dahunu">dahunu · ordinary</span><span class="hint">Hover or tap a day for its name among the 42 nnanson.</span></p>
+  <p class="catkey"><span class="ck"><i class="c-dapaa"></i>dapaa · good day</span><span class="ck"><i class="c-dabɔne"></i>dabɔne · sacred, restricted</span><span class="ck"><i class="c-dahunu"></i>dahunu · ordinary</span><span class="hint">Hover or tap a day for its name among the 42 nnanson.</span></p>
   <div class="cycles" id="cycles"></div>
 
   <h2>Sacred days this year</h2>
@@ -41,7 +41,7 @@
   <ul class="rules">
     <li><b>Adaduanan.</b> Six named prefixes (fo, nwona, nkyi, kuru, kwa, mono) turn against the seven weekday stems. They meet again after 42 days, and each of those days has its own name: the nnanson. Day 1 here is Fodwoɔ, a Monday, as in Takyiman and Kwawu; in Kumase the count is opened at Nwonawukuo, the same cycle read from another day.</li>
     <li><b>Sacred days.</b> Awukudae (Kuruwukuo) on day 10, Fofie on day 19, Akwasidae (Kurukwasi) on day 28. Each day is also dapaa, dabɔne or dahunu, after Konadu 2012.</li>
-    <li><b>Anchor.</b> Adommerɛ began on Monday 21 July 2025 (your calendar graphics). The count runs unbroken in both directions: every Akwasidae reported below lands on Kurukwasi, and all eight dated 19th-century Asante events in Konadu 2012 land on the day he names.</li>
+    <li><b>Anchor.</b> Adɔmmerɛ began on Monday 21 July 2025 (your calendar graphics). The count runs unbroken in both directions: every Akwasidae reported below lands on Kurukwasi, and all eight dated 19th-century Asante events in Konadu 2012 land on the day he names.</li>
     <li><b>Year (afe).</b> Nine adaduanan, 378 days. One is dropped every three years so that Odwira stays between August and September (Danquah, cited by Konadu). Here the year opens with the adaduanan starting nearest 10 August: 9, 9, 8 in turn. In a year of 8, ɔpɛnimaa is the one left out.</li>
     <li><b>Names.</b> The nine seasonal periods follow Konadu's Table 5. He notes these "months" were never fixed, so the sequence here is a standardisation.</li>
     <li><b>Akwasidae Kɛseɛ</b> (✦) is called by the Asantehene, not fixed by the count, so only the recorded ones are marked.</li>
@@ -56,8 +56,6 @@
 <script src="vendor/opentype.min.js"></script>
 <script src="kfont.js"></script>
 <script src="calendar.js"></script>
-<script>
-document.getElementById("legend").innerHTML=[1,10,19,28].map(d=>`<span><i>${d}</i><span class="kr-s" data-tw="${AK.SACRED[d].toLowerCase()}"></span><span class="sub">${AK.SACRED[d]}</span></span>`).join("");
-</script>
+<script src="calview.js"></script>
 </body>
 </html>

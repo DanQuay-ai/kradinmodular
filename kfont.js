@@ -11,8 +11,8 @@
 :root{--kr:"KDua"}
 .kr{font-family:var(--kr),var(--font);font-feature-settings:"liga","calt";font-weight:400;letter-spacing:0}
 [data-lat]{cursor:help}
-.kf-tip{position:fixed;z-index:99;pointer-events:none;background:var(--label);color:var(--bg);font:500 13px/1.3 var(--font);
-  padding:5px 10px;border-radius:8px;white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+.kf-tip{position:absolute;z-index:99;pointer-events:none;background:var(--label);color:var(--bg);font:500 13px/1.3 var(--font);
+  padding:6px 10px;border-radius:8px;white-space:normal;text-align:center;max-width:min(300px,calc(100vw - 16px));opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
 .kf-tip.on{opacity:1;transform:none}
 .kf-tip::after{content:"";position:absolute;left:var(--ax,50%);top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--label)}
 .kf-tip.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:var(--label)}`;
@@ -55,27 +55,47 @@
     });
   }
 
-  // bubble
+  // bubble: positioned in page coordinates (not fixed), so it stays on its word on mobile while the page or the
+  // address bar moves. It points at the inked box of the text, not the line box.
   const tip = document.createElement("div"); tip.className = "kf-tip"; tip.setAttribute("role", "tooltip");
-  let cur = null;
-  function show(el) {
-    if (cur === el) return; cur = el;
+  let cur = null, timer = 0;
+  function box(el) {
+    const r = el.getBoundingClientRect();
+    if (!el.classList.contains("kr")) return r;
+    const g = el.getClientRects()[0] || r, h = g.height;           // Kɔradin line boxes are tall: trim to the glyphs
+    return { left: g.left, width: g.width, top: g.top + h * .18, bottom: g.bottom - h * .12 };
+  }
+  function show(el, touch) {
+    clearTimeout(timer);
+    cur = el;
     tip.textContent = el.dataset.lat; if (!tip.isConnected) document.body.append(tip);
-    const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
-    let x = r.left + r.width / 2 - t.width / 2; x = Math.max(8, Math.min(innerWidth - t.width - 8, x));
-    let y = r.top - t.height - 10, below = y < 60; if (below) y = r.bottom + 10;
+    tip.classList.remove("on");
+    const r = box(el), t = tip.getBoundingClientRect(), sx = scrollX, sy = scrollY, vw = document.documentElement.clientWidth;
+    let x = r.left + r.width / 2 - t.width / 2; x = Math.max(8, Math.min(vw - t.width - 8, x));
+    let y = r.top - t.height - 8; const below = y < 8 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--navh")) || 0);
+    if (below) y = r.bottom + 8;
     tip.classList.toggle("below", below);
-    tip.style.left = x + "px"; tip.style.top = y + "px";
+    tip.style.left = (x + sx) + "px"; tip.style.top = (y + sy) + "px";
     tip.style.setProperty("--ax", Math.max(10, Math.min(t.width - 10, r.left + r.width / 2 - x)) + "px");
     requestAnimationFrame(() => tip.classList.add("on"));
+    if (touch) timer = setTimeout(hide, 2600);
   }
-  function hide() { cur = null; tip.classList.remove("on"); }
+  function hide() { clearTimeout(timer); cur = null; tip.classList.remove("on"); }
   const find = e => e.target && e.target.closest && e.target.closest("[data-lat]");
-  document.addEventListener("pointerover", e => { if (e.pointerType === "touch") return; const el = find(e); el ? show(el) : hide(); });
-  document.addEventListener("focusin", e => { const el = find(e); el ? show(el) : hide(); });
-  document.addEventListener("pointerdown", e => { if (e.pointerType !== "touch") return; const el = find(e); if (!el || el === cur) return hide(); show(el); });
-  addEventListener("scroll", hide, { passive: true, capture: true });
-  addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
+  let touching = false;
+  document.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const el = find(e); el ? (el !== cur && show(el)) : hide(); });
+  document.documentElement.addEventListener("mouseleave", hide);
+  document.addEventListener("pointerdown", e => {
+    touching = e.pointerType !== "mouse";
+    if (!touching) return;
+    const el = find(e);
+    if (!el || el === cur) return hide();
+    show(el, true);
+  });
+  document.addEventListener("focusin", e => { if (touching) return; const el = find(e); el ? show(el) : hide(); }); // keyboard only
+  document.addEventListener("keydown", e => { touching = false; if (e.key === "Escape") hide(); });
+  addEventListener("resize", hide);
+  document.addEventListener("scroll", e => { if (e.target !== document && cur && e.target.contains && e.target.contains(cur)) hide(); }, { passive: true, capture: true });
 
   window.KF = { sources, use, text, paint, get src() { return src; }, get fam() { return fam; } };
 })();
