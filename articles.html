@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title data-fr-title="Articles · NeoAkan">Articles · NeoAkan</title>
+<meta name="description" content="Articles, tools and learning from NeoAkan.">
+<style>
+@font-face{font-family:"Inter";src:url(fonts/Inter-Regular.woff2) format("woff2");font-weight:400}
+@font-face{font-family:"Inter";src:url(fonts/Inter-SemiBold.woff2) format("woff2");font-weight:500 600}
+@font-face{font-family:"Inter";src:url(fonts/Inter-Bold.woff2) format("woff2");font-weight:700}
+@font-face{font-family:"Inter";src:url(fonts/Inter-ExtraBold.woff2) format("woff2");font-weight:800 900}
+:root{--navh:60px;--bg:#fff;--card:#f3f3f3;--label:#000;--label2:#5c5c5c;--label3:#a8a8a8;--sep:#0000001f;--fill:#00000009;--fill2:#00000014;--tint:#000;
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--display:var(--font)}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#111;--label:#fff;--label2:#a3a3a3;--label3:#555;--sep:#ffffff24;--fill:#ffffff0d;--fill2:#ffffff1a;--tint:#fff}}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--label);font:16px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit;color:inherit}
+.kr-i{display:inline-block;font-family:var(--kr),var(--font);font-feature-settings:"liga","calt";line-height:1;white-space:nowrap}
+/* neoakan.com nav */
+.nn{position:sticky;top:0;z-index:30;height:var(--navh);display:flex;align-items:center;gap:28px;padding:0 28px;background:var(--bg);border-bottom:1px solid var(--sep)}
+.nn .logo{font:800 20px/1 var(--font);letter-spacing:-.02em;color:var(--label)}
+.nn nav{display:flex;gap:22px;margin-left:auto;align-items:center}
+.nn nav a{color:var(--label2);font:500 14px var(--font);transition:color .2s}
+.nn nav a:hover,.nn nav a[aria-current]{color:var(--label)}
+.nn nav a[aria-current]{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1.5px}
+.nn .lang{border:1px solid var(--label);border-radius:99px;padding:3px 10px;color:var(--label)!important;font-size:12px!important}
+#menu-btn{display:none;margin-left:auto;appearance:none;border:0;background:none;width:40px;height:40px;cursor:pointer;position:relative}
+#menu-btn i,#menu-btn i::before,#menu-btn i::after{position:absolute;left:10px;right:10px;height:1.5px;background:var(--label);content:"";transition:transform .25s}
+#menu-btn i{top:19px}#menu-btn i::before{left:0;right:0;top:-6px}#menu-btn i::after{left:0;right:0;top:6px}
+body.menu-open #menu-btn i{background:transparent}body.menu-open #menu-btn i::before{transform:translateY(6px) rotate(45deg)}body.menu-open #menu-btn i::after{transform:translateY(-6px) rotate(-45deg)}
+@media(max-width:900px){
+  .nn{padding:0 16px}
+  #menu-btn{display:block}
+  .nn nav{position:fixed;inset:var(--navh) 0 auto 0;flex-direction:column;align-items:flex-start;gap:0;background:var(--bg);border-bottom:1px solid var(--sep);padding:8px 16px 16px;transform:translateY(-8px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .nn nav a{font-size:18px;padding:12px 0;width:100%;border-bottom:1px solid var(--sep)}
+  .nn nav a.lang{border:1px solid var(--label);width:auto;margin-top:14px;padding:4px 12px}
+  body.menu-open .nn nav{opacity:1;transform:none;pointer-events:auto}
+}
+
+
+html,body{overflow-x:hidden}
+.ico{display:inline-block;vertical-align:middle}
+main{max-width:1100px;margin:0 auto;padding:44px 22px 80px}
+.ey{font:600 12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--label2)}
+h1{font:800 clamp(44px,8vw,88px)/.95 var(--font);letter-spacing:-.035em;margin-top:12px}
+h2{font:800 24px var(--font);letter-spacing:-.02em;margin:48px 0 14px}
+.feat{border:1px solid var(--sep);display:grid;grid-template-columns:1.2fr 1fr;gap:0;margin-top:30px;border-radius:24px;overflow:hidden;background:#000;color:#fff;transition:transform .25s cubic-bezier(.2,1.4,.4,1)}
+.feat:hover{transform:translateY(-3px)}
+.feat .tx{padding:34px}
+.feat .tag{display:inline-block;background:#f2b705;color:#000;font:800 11px var(--font);letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+.feat h3{font:800 clamp(30px,4vw,46px)/1 var(--font);letter-spacing:-.03em;margin-top:16px}
+.feat p{color:#bbb;margin-top:12px;max-width:440px}
+.feat .go{display:inline-flex;align-items:center;gap:8px;margin-top:22px;background:#fff;color:#000;font:800 15px var(--font);padding:12px 20px;border-radius:99px}
+.feat .art{position:relative;min-height:260px;display:grid;place-items:center;font-size:120px;color:#fff;overflow:hidden}
+.feat .art .kr-i{position:relative;z-index:1}
+.feat .art .ring{position:absolute;border:1.5px solid #ffffff2a;border-radius:50%}
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tool{position:relative;border:1px solid var(--sep);border-radius:18px;padding:22px;background:var(--card);display:flex;flex-direction:column;gap:8px;min-width:0}
+.tool .ico{color:var(--label)}
+.tool b{font:800 18px var(--font)}.tool span{color:var(--label2);font-size:14px}
+.tool.off{opacity:.45;filter:grayscale(1);cursor:not-allowed}
+.tool .soon{position:absolute;top:16px;right:16px;font:700 11px var(--font);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--label2);color:var(--label2);border-radius:99px;padding:2px 8px}
+.lib{border:1.5px dashed var(--sep);border-radius:18px;padding:44px 22px;text-align:center;color:var(--label2)}
+.lib .ico{color:var(--label3)}.lib b{display:block;color:var(--label);font:700 17px var(--font);margin-top:10px}
+@media(max-width:800px){main{padding:28px 16px 56px}.feat{grid-template-columns:1fr}.feat .art{min-height:180px;font-size:90px;order:-1}.feat .tx{padding:24px}.tools{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="nn">
+  <a class="logo" href="https://neoakan.com/">NeoAkan</a>
+  <button id="menu-btn" aria-label="Menu"><i></i></button>
+  <nav aria-label="Main">
+    <a href="https://neoakan.com/#about">Yɛn ho nsɛm</a>
+    <a href="https://neoakan.com/#archetypes">Archetypes</a>
+    <a href="https://neoakan.com/#merankron">Merankron</a>
+    <a href="https://neoakan.com/showcase">Exhibition</a>
+    <a href="https://neoakan.com/directory">Index</a>
+    <a href="https://neoakan.com/kradin">Kradin</a>
+    <a href="https://neoakan.com/articles" aria-current="page">Articles</a>
+    <a class="lang" href="#" id="langbtn"></a>
+  </nav>
+</header>
+<main>
+  <p class="ey">NeoAkan</p>
+  <h1>Articles</h1>
+  <a class="feat" href="learn.html">
+    <div class="tx">
+      <span class="tag" data-fr="Nouveau">New</span>
+      <h3>Sua</h3>
+      <p data-fr="Apprenez le kɔradin signe par signe, puis l'akan en courtes leçons : salutations, nombres, le marché. Gratuit, dans le navigateur.">Learn Kɔradin sign by sign, then Akan in short lessons: greetings, numbers, the market. Free, in your browser.</p>
+      <span class="go" data-fr="Commencer →">Start learning →</span>
+    </div>
+    <div class="art"><i class="ring" style="width:150px;height:150px"></i><i class="ring" style="width:230px;height:230px"></i><i class="ring" style="width:320px;height:320px"></i><span class="kr-i" data-tw="sua"></span></div>
+  </a>
+
+  <h2 data-fr="Outils">Tools</h2>
+  <div class="tools">
+    <div class="tool off" aria-disabled="true"><span class="soon" data-fr="Bientôt">Soon</span><svg class="ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h3a2 2 0 1 1 4 0h3v3a2 2 0 1 1 0 4v4h-4a2 2 0 1 0-4 0H5v-4a2 2 0 1 0 0-4Z"/></svg><b data-fr="Extension de navigateur">Browser extension</b><span data-fr="Le texte akan de n'importe quelle page, affiché en kɔradin.">Akan text on any page, shown in Kɔradin.</span></div>
+    <div class="tool off" aria-disabled="true"><span class="soon" data-fr="Bientôt">Soon</span><svg class="ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/></svg><b data-fr="Police Koradin">Koradin font</b><span data-fr="Téléchargez la police pour écrire en kɔradin partout.">Download the font to write Kɔradin anywhere.</span></div>
+    <div class="tool off" aria-disabled="true"><span class="soon" data-fr="Bientôt">Soon</span><svg class="ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="2"/><path d="M6 10.5h.01M9 10.5h.01M12 10.5h.01M15 10.5h.01M18 10.5h.01M7.5 14.5h9" stroke-width="2"/></svg><b data-fr="Clavier">Keyboard</b><span data-fr="Tapez en kɔradin sur ordinateur et téléphone.">Type Kɔradin on computer and phone.</span></div>
+  </div>
+
+  <h2 data-fr="Essais">Essays</h2>
+  <div class="lib"><svg class="ico" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C6.7 4.3 9.3 4.3 12 6c2.7-1.7 5.3-1.7 8-.5v13c-2.7-1.2-5.3-1.2-8 .5-2.7-1.7-5.3-1.7-8-.5Z"/><path d="M12 6v13"/></svg><b data-fr="Les premiers essais arrivent">The first essays are on their way</b><span data-fr="Analyses, histoire et design néo-akan.">Analyses, history and Neo-Akan design.</span></div>
+</main>
+<script src="nav.js"></script>
+<script src="twi.js"></script>
+<script src="kfont.js"></script>
+<script>KF.use("dua").then(() => KF.paint())</script>
+</body>
+</html>

@@ -2,7 +2,10 @@
    exported font snapshots, text shaping and in-browser font generation (needs opentype.js for fonts). */
 (function (root) {
  function make(SCRIPT) {
-  const AD = SCRIPT === "adinkra", P = AD ? "ad-" : "kr-";
+  const AD = SCRIPT === "adinkra", P0 = AD ? "ad-" : "kr-";
+  // studio projects: each named font keeps its own edits, builds and styles under its own prefix
+  const PROJ = (() => { try { return JSON.parse(localStorage.getItem("studio-cur-" + P0)) || ""; } catch (e) { return ""; } })();
+  const P = P0 + (PROJ ? PROJ + "-" : "");
   const LS = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
@@ -25,8 +28,9 @@
     const d = await fetch(AD ? "adinkra.json" : "glyphs.json").then(r => r.json());
     DEF = d.glyphs; VER = d._version;
     EDIT = LS.get(P + "edits", {});
+    if (PROJ && LS.get(P + "fresh", false)) { EDIT = {}; LS.set(P + "fresh", false); save(); }
     // a new set of glyphs: your edits so far are baked into it, so park them in a backup and start clean
-    const VK = AD ? "ad-ver" : "kr-ver2";
+    const VK = (AD ? "ad-ver" : "kr-ver2") + (PROJ ? "-" + PROJ : "");
     if (LS.get(VK, "") !== VER) {
       if (Object.keys(EDIT).length) LS.set(P + "edits-backup-" + (LS.get(VK, "") || "v1"), EDIT);
       EDIT = {}; LS.set(VK, VER); save();
@@ -225,7 +229,33 @@
     await ff.load(); document.fonts.add(ff); return ff;
   }
 
-  const api = { load, save, def, edit, status, setStatus, setDeleted, deleted, unlock, relock, blockedBy, resolve, progress, radicalKeys, compositeKeys, otherKeys, allKeys, liveKeys,
+  // ---------------- studio
+  const projects = () => LS.get("studio-proj-" + P0, []);
+  function createProject(name, copy) {
+    const id = "p" + Date.now().toString(36), L = projects(); L.push({ id, name: name || "Untitled", date: new Date().toISOString() }); LS.set("studio-proj-" + P0, L);
+    const np = P0 + id + "-";
+    if (copy) { LS.set(np + "edits", EDIT); LS.set(np + "styles", LS.get(P + "styles", LS.get("kr-styles", []))); }
+    else LS.set(np + "fresh", true);
+    LS.set((AD ? "ad-ver" : "kr-ver2") + "-" + id, VER);
+    return id;
+  }
+  function useProject(id) { LS.set("studio-cur-" + P0, id || ""); }
+  function renameProject(id, name) { LS.set("studio-proj-" + P0, projects().map(p => p.id === id ? { ...p, name } : p)); }
+  function deleteProject(id) {
+    LS.set("studio-proj-" + P0, projects().filter(p => p.id !== id));
+    try { Object.keys(localStorage).filter(k => k.startsWith(P0 + id + "-")).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    if (PROJ === id) useProject("");
+  }
+  function projectName() { return PROJ ? (projects().find(p => p.id === PROJ) || {}).name || "Untitled" : (AD ? "Adinkra alphabet" : "Kɔradin Modular"); }
+  async function downloadFont(W, style, fname) {
+    await fontmap();
+    const fam = (fname || projectName()).replace(/[^\w\s-]/g, "").trim() || "Modular";
+    const f = buildFont(snapshot(), W, 100, 0, fam, style || "regular");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([f.toArrayBuffer()], { type: "font/otf" }));
+    a.download = fam.replace(/\s+/g, "") + "-" + W + ".otf"; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  }
+
+  const api = { projects, createProject, useProject, renameProject, deleteProject, projectName, downloadFont, get PROJ() { return PROJ; }, PREFIX: P, load, save, def, edit, status, setStatus, setDeleted, deleted, unlock, relock, blockedBy, resolve, progress, radicalKeys, compositeKeys, otherKeys, allKeys, liveKeys,
     fonts, exportFont, deleteFont, snapshot, fontmap, shape, buildFont, fontFace, label, VOW, RAD_ROWS, COMP_ROWS, OTHER,
     get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : "radicals-ghost.json" };
   return api;

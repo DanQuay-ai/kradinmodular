@@ -13,15 +13,15 @@ const AK = (() => {
   // Names in order, after the nine seasonal periods in Konadu 2012, Table 5.
   // In a year of 8, ɔpɛnimaa (the small dry season, the one without its own page) is skipped.
   const CYCLES = [
-    { tw: "adɔmmerɛ", up: "ADƆMMERƐ", m: "second rains; peak harvest, storage in the sanaa, dew and fog. Odwira falls here." },
-    { tw: "ɔbɛsaa", up: "ƆBƐSAA", m: "harvest under rain and sunshine, between the rains and the harmattan." },
-    { tw: "obubuo", up: "OBUBUO", m: "the last of the harvest; from bu, bubu, to break off: the yam stem withers and breaks." },
-    { tw: "ofupɛ", up: "OFUPƐ", m: "between the rains and the dry season; ɔpɛ-bere, when the harmattan blows." },
-    { tw: "ɔpɛnimaa", up: "ƆPƐNIMAA", m: "the small dry season (ɔpɛ, dry season; nimaa, small); land is prepared for farming.", optional: true },
-    { tw: "ɔpɛpɔn", up: "ƆPƐPƆN", m: "the great dry season of the harmattan (pɔn, great); harsh on plants and skin." },
-    { tw: "mpɛnoa", up: "MPƐNOA", m: "end of the harmattan; rain is awaited and the land made ready." },
-    { tw: "oforisuo", up: "OFORISUO", m: "yam mounds are made and planted; fre osuo, calling the rain." },
-    { tw: "asusuo", up: "ASUSUO", m: "the great rains; then kitawonsa, hold your hands, the lean weeks before harvest." },
+    { tw: "adɔmmerɛ", mfr: "secondes pluies ; pic de la récolte, stockage dans le sanaa, rosée et brouillard. L'Odwira tombe ici.", up: "ADƆMMERƐ", m: "second rains; peak harvest, storage in the sanaa, dew and fog. Odwira falls here." },
+    { tw: "ɔbɛsaa", mfr: "récolte entre pluie et soleil, entre la saison des pluies et l'harmattan.", up: "ƆBƐSAA", m: "harvest under rain and sunshine, between the rains and the harmattan." },
+    { tw: "obubuo", mfr: "la fin de la récolte ; de bu, bubu, rompre : la tige d'igname flétrit et se brise.", up: "OBUBUO", m: "the last of the harvest; from bu, bubu, to break off: the yam stem withers and breaks." },
+    { tw: "ofupɛ", mfr: "entre les pluies et la saison sèche ; ɔpɛ-bere, quand souffle l'harmattan.", up: "OFUPƐ", m: "between the rains and the dry season; ɔpɛ-bere, when the harmattan blows." },
+    { tw: "ɔpɛnimaa", mfr: "la petite saison sèche (ɔpɛ, saison sèche ; nimaa, petit) ; on prépare la terre.", up: "ƆPƐNIMAA", m: "the small dry season (ɔpɛ, dry season; nimaa, small); land is prepared for farming.", optional: true },
+    { tw: "ɔpɛpɔn", mfr: "la grande saison sèche de l'harmattan (pɔn, grand) ; rude pour les plantes et la peau.", up: "ƆPƐPƆN", m: "the great dry season of the harmattan (pɔn, great); harsh on plants and skin." },
+    { tw: "mpɛnoa", mfr: "fin de l'harmattan ; on attend la pluie et on prépare la terre.", up: "MPƐNOA", m: "end of the harmattan; rain is awaited and the land made ready." },
+    { tw: "oforisuo", mfr: "on fait et on plante les buttes d'igname ; fre osuo, appeler la pluie.", up: "OFORISUO", m: "yam mounds are made and planted; fre osuo, calling the rain." },
+    { tw: "asusuo", mfr: "les grandes pluies ; puis kitawonsa, « tiens tes mains », les semaines de disette avant la récolte.", up: "ASUSUO", m: "the great rains; then kitawonsa, hold your hands, the lean weeks before harvest." },
   ];
   // Photos from your graphics, in order. In a year of 9 the first card gets the emblem pattern and the photos move on by one.
   const PHOTOS = ["adommere", "obesaa", "obubuo", "ofupe", "opepon", "mpenua", "oforisuo", "asusuo"];
@@ -31,6 +31,8 @@ const AK = (() => {
   // The 42 named days (nnanson), day 1 = Fodwoɔ, the Takyiman/Kwawu start. Prefixes and stems after
   // Konadu 2012, Tables 3 and 4; category = dapaa (good), dabɔne (sacred/restricted), dahunu (ordinary), "" = no data.
   const PRE = { fo: "rest and generosity", nwona: "care and wellness", nkyi: "an open day in passing", kuru: "sacred and complete", kwa: "ordinary and free", mono: "fresh and new" };
+  const PRE_FR = { fo: "repos et générosité", nwona: "soin et bien-être", nkyi: "un jour ouvert, de passage", kuru: "sacré et complet", kwa: "ordinaire et libre", mono: "frais et nouveau" };
+  const STEM_FR = { dwoɔ: "paix et calme", bena: "force et compassion", wukuo: "purification et plaidoyer", yaw: "courage et la terre", fie: "voyage et commerce", memene: "plénitude et création", kwasi: "purification et liberté" };
   const STEM = { dwoɔ: "peace and calm", bena: "strength with compassion", wukuo: "cleansing and advocacy", yaw: "courage and the earth", fie: "travel and trade", memene: "fullness and creation", kwasi: "purification and freedom" };
   const NNANSON = ["fo dwoɔ dabɔne", "nwona bena", "nkyi wukuo dapaa/dahunu", "kuru yaw dabɔne", "kwa fie dabɔne", "mono memene dapaa", "fo kwasi",
     "nwona dwoɔ dabɔne", "nkyi bena dapaa", "kuru wukuo dabɔne", "kwa yaw dabɔne", "mono fie dabɔne", "fo memene dabɔne", "nwona kwasi dahunu",
@@ -73,9 +75,11 @@ const AK = (() => {
   }
   const weekday = n => (((n + 3) % 7) + 7) % 7; // 0 = Monday
   const today = () => { const d = new Date(); return dn(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
-  const M3 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const FR = typeof window !== "undefined" && window.NA_LANG === "fr";
+  const M3 = FR ? ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."] : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MF = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
   const fmt = (n, o = {}) => { const d = fromDn(n), s = `${o.pad ? String(d.getUTCDate()).padStart(2, "0") : d.getUTCDate()} ${M3[d.getUTCMonth()]}`; return o.noY ? s : s + " " + d.getUTCFullYear(); };
-  const fmtUS = n => { const d = fromDn(n); return `${M3[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
-  return { NNANSON, PRE, STEM, dn, fromDn, S0, CYCLES, DAYS, SACRED, ANCHORS, KESE, yearStart, yearOf, year, locate, weekday, today, fmt, fmtUS };
+  const fmtUS = n => { const d = fromDn(n); return FR ? `${d.getUTCDate()} ${MF[d.getUTCMonth()]} ${d.getUTCFullYear()}` : `${M3[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
+  return { NNANSON, PRE, STEM, PRE_FR, STEM_FR, dn, fromDn, S0, CYCLES, DAYS, SACRED, ANCHORS, KESE, yearStart, yearOf, year, locate, weekday, today, fmt, fmtUS };
 })();
 

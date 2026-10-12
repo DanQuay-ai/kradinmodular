@@ -142,9 +142,11 @@ const KST = (() => {
   const svgPath = polys => polys.map(pg => "M" + pg.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z").join("");
   // saved styles (Serif lab)
   const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } } };
-  const saved = () => LS.get("kr-styles", []);
-  function save(s) { const L = saved().filter(x => x.id !== s.id); L.push(s); return LS.set("kr-styles", L); }
-  function remove(id) { LS.set("kr-styles", saved().filter(x => x.id !== id)); }
+  // styles belong to the current studio project (the main project keeps the original key)
+  const SK = (() => { try { const p = JSON.parse(localStorage.getItem("studio-cur-kr-")); return p ? "kr-" + p + "-styles" : "kr-styles"; } catch (e) { return "kr-styles"; } })();
+  const saved = () => LS.get(SK, []);
+  function save(s) { const L = saved().filter(x => x.id !== s.id); L.push(s); return LS.set(SK, L); }
+  function remove(id) { LS.set(SK, saved().filter(x => x.id !== id)); }
   // every style a generated font can take: name -> {P, ov} (null = the built-in Regular / Tapered outlines)
   function all() {
     return [{ id: "regular", name: "Regular", P: null }, { id: "tapered", name: "Tapered", P: null }]

@@ -42,19 +42,13 @@
   }
   const btn = (n, sub) => `<button aria-pressed="false" data-n="${n}"><span class="kr-i" data-tw="${n.toLowerCase()}"></span><b>${n}</b>${sub ? `<small>${sub}</small>` : ""}</button>`;
 
-  const DAYS = KRADIN.map((k, i) => ({ m: k.m, f: k.f, day: AK.DAYS[i][2] }));
-  $("dn").innerHTML = `<h3>Male</h3>${DAYS.map(d => d.m.map(n => btn(n, d.day)).join("")).join("")}<h3>Female</h3>${DAYS.map(d => d.f.map(n => btn(n, d.day)).join("")).join("")}`;
+  const FRD = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"], FR = window.NA_LANG === "fr";
+  const DAYS = KRADIN.map((k, i) => ({ m: k.m, f: k.f, day: FR ? FRD[i] : AK.DAYS[i][2] }));
+  $("dn").innerHTML = `<h3>${FR ? "Masculin" : "Male"}</h3>${DAYS.map(d => d.m.map(n => btn(n, d.day)).join("")).join("")}<h3>${FR ? "Féminin" : "Female"}</h3>${DAYS.map(d => d.f.map(n => btn(n, d.day)).join("")).join("")}`;
   // surnames: placeholder set, to be replaced by the list on the current page
   const SUR = ["Mensah", "Dontoh", "Frimpong", "Boateng", "Owusu", "Osei", "Agyeman", "Asamoah", "Ofori", "Appiah", "Amoako", "Danquah", "Konadu", "Asante", "Bonsu", "Opoku"];
   $("sn").innerHTML = SUR.map(n => btn(n)).join("");
 
-  // colours: the three Akan families
-  const COL = [
-    { k: "tum", n: "Tum", bg: "#0a0a0a", fg: "#fff", p: "The dark family: black, and the deep blues, greens and browns read as dark. Tuntum, black." },
-    { k: "kɔbene", n: "Kɔbene", bg: "#b3261e", fg: "#fff", p: "The red family: reds, oranges, warm browns and the yellows of fire and earth. Kɔkɔɔ, red." },
-    { k: "fufuw", n: "Fufuw", bg: "#f2f2f2", fg: "#000", p: "The light family: white, and the pale, bright and clear colours. Fitaa, white." },
-  ];
-  $("colors").innerHTML = COL.map(c => `<div style="background:${c.bg};color:${c.fg}"><span class="kr-i" data-tw="${c.k}"></span><b>${c.n}</b><p>${c.p}</p></div>`).join("");
 
   document.querySelectorAll("#dn button,#sn button").forEach(b => b.onclick = () => light(b, b.dataset.n));
   if (window.KF) KF.paint(document.getElementById("p-script"));

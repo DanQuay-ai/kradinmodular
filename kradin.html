@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Kradin · NeoAkan</title>
+<title data-fr-title="Kradin · NeoAkan">Kradin · NeoAkan</title>
 <meta name="description" content="What's your Kradin? Find the Akan day name for any date, and read the adaduanan calendar in Kɔradin.">
 <link rel="stylesheet" href="apple.css">
 <link rel="stylesheet" href="cal.css">
@@ -124,16 +124,15 @@ table.sy td.on .kr-i{transform:scale(1.12);color:var(--bg)}
     <a href="https://neoakan.com/directory">Index</a>
     <a href="https://neoakan.com/kradin" aria-current="page">Kradin</a>
     <a href="https://neoakan.com/articles">Articles</a>
-    <a class="lang" href="#" lang="fr">FR</a>
+    <a class="lang" href="#" id="langbtn">FR</a>
   </nav>
 </header>
-
 <div class="top">
   <p class="ey">NeoAkan · Kɔradin</p>
-  <h1>What’s your Kradin?</h1>
+  <h1 data-fr="Quel est votre kradin ?">What’s your Kradin?</h1>
   <div class="seg" role="tablist">
     <button role="tab" data-p="p-kradin" aria-selected="true">Kradin</button>
-    <button role="tab" data-p="p-cal" aria-selected="false">Calendar</button>
+    <button role="tab" data-p="p-cal" aria-selected="false" data-fr="Calendrier">Calendar</button>
     <button role="tab" data-p="p-script" aria-selected="false">Kɔradin</button>
   </div>
 </div>
@@ -141,112 +140,108 @@ table.sy td.on .kr-i{transform:scale(1.12);color:var(--bg)}
 <main class="pane" id="p-kradin" role="tabpanel">
   <div class="find">
     <div class="box">
-      <h2>Find a day</h2>
-      <input type="date" id="bd" aria-label="Date of birth or any date" min="1800-01-01" max="2100-12-31">
+      <h2 data-fr="Trouver un jour">Find a day</h2>
+      <input type="date" id="bd" aria-label="Date of birth or any date" data-fr-aria="Date de naissance ou toute autre date" min="1800-01-01" max="2100-12-31">
     </div>
     <div class="box" id="res" aria-live="polite"></div>
   </div>
   <section class="about">
     <div>
-      <h2>Kradin, the soul name</h2>
-      <p><b>Kra</b> is the soul, <b>din</b> the name. Every Akan person carries the name of the weekday they were born on, and with it the ɔkra of that day: one of the seven souls of the Creator. Kwasi and Akosua belong to Ayisi on Sunday, Kwadwo and Adwoa to Adwo on Monday, and so on through the week.</p>
-      <p>A kradin is more than a label. It carries a character, praise names and observances, and places each person inside the 42-day adaduanan that ordered Akan life.</p>
+      <h2 data-fr="Kradin, le nom de l'âme">Kradin, the soul name</h2>
+      <p data-fr="<b>Kra</b> est l'âme, <b>din</b> le nom. Chaque Akan porte le nom du jour de sa naissance, et avec lui l'ɔkra de ce jour : l'une des sept âmes du Créateur. Kwasi et Akosua appartiennent à Ayisi le dimanche, Kwadwo et Adwoa à Adwo le lundi, et ainsi de suite.">
+        <b>Kra</b> is the soul, <b>din</b> the name. Every Akan person carries the name of the weekday they were born on, and with it the ɔkra of that day: one of the seven souls of the Creator. Kwasi and Akosua belong to Ayisi on Sunday, Kwadwo and Adwoa to Adwo on Monday, and so on through the week.</p>
+      <p data-fr="Un kradin est plus qu'une étiquette. Il porte un caractère, des noms de louange et des observances, et place chaque personne dans l'adaduanan de 42 jours qui rythmait la vie akan.">A kradin is more than a label. It carries a character, praise names and observances, and places each person inside the 42-day adaduanan that ordered Akan life.</p>
     </div>
     <div>
-      <h2><span class="kr-i" data-tw="kɔradin"></span><span>Kɔradin, the script</span></h2>
-      <p><b>Kɔradin</b> is a syllabary for Twi. Each sign writes a syllable, built from a radical and its modifiers, so a name is written as it is spoken.</p>
-      <p>Every name on this page is shown in Kɔradin above its Latin form. Hover or tap any Kɔradin to read it.</p>
+      <h2><span class="kr-i" data-tw="kɔradin"></span><span data-fr="Kɔradin, l'écriture">Kɔradin, the script</span></h2>
+      <p data-fr="Le <b>kɔradin</b> est un syllabaire pour les langues akan. Chaque signe écrit une syllabe, formée d'un radical et de ses modificateurs : un nom s'écrit comme il se prononce.">
+        <b>Kɔradin</b> is a syllabary for the Akan languages. Each sign writes a syllable, built from a radical and its modifiers, so a name is written as it is spoken.</p>
+      <p data-fr="Chaque nom de cette page est écrit en kɔradin au-dessus de sa forme latine. Survolez ou touchez le kɔradin pour le lire.">Every name on this page is shown in Kɔradin above its Latin form. Hover or tap any Kɔradin to read it.</p>
     </div>
   </section>
-  <p class="cta"><span>More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
+  <p class="cta"><span data-fr="Le mouvement, l'écriture et l'exposition.">More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
 </main>
 
 <main class="pane wrap" id="p-cal" role="tabpanel" hidden>
   <div class="legend" id="legend"></div>
   <section class="today" id="today" aria-label="Today"></section>
   <div class="tools" role="toolbar" aria-label="Calendar controls">
-    <div class="group"><button class="ib" id="prev" aria-label="Previous year">‹</button><span class="yr" id="ylabel"></span><button class="ib" id="next" aria-label="Next year">›</button></div>
-    <button class="btn2" id="now">Today</button>
-    <div class="group"><span class="lbl">Export afe</span><button class="btn2" id="exp-pdf">PDF</button><button class="btn2" id="exp-ics">Calendar</button></div>
-    <div class="group"><span class="lbl">Latin</span><label class="switch"><input type="checkbox" id="latin" checked><span></span></label></div>
+    <div class="group"><button class="ib" id="prev" aria-label="Previous year" data-fr-aria="Année précédente">‹</button><span class="yr" id="ylabel"></span><button class="ib" id="next" aria-label="Next year" data-fr-aria="Année suivante">›</button></div>
+    <button class="btn2" id="now" data-fr="Aujourd'hui">Today</button>
+    <div class="group"><span class="lbl" data-fr="Exporter l'afe">Export afe</span><button class="btn2" id="exp-pdf">PDF</button><button class="btn2" id="exp-ics" data-fr="Agenda">Calendar</button></div>
+    <div class="group"><span class="lbl" data-fr="Latin">Latin</span><label class="switch"><input type="checkbox" id="latin" checked><span></span></label></div>
   </div>
   <p id="ymeta"></p>
-  <p class="catkey"><span class="ck"><i class="c-dapaa"></i>dapaa · good day</span><span class="ck"><i class="c-dabɔne"></i>dabɔne · sacred, restricted</span><span class="ck"><i class="c-dahunu"></i>dahunu · ordinary</span><span class="hint">Hover or tap a day for its name.</span></p>
+  <p class="catkey"><span class="ck"><i class="c-dapaa"></i><span data-fr="dapaa · jour faste">dapaa · good day</span></span><span class="ck"><i class="c-dabɔne"></i><span data-fr="dabɔne · sacré, restreint">dabɔne · sacred, restricted</span></span><span class="ck"><i class="c-dahunu"></i><span data-fr="dahunu · ordinaire">dahunu · ordinary</span></span><span class="hint" data-fr="Survolez ou touchez un jour pour voir son nom.">Hover or tap a day for its name.</span></p>
   <div class="cycles" id="cycles"></div>
-  <h2>Sacred days this year</h2>
+  <h2 data-fr="Jours sacrés de l'année">Sacred days this year</h2>
   <div class="tw"><table id="sacred"></table></div>
-  <p class="cta"><span>More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
+  <p class="cta"><span data-fr="Le mouvement, l'écriture et l'exposition.">More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
 </main>
 
 <main class="pane" id="p-script" role="tabpanel" hidden>
   <section class="sx-hero">
     <div class="sx-big"><span class="kr-i" data-tw="kɔradin"></span></div>
     <div>
-      <p class="ey">The Kɔradin writing system</p>
-      <p class="sx-lede">A syllabary for Twi, built so that Akan words are written the way they are spoken, one sign per syllable.</p>
+      <p class="ey" data-fr="L'écriture kɔradin">The Kɔradin writing system</p>
+      <p class="sx-lede" data-fr="Un syllabaire pour les langues akan, conçu pour que chaque mot s'écrive comme il se dit : un signe par syllabe.">A syllabary for the Akan languages, built so that every word is written the way it is spoken: one sign per syllable.</p>
     </div>
   </section>
 
   <section class="sx-cols">
     <div>
-      <h2>Origins</h2>
-      <p>Kɔradin was created in 2021, one of the first creations of Merankron. It takes its name from kradin, the soul name, spelled as Twi pronounces it.</p>
-      <p>West Africa already writes with symbols. Akan, Ga and Ewe signs have long carried ideas, proverbs and values rather than sounds, Adinkra being the best known. Such ideographic signs are shared across neighbouring peoples, not owned by one. Kɔradin draws on that inheritance, with Afaka, Adinkra, and Ewe and Ga symbols as references, and turns it into a phonetic script: every sign now stands for a sound.</p>
+      <h2 data-fr="Origines">Origins</h2>
+      <p data-fr="Le kɔradin a été créé en 2021 : c'est l'une des premières créations de Merankron. Son nom vient de kradin, le nom de l'âme, écrit tel qu'on le prononce.">Kɔradin was created in 2021, one of the first creations of Merankron. It takes its name from kradin, the soul name, spelled as it is pronounced.</p>
+      <p data-fr="L'Afrique de l'Ouest écrit déjà avec des symboles. Les signes akan, ga et ewe portent depuis longtemps des idées, des proverbes et des valeurs plutôt que des sons, l'adinkra étant le plus connu. Ces signes idéographiques sont partagés entre peuples voisins, et n'appartiennent à aucun en propre. Le kɔradin puise dans cet héritage, avec l'afaka, l'adinkra et les symboles ewe et ga comme références, et en fait une écriture phonétique : chaque signe représente désormais un son.">West Africa already writes with symbols. Akan, Ga and Ewe signs have long carried ideas, proverbs and values rather than sounds, Adinkra being the best known. Such ideographic signs are shared across neighbouring peoples, not owned by one. Kɔradin draws on that inheritance, with Afaka, Adinkra, and Ewe and Ga symbols as references, and turns it into a phonetic script: every sign now stands for a sound.</p>
     </div>
     <div>
-      <h2>Ambition</h2>
-      <p>Latin letters were brought to Twi by missionaries and administrators, and each spelled Akan names their own way: Kwasi, Quassi, Kouassi, Kwesi. Kɔradin gives Twi a script made for its own sounds, so a word has one spelling wherever it is written.</p>
+      <h2 data-fr="Ambition">Ambition</h2>
+      <p data-fr="Le kɔradin s'adresse à toute la famille akan : twi asante et akuapem, fante, baoulé, agni, ahanta, nzema. Ce sont des variantes d'une même langue, comme l'AAVE est une variante pleine et légitime de l'anglais : dire « twi asante » est simplement plus précis que dire « akan ».">Kɔradin is written for the whole Akan family: Asante and Akuapem Twi, Fante, Baoulé, Agni, Ahanta, Nzema. These are varieties of one language, the way AAVE is a full and valid variety of English: saying “Asante Twi” is simply more specific than saying “Akan”.</p>
+      <p data-fr="Asante Twi est aujourd'hui la norme de référence : les tables, les polices et les leçons partent de lui, et chaque variante viendra s'y ajouter. Partout où l'alphabet latin a donné à un même nom plusieurs orthographes (Kwasi, Quassi, Kouassi, Kwesi), le kɔradin lui en rend une seule, fondée sur le son.">Asante Twi is the working standard today: the tables, fonts and lessons start from it, and each variety will be added in turn. Wherever Latin letters gave one name many spellings (Kwasi, Quassi, Kouassi, Kwesi), Kɔradin gives it back one, based on sound.</p>
       <ul class="sx-list">
-        <li><b>Everyday use.</b> A font family, a keyboard, and a browser extension that shows any Twi on the web in Kɔradin.</li>
-        <li><b>Learning.</b> Mnemonics and short lessons, so anyone can read their own name in an afternoon.</li>
-        <li><b>Recognition.</b> Documentation of the script towards registration and, in time, Unicode encoding.</li>
-        <li><b>Design.</b> A visual language for Neo-Akan art, fashion, architecture and media.</li>
+        <li data-fr="<b>Usage quotidien.</b> Une famille de polices, un clavier et une extension de navigateur qui affiche en kɔradin tout texte akan sur le web."><b>Everyday use.</b> A font family, a keyboard, and a browser extension that shows any Akan text on the web in Kɔradin.</li>
+        <li data-fr="<b>Apprentissage.</b> Des moyens mnémotechniques et des leçons courtes, pour lire son propre nom en un après-midi."><b>Learning.</b> Mnemonics and short lessons, so anyone can read their own name in an afternoon.</li>
+        <li data-fr="<b>Reconnaissance.</b> Une documentation de l'écriture en vue de son enregistrement et, à terme, de son encodage Unicode."><b>Recognition.</b> Documentation of the script towards registration and, in time, Unicode encoding.</li>
+        <li data-fr="<b>Design.</b> Un langage visuel pour l'art, la mode, l'architecture et les médias néo-akan."><b>Design.</b> A visual language for Neo-Akan art, fashion, architecture and media.</li>
       </ul>
     </div>
   </section>
 
   <section>
-    <h2>How it works</h2>
+    <h2 data-fr="Fonctionnement">How it works</h2>
     <div class="sx-rules">
-      <div><b>One sign, one syllable.</b><p>Twi is built from consonant and vowel pairs. Each pair is one sign: ka, kɔ, kye, twe.</p></div>
-      <div><b>Families of signs.</b><p>Related sounds share a base sign. Variants are that base with a modifier: ky and tw grow from t, dw and gy from d, b and kp from p.</p></div>
-      <div><b>Seven vowels.</b><p>a, e, ɛ, i, o, ɔ, u. The open vowels ɛ and ɔ have their own forms, never mixed with e and o.</p></div>
-      <div><b>Nasals as marks.</b><p>m, n and ng become marks: under the sign they close, or before the sign they open (ka, kan, kang).</p></div>
-      <div><b>No clusters.</b><p>Consonant clusters take their vowel back: Brafo is written barafo, Frimpɔŋ firimpɔŋ.</p></div>
-      <div><b>Phonetic names.</b><p>Names are spelled as said: Mensah mɛnsa, Dontoh dontɔ, Kwesi with its own kwe sign.</p></div>
+      <div><b data-fr="Un signe, une syllabe.">One sign, one syllable.</b><p data-fr="L'akan se construit en paires consonne et voyelle. Chaque paire est un signe : ka, kɔ, kye, twe.">Akan is built from consonant and vowel pairs. Each pair is one sign: ka, kɔ, kye, twe.</p></div>
+      <div><b data-fr="Des familles de signes.">Families of signs.</b><p data-fr="Les sons proches partagent un signe de base. Les variantes sont cette base avec un modificateur : ky et tw dérivent de t, dw et gy de d, b et kp de p.">Related sounds share a base sign. Variants are that base with a modifier: ky and tw grow from t, dw and gy from d, b and kp from p.</p></div>
+      <div><b data-fr="Sept voyelles.">Seven vowels.</b><p data-fr="a, e, ɛ, i, o, ɔ, u. Les voyelles ouvertes ɛ et ɔ ont leurs propres formes, jamais confondues avec e et o.">a, e, ɛ, i, o, ɔ, u. The open vowels ɛ and ɔ have their own forms, never mixed with e and o.</p></div>
+      <div><b data-fr="Des nasales en marques.">Nasals as marks.</b><p data-fr="m, n et ng deviennent des marques : sous le signe qu'elles ferment, ou devant celui qu'elles ouvrent (ka, kan, kang).">m, n and ng become marks: under the sign they close, or before the sign they open (ka, kan, kang).</p></div>
+      <div><b data-fr="Pas de groupes de consonnes.">No clusters.</b><p data-fr="Les groupes de consonnes retrouvent leur voyelle : Brafo s'écrit barafo, Frimpɔŋ firimpɔŋ.">Consonant clusters take their vowel back: Brafo is written barafo, Frimpɔŋ firimpɔŋ.</p></div>
+      <div><b data-fr="Des noms phonétiques.">Phonetic names.</b><p data-fr="Les noms s'écrivent comme ils se disent : Mensah mɛnsa, Dontoh dontɔ, Kwesi avec son propre signe kwe.">Names are spelled as said: Mensah mɛnsa, Dontoh dontɔ, Kwesi with its own kwe sign.</p></div>
     </div>
   </section>
 
   <section>
-    <h2>The syllable table</h2>
-    <p class="sx-note">Onsets down the side, vowels across the top. Families are grouped: the base row first, its variants beneath. Tap any name below to light up its syllables.</p>
+    <h2 data-fr="La table des syllabes">The syllable table</h2>
+    <p class="sx-note" data-fr="Les attaques à gauche, les voyelles en haut. Les familles sont regroupées : la ligne de base d'abord, ses variantes dessous. Touchez un nom ci-dessous pour allumer ses syllabes.">Onsets down the side, vowels across the top. Families are grouped: the base row first, its variants beneath. Tap any name below to light up its syllables.</p>
     <div class="tw"><table class="sy" id="sy"></table></div>
   </section>
-
   <section>
-    <h2>Day names</h2>
-    <p class="sx-note">Every Akan child receives a kradin, the soul name of the day of birth.</p>
+    <h2 data-fr="Noms des jours">Day names</h2>
+    <p class="sx-note" data-fr="Chaque enfant akan reçoit un kradin, le nom de l'âme du jour de sa naissance.">Every Akan child receives a kradin, the soul name of the day of birth.</p>
     <div class="dn" id="dn"></div>
   </section>
-
   <section>
-    <h2>Surnames</h2>
+    <h2 data-fr="Noms de famille">Surnames</h2>
     <div class="dn" id="sn"></div>
   </section>
 
-  <section>
-    <h2>Colours</h2>
-    <p class="sx-note">Akan sorts colours into three families rather than many hues.</p>
-    <div class="sx-colors" id="colors"></div>
-  </section>
-
   <section class="sx-tools">
-    <a href="https://kradinmodular.netlify.app/" target="_blank" rel="noopener"><b>Type tester</b><span>Write in Kɔradin, in every style</span></a>
-    <a href="https://kradinmodular.netlify.app/dl/twi-script-extension.zip"><b>Browser extension</b><span>Twi on any page, shown in Kɔradin</span></a>
-    <a href="https://kradinmodular.netlify.app/dl/KoradinModular-All.zip"><b>Fonts</b><span>Download the Kɔradin Modular family</span></a>
+    <a href="learn.html"><b>Sua</b><span data-fr="Apprenez le kɔradin et l'akan">Learn Kɔradin and Akan</span></a>
+    <a href="https://kradinmodular.netlify.app/" target="_blank" rel="noopener"><b data-fr="Testeur de caractères">Type tester</b><span data-fr="Écrivez en kɔradin, dans tous les styles">Write in Kɔradin, in every style</span></a>
+    <a href="https://kradinmodular.netlify.app/dl/KoradinModular-All.zip"><b data-fr="Polices">Fonts</b><span data-fr="Téléchargez la famille Kɔradin Modular">Download the Kɔradin Modular family</span></a>
   </section>
-  <p class="cta"><span>More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
+  <p class="cta"><span data-fr="Le mouvement, l'écriture et l'exposition.">More on the movement, the script and the exhibition.</span><a href="https://neoakan.com/">neoakan.com →</a></p>
 </main>
+<script src="nav.js"></script>
 <script src="twi.js"></script>
 <script src="kfont.js"></script>
 <script src="calendar.js"></script>

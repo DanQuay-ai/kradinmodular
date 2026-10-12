@@ -7,6 +7,9 @@
   let Y = AK.yearOf(T);
   const ord = i => ["1st", "2nd", "3rd"][i] || (i + 1) + "th";
   const yl = y => `${y}–${String(y + 1).slice(2)}`;
+  const FR = window.NA_LANG === "fr", FRD = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+  const wdn = i => FR ? FRD[i] : AK.DAYS[i][2];
+  if (FR) { /* ordinals */ }
   const kr = (tw, cls = "") => `<span class="kr-i ${cls}" data-tw="${esc(tw)}"></span>`;
 
   function legend() {
@@ -21,13 +24,13 @@
     for (let n = T; up.length < 4; n++) { const x = AK.locate(n); if (AK.SACRED[x.day]) up.push([n, x]); }
     $("today").innerHTML = `
       <div class="tl">
-        <p class="eyebrow">Today · ${AK.fmt(T)}</p>
+        <p class="eyebrow">${FR ? "Aujourd'hui" : "Today"} · ${AK.fmt(T)}</p>
         <div class="big"><span data-tw="${L.c.tw}"></span></div>
         <p class="lat under">${L.c.up}</p>
-        <p class="meta">Day <b>${L.day}</b> of 42 · <b data-lat="${esc(N.gloss)}">${N.name}</b> · ${d[1]} (${d[2]})${AK.SACRED[L.day] ? ` · <b>${AK.SACRED[L.day]}</b>` : ""}</p>
-        <p class="meta">Afe ${yl(L.Y.y)} · ${ord(L.c.i)} of ${L.Y.count} adaduanan</p>
+        <p class="meta">${FR ? "Jour" : "Day"} <b>${L.day}</b> ${FR ? "sur" : "of"} 42 · <b>${N.name}</b> · ${d[1]} (${wdn(L.wd)})${AK.SACRED[L.day] ? ` · <b>${AK.SACRED[L.day]}</b>` : ""}</p>
+        <p class="meta">Afe ${yl(L.Y.y)} · ${FR ? (L.c.i ? L.c.i + 1 + "e" : "1er") + " des " + L.Y.count + " adaduanan" : ord(L.c.i) + " of " + L.Y.count + " adaduanan"}</p>
       </div>
-      <div class="next">${up.map(([n, x]) => `<div class="nk">${kr(AK.SACRED[x.day].toLowerCase())}</div><div class="nt"><b>${AK.SACRED[x.day]}</b><small>${AK.DAYS[x.wd][1]} ${AK.fmt(n)}</small></div><div class="nw">${n === T ? "today" : n - T === 1 ? "tomorrow" : "in " + (n - T) + " days"}</div>`).join("")}</div>`;
+      <div class="next">${up.map(([n, x]) => `<div class="nk">${kr(AK.SACRED[x.day].toLowerCase())}</div><div class="nt"><b>${AK.SACRED[x.day]}</b><small>${AK.DAYS[x.wd][1]} ${AK.fmt(n)}</small></div><div class="nw">${FR ? (n === T ? "aujourd'hui" : n - T === 1 ? "demain" : "dans " + (n - T) + " jours") : (n === T ? "today" : n - T === 1 ? "tomorrow" : "in " + (n - T) + " days")}</div>`).join("")}</div>`;
   }
 
   function cells(c) {
@@ -57,7 +60,7 @@
   function yearView() {
     const yr = AK.year(Y);
     $("ylabel").textContent = yl(Y);
-    $("ymeta").textContent = `${AK.fmtUS(yr.start)} – ${AK.fmtUS(yr.end)} · ${yr.count} adaduanan · ${yr.count * 42} days`;
+    $("ymeta").textContent = `${AK.fmtUS(yr.start)} – ${AK.fmtUS(yr.end)} · ${yr.count} adaduanan · ${yr.count * 42} ${FR ? "jours" : "days"}`;
     $("cycles").innerHTML = yr.cycles.map(cycleCard).join("");
     if ($("sacred")) $("sacred").innerHTML = `<thead><tr><th>Adaduanan</th>${[1, 10, 19, 28].map(d => `<th>${kr(AK.SACRED[d].toLowerCase())}<span>${AK.SACRED[d]}</span></th>`).join("")}</tr></thead><tbody>` +
       yr.cycles.map(c => `<tr><td><a href="#c${c.i}">${kr(c.tw)}<span>${c.up}</span></a></td>${[1, 10, 19, 28].map(d => { const n = c.start + d - 1; return `<td class="${n === T ? "now" : ""}${AK.KESE.has(n) ? " kese" : ""}">${AK.fmt(n)}${AK.KESE.has(n) ? " ✦" : ""}</td>`; }).join("")}</tr>`).join("") + "</tbody>";
@@ -91,13 +94,13 @@
   }
   async function pdf(btn) {
     const name = `afe-${Y}-${String(Y + 1).slice(2)}.pdf`, base = $("cycles").dataset.base || "";
-    btn.disabled = true; const t = btn.textContent; btn.textContent = "Preparing…";
+    btn.disabled = true; const t = btn.textContent; btn.textContent = FR ? "Préparation…" : "Preparing…";
     try {
-      const r = await fetch(base + "dl/afe/" + name);
+      const r = await fetch(base + "dl/afe/" + (FR ? "fr/" : "") + name);
       if (r.ok && (r.headers.get("content-type") || "").includes("pdf")) { save(await r.blob(), name); return; }
     } catch (e) {}
     finally { btn.disabled = false; btn.textContent = t; }
-    open(base + "afe.html?y=" + Y + "&print=1", "_blank");
+    open(base + "afe.html?y=" + Y + "&print=1" + (FR ? "&lang=fr" : ""), "_blank");
   }
   if ($("exp-ics")) $("exp-ics").onclick = ics;
   if ($("exp-pdf")) $("exp-pdf").onclick = e => pdf(e.currentTarget);
