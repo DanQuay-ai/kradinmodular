@@ -39,9 +39,11 @@ const ICONS = {
   book: '<path d="M4 5.5C6.7 4.3 9.3 4.3 12 6c2.7-1.7 5.3-1.7 8-.5v13c-2.7-1.2-5.3-1.2-8 .5-2.7-1.7-5.3-1.7-8-.5Z"/><path d="M12 6v13"/>',
   puzzle: '<path d="M5 8h3a2 2 0 1 1 4 0h3v3a2 2 0 1 1 0 4v4h-4a2 2 0 1 0-4 0H5v-4a2 2 0 1 0 0-4Z"/>',
   key: '<rect x="2.5" y="7" width="19" height="11" rx="2"/><path d="M6 10.5h.01M9 10.5h.01M12 10.5h.01M15 10.5h.01M18 10.5h.01M7.5 14.5h9" stroke-width="2"/>',
+  palette: '<path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 2-2 0-1.5-1.5-2-1.5-3.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.4 17 3 12 3Z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>',
   type: '<path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/>',
 };
 function ICON(name, size = 24, cls = "") {
+  if (name && name.startsWith("sw:")) return `<span class="ico sw ${cls}${name.endsWith("!") ? " shine" : ""}" style="--s:${size}px;--c:${name.slice(3).replace("!", "")}"></span>`;
   if (/^n\d+$/.test(name)) return `<span class="ico num ${cls}" style="--s:${size}px">${name.slice(1)}</span>`;
   const p = ICONS[name]; if (!p) return "";
   return `<svg class="ico ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;

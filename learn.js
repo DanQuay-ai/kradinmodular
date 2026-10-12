@@ -11,8 +11,7 @@
   const save = () => LS.set("sua", S);
 
   // ---------------------------------------------------------- language
-  const q0 = new URLSearchParams(location.search).get("lang");
-  let L = q0 || LS.get("na-lang", (navigator.language || "en").startsWith("fr") ? "fr" : "en");
+  let L = window.NA_LANG || "en";
   if (L !== "fr") L = "en";
   const TX = {
     en: { title: "Learn Kɔradin.<br>Learn Akan.", cowries: "cowries", streak: "day streak", krTitle: "Kɔradin", krSub: "Every sign, family by family, until you can read any Akan word.",
@@ -23,7 +22,7 @@
       pic: s => `Which one is “${s}”?`, findSign: s => `Tap the sign “${s}” in this word`, spell: s => `Spell “${s}” in Kɔradin`,
       looks: x => `This sign looks like ${x}.`, sound: s => `It represents the sound <b>${s}</b>.`, first: (s, w) => `<b>${s}</b> is the first sound of <b>${w}</b>.`, inw: (s, w) => `You hear <b>${s}</b> in <b>${w}</b>.`,
       grows: (v, b) => `<b>${v}</b> grows from <b>${b}</b>.`, good: ["Ɛyɛ!", "Ampa!", "Papa!", "Ayeekoo!"], notq: "Not quite", answer: "Answer", firstTry: (r, t) => `${r} of ${t} right first time`,
-      unlocked: "Next lesson unlocked.", youRead: "You can read Kɔradin.", share: "Every family, every vowel, every mark. Write your name at neoakan.com/kradin.", locked: "Finish the previous lesson first", quit: "Quit", sound_: "Sound" },
+      unlocked: "Next lesson unlocked.", youRead: "You can read Kɔradin.", share: "Every family, every vowel, every mark. Write your name at neoakan.com/kradin.", locked: "Score 85% on the previous lesson first", quit: "Quit", sound_: "Sound", best: "best", need: p => `${p}%. You need 85% to unlock the next lesson.`, passed: p => `${p}%. Lesson passed.`, retry: "Try again" },
     fr: { title: "Apprenez le kɔradin.<br>Apprenez l'akan.", cowries: "cauris", streak: "jours d'affilée", krTitle: "Kɔradin", krSub: "Chaque signe, famille par famille, jusqu'à lire n'importe quel mot akan.",
       akTitle: "Akan", akSub: "Salutations, nombres, le marché et la vie de tous les jours.", lessons: "leçons", units: "unités", of: "sur", literate: "lettré", language: "Langue", soon: "bientôt",
       standard: "Latin", final: "Test de lecture", finalSub: "Lisez 15 mots sans aide", words: "mots", newLesson: "Nouvelle leçon", newSign: "Nouveau signe", newWords: "Nouveaux mots",
@@ -32,19 +31,40 @@
       pic: s => `Lequel est « ${s} » ?`, findSign: s => `Touchez le signe « ${s} » dans ce mot`, spell: s => `Écrivez « ${s} » en kɔradin`,
       looks: x => `Ce signe ressemble à ${x}.`, sound: s => `Il représente le son <b>${s}</b>.`, first: (s, w) => `<b>${s}</b> est le premier son de <b>${w}</b>.`, inw: (s, w) => `On entend <b>${s}</b> dans <b>${w}</b>.`,
       grows: (v, b) => `<b>${v}</b> dérive de <b>${b}</b>.`, good: ["Ɛyɛ !", "Ampa !", "Papa !", "Ayeekoo !"], notq: "Pas tout à fait", answer: "Réponse", firstTry: (r, t) => `${r} sur ${t} justes du premier coup`,
-      unlocked: "Leçon suivante débloquée.", youRead: "Vous savez lire le kɔradin.", share: "Chaque famille, chaque voyelle, chaque marque. Écrivez votre nom sur neoakan.com/kradin.", locked: "Terminez d'abord la leçon précédente", quit: "Quitter", sound_: "Son" },
+      unlocked: "Leçon suivante débloquée.", youRead: "Vous savez lire le kɔradin.", share: "Chaque famille, chaque voyelle, chaque marque. Écrivez votre nom sur neoakan.com/kradin.", locked: "Obtenez d'abord 85 % à la leçon précédente", quit: "Quitter", sound_: "Son", best: "record", need: p => `${p} %. Il faut 85 % pour débloquer la leçon suivante.`, passed: p => `${p} %. Leçon réussie.`, retry: "Réessayer" },
   };
   const T = TX[L];
   document.documentElement.lang = L;
   const gloss = it => L === "fr" ? it[2] : it[1];
+  const kv = it => it[4] || it[0];
   const lt = (l, k) => (l[L] || l.en)[k];
 
   // ---------------------------------------------------------- sound (synthesised, no files)
   let AC = null;
+  // iPhones play web audio through the ringer channel, so the silent switch mutes it. Asking for the
+  // "playback" session (Safari 17+) and starting a silent <audio> on the first touch moves it to the media channel.
+  function unlockAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      if (AC.state === "suspended") AC.resume();
+      const b = AC.createBuffer(1, 1, 22050), src = AC.createBufferSource(); src.buffer = b; src.connect(AC.destination); src.start(0);
+    } catch (e) {}
+    try { // a real, silent WAV built on the fly
+      const n = 800, buf = new ArrayBuffer(44 + n), v = new DataView(buf), w = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+      w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true);
+      for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+      const a = new Audio(URL.createObjectURL(new Blob([buf], { type: "audio/wav" }))); a.setAttribute("playsinline", ""); a.play().catch(() => {});
+    } catch (e) {}
+    removeEventListener("pointerdown", unlockAudio, true); removeEventListener("touchend", unlockAudio, true);
+  }
+  addEventListener("pointerdown", unlockAudio, true); addEventListener("touchend", unlockAudio, true);
   function tone(notes, type = "sine", vol = .14) {
     if (S.mute) return;
     try {
       AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      if (AC.state === "suspended") AC.resume();
       const t0 = AC.currentTime;
       notes.forEach(([f, at, d]) => {
         const o = AC.createOscillator(), g = AC.createGain();
@@ -142,11 +162,11 @@
     paint($("app"));
   }
   function node(k, l, i, all) {
-    const done = S.done[k + "-" + l.id], open = i === 0 || S.done[k + "-" + all[i - 1].id] || done;
+    const done = S.done[k + "-" + l.id], open = i === 0 || S.done[k + "-" + all[i - 1].id] || done, best = (S.best || {})[k + "-" + l.id];
     const title = k === "s" ? lt(l, "title") : l[L] || l.en;
     const sub = k === "s" ? (l.base !== undefined ? [l.base || "a e ɛ i o ɔ u", ...(l.vars || [])].join(" · ") : "") : l.items.length + " " + T.words;
     const ic = k === "s" ? kr(l.kr) : icon(l.icon, 24);
-    return `<li><button class="nd${done ? " done" : ""}${open ? "" : " lock"}" data-k="${k}" data-id="${l.id}" title="${open ? "" : T.locked}"><span class="ic">${ic}</span><span><b>${esc(title)}</b><small>${esc(sub)}</small></span>${done ? `<i class="ck">${icon("check", 20)}</i>` : open ? "" : `<i class="ck">${icon("lock", 18)}</i>`}</button></li>`;
+    return `<li><button class="nd${done ? " done" : ""}${open ? "" : " lock"}" data-k="${k}" data-id="${l.id}" title="${open ? "" : T.locked}"><span class="ic">${ic}</span><span><b>${esc(title)}</b><small>${esc(sub)}</small></span>${best ? `<em class="bs${best[0] / best[1] >= .85 ? " ok" : ""}">${best[0]}/${best[1]}</em>` : ""}${done ? `<i class="ck">${icon("check", 20)}</i>` : open ? "" : `<i class="ck">${icon("lock", 18)}</i>`}</button></li>`;
   }
   function nope(b) { SFX.bad(); b.classList.remove("shk"); void b.offsetWidth; b.classList.add("shk"); }
 
@@ -171,7 +191,7 @@
     const words = CORPUS().filter(w => readable(w, set, false) && seg(w).some(c => mine.includes(c.s)));
     pick(words, 4).forEach(w => Q.push({ t: "mc", ask: T.read, big: w, kr: true, ans: w, opts: [w, ...pick(CORPUS().filter(x => x !== w && x.length <= w.length + 3), 3)] }));
     pick(words.filter(w => seg(w).length > 1), 2).forEach(w => { const c = pick(seg(w).filter(c => mine.includes(c.s)), 1)[0]; Q.push({ t: "find", ask: T.findSign(c.s), word: w, ans: c.s }); });
-    pick(words.filter(w => seg(w).length > 1 && seg(w).length < 5), 2).forEach(w => Q.push({ t: "spell", ask: T.spell(w), word: w, tiles: shuffle(uniq(seg(w).map(c => c.s).concat(pick(mine, 3)))) }));
+    pick(words.filter(w => seg(w).length > 1 && seg(w).length < 5), 2).forEach(w => Q.push({ t: "spell", ask: T.spell(w), word: w, tiles: shuffle(seg(w).map(c => c.s).concat(pick(mine.filter(x => !seg(w).some(c => c.s === x)), 3))) }));
     return Q;
   }
   function finalQs() {
@@ -183,7 +203,7 @@
     const withIcon = items.filter(i => i[3]);
     shuffle(items).forEach((it, i) => {
       const others = items.filter(x => x !== it), m = i % 4;
-      if (m === 0) Q.push({ t: "mc", ask: T.mean, big: it[0], kr: k, icon: it[3], ans: gloss(it), opts: [gloss(it), ...pick(others.map(gloss), 3)] });
+      if (m === 0) Q.push({ t: "mc", ask: T.mean, big: k ? kv(it) : it[0], kr: k, icon: it[3], ans: gloss(it), opts: [gloss(it), ...pick(others.map(gloss), 3)] });
       else if (m === 1) Q.push({ t: "mc", ask: T.say(gloss(it)), ans: it[0], kropt: k, opts: [it[0], ...pick(others.map(x => x[0]), 3)] });
       else if (m === 2 && it[3] && withIcon.length > 3) Q.push({ t: "pic", ask: T.pic(it[0]), word: it[0], kr: k, ans: it[0], opts: [it, ...pick(withIcon.filter(x => x !== it && x[3] !== it[3]), 3)] });
       else Q.push({ t: "match", pairs: pick(items, Math.min(4, items.length)), kr: k });
@@ -203,9 +223,10 @@
   }
   function frame(inner, foot) {
     const p = Math.round(100 * qi / Q.length);
-    $("app").innerHTML = `<div class="ses"><div class="top"><button class="x" id="quit" aria-label="${T.quit}">✕</button><div class="bar big"><i style="width:${p}%"></i></div><span class="mini cw">${icon("cowrie", 18)}${S.xp}</span></div>
+    $("app").innerHTML = `<div class="ses"><div class="top"><button class="x" id="quit" aria-label="${T.quit}">✕</button><div class="bar big"><i style="width:${p}%"></i></div><button class="x" id="smute" aria-label="${T.sound_}">${icon(S.mute ? "mute" : "sound", 20)}</button><span class="mini cw">${icon("cowrie", 18)}${S.xp}</span></div>
       <div class="q in">${inner}</div><div class="ft" id="ft">${foot || ""}</div></div>`;
     $("quit").onclick = home;
+    $("smute").onclick = () => { S.mute = !S.mute; save(); $("smute").innerHTML = icon(S.mute ? "mute" : "sound", 20); };
     paint($("app"));
     document.querySelectorAll(".q [data-lat]").forEach(e => { e.removeAttribute("data-lat"); e.removeAttribute("tabindex"); });
   }
@@ -227,7 +248,7 @@
       return go();
     }
     if (q.t === "words") {
-      frame(`<p class="ey">${T.newWords}</p><h2>${esc(q.h)}</h2><ul class="wl">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(i[0], null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
+      frame(`<p class="ey">${T.newWords}</p><h2>${esc(q.h)}</h2><ul class="wl">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(kv(i), null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
       return go();
     }
     if (q.t === "mc" || q.t === "mcg") {
@@ -258,7 +279,7 @@
     }
     if (q.t === "match") {
       const Lp = shuffle(q.pairs), R = shuffle(q.pairs);
-      frame(`<p class="ask">${T.match}</p><div class="mt"><div>${Lp.map((p, i) => `<button class="mp rise" style="--d:${.04 * i}s" data-s="l" data-v="${esc(p[0])}">${q.kr ? krw(p[0], null, "md") : esc(p[0])}</button>`).join("")}</div><div>${R.map((p, i) => `<button class="mp rise" style="--d:${.04 * i + .02}s" data-s="r" data-v="${esc(p[0])}">${esc(gloss(p))}</button>`).join("")}</div></div>`);
+      frame(`<p class="ask">${T.match}</p><div class="mt"><div>${Lp.map((p, i) => `<button class="mp rise" style="--d:${.04 * i}s" data-s="l" data-v="${esc(p[0])}">${q.kr ? krw(kv(p), null, "md") : esc(p[0])}</button>`).join("")}</div><div>${R.map((p, i) => `<button class="mp rise" style="--d:${.04 * i + .02}s" data-s="r" data-v="${esc(p[0])}">${esc(gloss(p))}</button>`).join("")}</div></div>`);
       let sel = null, left = q.pairs.length, err = false;
       document.querySelectorAll(".mp").forEach(b => b.onclick = () => {
         if (b.disabled) return;
@@ -280,7 +301,7 @@
     go.onclick = () => judge(test(), q, null, null, sol);
   }
   function judge(ok, q, btn, sel, sol, quiet) {
-    if (graded(q)) { if (ok && !q.again) right++; if (!ok) miss.push(q); }
+    if (graded(q)) { if (ok && !q.again) right++; if (!ok && !q.again) miss.push(q); }
     document.querySelectorAll(".op,.ti,[data-tap]").forEach(b => { b.disabled = true; b.style.pointerEvents = "none"; });
     if (btn) btn.classList.add(ok ? "ok" : "bad", ok ? "bounce" : "shk");
     if (!ok && sel) { const c = document.querySelector(sel); if (c) c.classList.add("ok"); }
@@ -294,22 +315,27 @@
   }
   const next = () => { qi++; step(); };
   function finish() {
-    const gain = 10 + right * 2, wasDone = S.done[key];
-    S.xp += gain; S.done[key] = true;
+    const pct = total ? Math.round(100 * right / total) : 100, pass = pct >= 85, wasDone = S.done[key];
+    const gain = 5 + right * 2;
+    S.best = S.best || {};
+    const b = S.best[key];
+    if (!b || right / Math.max(1, total) > b[0] / b[1]) S.best[key] = [right, total];
+    S.xp += gain; if (pass) S.done[key] = true;
     const d = new Date(), today = d.toISOString().slice(0, 10), y = new Date(d - 864e5).toISOString().slice(0, 10);
     if (S.last !== today) { S.streak = S.last === y ? S.streak + 1 : 1; S.last = today; }
-    save(); SFX.done();
-    const lit = key === "final";
-    frame(`<div class="confetti">${Array.from({ length: 18 }, (_, i) => `<i style="--x:${(Math.random() * 2 - 1) * 46}vw;--r:${Math.random() * 720 - 360}deg;--d:${Math.random() * .4}s">${icon("cowrie", 20)}</i>`).join("")}</div>
-      <div class="hero pop">${kr(lit ? "ayeekoo" : "ɛyɛ", "xl")}</div><h2>${lit ? T.youRead : "Ayeekoo!"}</h2>
-      <div class="wins"><span class="st cw on">${icon("cowrie", 22)}<b>+${gain}</b></span><span class="st fl on">${icon("flame", 22)}<b>${S.streak}</b></span></div>
-      <p class="body">${T.firstTry(right, total)}</p>
-      ${lit ? `<p class="rule">${T.share}</p>` : ""}${!wasDone && key.startsWith("s-") && !lit ? `<p class="rule">${T.unlocked}</p>` : ""}`, `<button class="go" id="go">${T.cont}</button>`);
+    save(); (pass ? SFX.done : SFX.bad)();
+    const lit = key === "final" && pass;
+    frame(`${pass ? `<div class="confetti">${Array.from({ length: 18 }, () => `<i style="--x:${(Math.random() * 2 - 1) * 46}vw;--r:${Math.random() * 720 - 360}deg;--d:${Math.random() * .4}s">${icon("cowrie", 20)}</i>`).join("")}</div>` : ""}
+      <div class="hero pop">${kr(pass ? (lit ? "ayeekoo" : "ɛyɛ") : "bio", "lg")}</div><h2>${lit ? T.youRead : pass ? "Ayeekoo!" : (L === "fr" ? "Encore une fois" : "Once more")}</h2>
+      <div class="wins"><span class="st sc ${pass ? "on" : "low"}"><b>${right}/${total}</b></span><span class="st cw on">${icon("cowrie", 22)}<b>+${gain}</b></span><span class="st fl on">${icon("flame", 22)}<b>${S.streak}</b></span></div>
+      <p class="body">${pass ? T.passed(pct) : T.need(pct)}</p>
+      ${lit ? `<p class="rule">${T.share}</p>` : ""}${pass && !wasDone && key.startsWith("s-") && !lit ? `<p class="rule">${T.unlocked}</p>` : ""}`,
+      pass ? `<button class="go" id="go">${T.cont}</button>` : `<button class="go" id="again">${T.retry}</button><button class="go ghost" id="go">${T.cont}</button>`);
     $("go").onclick = home;
+    if ($("again")) $("again").onclick = () => { SFX.tap(); const [k, ...r] = key.split("-"); key === "final" ? start("f", "final") : start(k, r.join("-")); };
   }
 
   // ---------------------------------------------------------- boot
-  window.SUA = { setLang(l) { L = l === "fr" ? "fr" : "en"; LS.set("na-lang", L); location.reload(); } };
   fetch("fontmap.json").then(r => r.json()).then(m => {
     m.liga.forEach(([s]) => HAS.add(s.join("").replace(/eopen/g, "ɛ").replace(/oopen/g, "ɔ")));
   }).catch(() => {}).finally(() => KF.use("dua").then(home));

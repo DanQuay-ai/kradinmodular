@@ -117,7 +117,17 @@
     try { if (localStorage.getItem("cal-lat") === "0") { $("latin").checked = false; document.body.classList.add("nolat"); } } catch (x) {}
   }
 
-  legend(); todayCard(); yearView(); anchors();
+  // the 42 days with Konadu's category and interpretation
+  function days42() {
+    if (!$("t42") || typeof KONADU42 === "undefined") return;
+    const T42 = AK.locate(T).day, C = { dapaa: FR ? "faste" : "good", "dabɔne": FR ? "sacré, restreint" : "sacred, restricted", dahunu: FR ? "ordinaire" : "ordinary" };
+    const cat = c => c === "--" ? `<span class="cat">${FR ? "sans données" : "no data"}</span>` : c.split(" or ").map(x => `<span class="cat ${x}" title="${C[x] || ""}">${x}</span>`).join(FR ? " ou " : " or ");
+    $("t42").innerHTML = `<thead><tr><th>${FR ? "Jour" : "Day"}</th><th>${FR ? "Nom" : "Name"}</th><th class="hide-m">${FR ? "Semaine" : "Weekday"}</th><th>${FR ? "Catégorie" : "Category"}</th><th>${FR ? "Caractère et interprétation" : "Character and interpretation"}</th></tr></thead><tbody>` +
+      KONADU42.map(r => `<tr class="${AK.SACRED[r.d] ? "s" : ""}${r.d === T42 ? " now" : ""}"><td class="n">${r.d}</td><td class="c">${kr(r.n.toLowerCase())}<b>${r.n}</b>${AK.SACRED[r.d] ? `<small>${AK.SACRED[r.d]}</small>` : ""}</td><td class="hide-m">${AK.DAYS[(r.d - 1) % 7][1]}</td><td class="c">${cat(r.c)}</td><td>${FR ? r.fr : r.en}</td></tr>`).join("") + "</tbody>";
+    KF.paint($("t42"));
+  }
+
+  legend(); todayCard(); yearView(); anchors(); days42();
   const ready = window.KR ? KR.load().catch(() => {}) : Promise.resolve();
   ready.then(() => setFont(KF.src));
 })();
