@@ -130,7 +130,17 @@
 
   // ---------------------------------------------------------- home
   const icon = (n, s = 22) => ICON(n, s);
+  // an exercise never scrolls: if its content is taller than the space left, it is scaled down to fit
+  function fit() {
+    const q = document.querySelector(".q"), qi = $("qi"); if (!q || !qi) return;
+    qi.style.transform = ""; qi.style.width = "";
+    const h = q.clientHeight, w = q.clientWidth, H = qi.scrollHeight, W = qi.scrollWidth;
+    const k = Math.min(1, h / Math.max(1, H), w / Math.max(1, W));
+    if (k < 1) { qi.style.transform = `scale(${k})`; qi.style.width = (100 / k) + "%"; }
+  }
+  addEventListener("resize", () => fit());
   function home() {
+    document.body.classList.remove("ses-on");
     const sDone = LEARN.script.filter(l => S.done["s-" + l.id]).length, tDone = LEARN.twi.filter(l => S.done["t-" + l.id]).length, allS = sDone === LEARN.script.length;
     $("app").innerHTML = `
       <header class="hd rise"><div><p class="ey">NeoAkan · Sua</p><h1>${T.title}</h1></div>
@@ -224,11 +234,13 @@
   function frame(inner, foot) {
     const p = Math.round(100 * qi / Q.length);
     $("app").innerHTML = `<div class="ses"><div class="top"><button class="x" id="quit" aria-label="${T.quit}">✕</button><div class="bar big"><i style="width:${p}%"></i></div><button class="x" id="smute" aria-label="${T.sound_}">${icon(S.mute ? "mute" : "sound", 20)}</button><span class="mini cw">${icon("cowrie", 18)}${S.xp}</span></div>
-      <div class="q in">${inner}</div><div class="ft" id="ft">${foot || ""}</div></div>`;
+      <div class="q in"><div class="qi" id="qi">${inner}</div></div><div class="ft" id="ft">${foot || ""}</div></div>`;
+    document.body.classList.add("ses-on");
     $("quit").onclick = home;
     $("smute").onclick = () => { S.mute = !S.mute; save(); $("smute").innerHTML = icon(S.mute ? "mute" : "sound", 20); };
     paint($("app"));
     document.querySelectorAll(".q [data-lat]").forEach(e => { e.removeAttribute("data-lat"); e.removeAttribute("tabindex"); });
+    fit(); setTimeout(fit, 60); document.fonts && document.fonts.ready.then(fit);
   }
   const show = (lat, krOn, size) => krOn ? krw(lat, null, "", false).replace('class="krw ', `style="font-size:${size || sizeFor(lat)}px" class="krw `) : `<span class="lt">${esc(lat)}</span>`;
   function step() {
@@ -248,7 +260,7 @@
       return go();
     }
     if (q.t === "words") {
-      frame(`<p class="ey">${T.newWords}</p><h2>${esc(q.h)}</h2><ul class="wl">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(kv(i), null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
+      frame(`<p class="ey">${T.newWords}</p><h2>${esc(q.h)}</h2><ul class="wl${q.items.length > 8 ? " many" : ""}">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(kv(i), null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
       return go();
     }
     if (q.t === "mc" || q.t === "mcg") {
@@ -311,6 +323,7 @@
     const ansHtml = q.kr || q.t === "spell" || q.t === "find" ? `${krw(ans, null, "sm")} <span>${esc(ans)}</span>` : esc(ans);
     $("ft").innerHTML = `<div class="fb ${ok ? "y" : "n"} up"><div class="fbt"><span class="fbi">${icon(ok ? "check" : "left", 22)}</span><div><b>${ok ? pick(T.good, 1)[0] : T.notq}</b>${ok ? "" : `<p>${T.answer}: ${ansHtml}</p>`}</div></div><button class="go" id="go">${T.cont}</button></div>`;
     paint($("ft"));
+    fit();
     $("go").onclick = () => { SFX.tap(); next(); };
   }
   const next = () => { qi++; step(); };

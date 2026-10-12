@@ -82,6 +82,7 @@
       w = w.replace(/oh$/, "ɔ").replace(/ah$/, "a");                    // Dontoh -> dontɔ, Mensah -> mensa
       w = w.replace(/([bdfgkpts])r([aeiouɛɔ])/g, "$1$2r$2");             // Brafo -> barafo
       w = w.replace(/kw([iouɔɛ])/g, "kɔ$1");                             // kw only before a, e
+      w = w.replace(/qu([aeiouɛɔ])/g, "kw$1");                           // Danquah -> dankwa
       w = w.replace(/c/g, "k").replace(/x/g, "ks").replace(/q/g, "k");   // loan letters absent from the font
       return w;
   }
