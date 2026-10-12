@@ -4,8 +4,9 @@
   if (!$("sy")) return;
   const V = ["a", "e", "ɛ", "i", "o", "ɔ", "u"];
   // families: base first, then its variants (the signs present in Koradin Dua)
-  const FAM = [["b"], ["d", "dw"], ["f"], ["g", "gb", "gy"], ["h", "hw", "hy"], ["j"], ["k", "kp", "kw", "ky"], ["l"], ["m", "my"],
-    ["n", "ny"], ["p"], ["r"], ["s"], ["t", "tw"], ["v"], ["w"], ["y"], ["z"]];
+  // families as built in the construction lab (glyphs.json): each variant is its base plus a modifier
+  const FAM = [["p", "b", "kp", "gb"], ["t", "ky", "tw"], ["d", "dw", "gy", "j"], ["s", "hy", "z"], ["f", "hw", "v"], ["r", "l"], ["k", "g"],
+    ["n", "m", "ny", "my"], ["h"], ["w"], ["y"]];
   const ONS = FAM.flat().sort((a, b) => b.length - a.length);
   const HAS = new Set("ba be bi bo bu bɛ bɔ dwa dwe dwi dwo dwu dwɔ dwɛ da de di du do dɔ dɛ fa fe fu fo fɔ fɛ fi gba gbe gbi gbu gbo gya gye gyi gyu gyo gbɔ gyɔ gyɛ gbɛ ga ge gi go gu gɔ gɛ hwa hwe hwi hwu hwo hya hye hyi hyu hyo hwɔ hyɔ hyɛ hwɛ ha he hu hi ho hɔ hɛ ja je ji jo ju jɔ jɛ kpa kpe kpi kpu kpo kwa kwe kya kye kyi kyu kyo kpɔ kyɔ kpɛ kyɛ ka ke ki ko ku kɔ kɛ la le li lu lo lɔ lɛ mya mye myu myo myi myɔ myɛ ma me mi mo mu mɔ mɛ nya nye nyi nyo nyu nyɔ nyɛ na ne ni nu no nɛ nɔ pa pe pi pu po pɔ pɛ ra re ri ro ru rɔ rɛ sa se si su so sɔ sɛ twa twe twi twu two twɔ twɛ ta te ti to tu tɔ tɛ va ve vi vo vu vɔ vɛ wa we wi wu wo wɔ wɛ ya ye yi yo yu yɔ yɛ za ze zi zu zo zɔ zɛ".split(" "));
 
