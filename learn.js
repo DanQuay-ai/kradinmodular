@@ -17,7 +17,7 @@
     en: { title: "Learn Kɔradin.<br>Learn Akan.", cowries: "cowries", streak: "day streak", krTitle: "Kɔradin", krSub: "Every sign, family by family, until you can read any Akan word.",
       akTitle: "Akan", akSub: "Greetings, numbers, the market and everyday talk.", lessons: "lessons", units: "units", of: "of", literate: "literate", language: "Language", soon: "soon",
       standard: "Standard", final: "Literacy test", finalSub: "Read 15 words with no help", words: "words", newLesson: "New lesson", newSign: "New sign", newWords: "New words",
-      start: "Start", gotit: "Got it", check: "Check", cont: "Continue", again: "again", whichSound: "Which sound is this?", whichSign: s => `Which sign is “${s}”?`,
+      start: "Start", next: "Next", gotit: "Got it", check: "Check", cont: "Continue", again: "again", whichSound: "Which sound is this?", whichSign: s => `Which sign is “${s}”?`,
       read: "Read this word", readThis: "Read this", mean: "What does this mean?", say: s => `How do you say “${s}”?`, sayPh: s => `Say “${s}”`, match: "Match the pairs",
       pic: s => `Which one is “${s}”?`, findSign: s => `Tap the sign “${s}” in this word`, spell: s => `Spell “${s}” in Kɔradin`,
       looks: x => `This sign looks like ${x}.`, sound: s => `It represents the sound <b>${s}</b>.`, first: (s, w) => `<b>${s}</b> is the first sound of <b>${w}</b>.`, inw: (s, w) => `You hear <b>${s}</b> in <b>${w}</b>.`,
@@ -26,7 +26,7 @@
     fr: { title: "Apprenez le kɔradin.<br>Apprenez l'akan.", cowries: "cauris", streak: "jours d'affilée", krTitle: "Kɔradin", krSub: "Chaque signe, famille par famille, jusqu'à lire n'importe quel mot akan.",
       akTitle: "Akan", akSub: "Salutations, nombres, le marché et la vie de tous les jours.", lessons: "leçons", units: "unités", of: "sur", literate: "lettré", language: "Langue", soon: "bientôt",
       standard: "Latin", final: "Test de lecture", finalSub: "Lisez 15 mots sans aide", words: "mots", newLesson: "Nouvelle leçon", newSign: "Nouveau signe", newWords: "Nouveaux mots",
-      start: "Commencer", gotit: "Compris", check: "Vérifier", cont: "Continuer", again: "à revoir", whichSound: "Quel son est-ce ?", whichSign: s => `Quel signe correspond à « ${s} » ?`,
+      start: "Commencer", next: "Suivant", gotit: "Compris", check: "Vérifier", cont: "Continuer", again: "à revoir", whichSound: "Quel son est-ce ?", whichSign: s => `Quel signe correspond à « ${s} » ?`,
       read: "Lisez ce mot", readThis: "Lisez ceci", mean: "Que signifie ceci ?", say: s => `Comment dit-on « ${s} » ?`, sayPh: s => `Dites « ${s} »`, match: "Associez les paires",
       pic: s => `Lequel est « ${s} » ?`, findSign: s => `Touchez le signe « ${s} » dans ce mot`, spell: s => `Écrivez « ${s} » en kɔradin`,
       looks: x => `Ce signe ressemble à ${x}.`, sound: s => `Il représente le son <b>${s}</b>.`, first: (s, w) => `<b>${s}</b> est le premier son de <b>${w}</b>.`, inw: (s, w) => `On entend <b>${s}</b> dans <b>${w}</b>.`,
@@ -135,7 +135,7 @@
     const q = document.querySelector(".q"), qi = $("qi"); if (!q || !qi) return;
     qi.style.transform = ""; qi.style.width = "";
     const h = q.clientHeight, w = q.clientWidth, H = qi.scrollHeight, W = qi.scrollWidth;
-    const k = Math.min(1, h / Math.max(1, H), w / Math.max(1, W));
+    const k = Math.max(.82, Math.min(1, h / Math.max(1, H), w / Math.max(1, W)));
     if (k < 1) { qi.style.transform = `scale(${k})`; qi.style.width = (100 / k) + "%"; }
   }
   addEventListener("resize", () => fit());
@@ -181,8 +181,20 @@
   function nope(b) { SFX.bad(); b.classList.remove("shk"); void b.offsetWidth; b.classList.add("shk"); }
 
   // ---------------------------------------------------------- questions
+  // long texts are read a screen at a time
+  function chunks(text, max = 150) {
+    const S = String(text).match(/[^.!?;:]+[.!?;:]?\s*/g) || [text], out = [];
+    S.forEach(x => { if (out.length && (out[out.length - 1] + x).length <= max) out[out.length - 1] += x; else out.push(x); });
+    return out.map(x => x.trim()).filter(Boolean);
+  }
+  function cards(h, body, rules, show) {
+    const B = chunks(body), R = rules || [], Q = [];
+    B.forEach((b, i) => Q.push({ t: "card", h, body: b, show, part: B.length + (R.length ? Math.ceil(R.length / 2) : 0), n: i + 1 }));
+    for (let i = 0; i < R.length; i += 2) Q.push({ t: "card", h, rules: R.slice(i, i + 2), show, part: Q[0].part, n: B.length + i / 2 + 1 });
+    return Q;
+  }
   function scriptQs(l) {
-    const Q = [{ t: "card", h: lt(l, "title"), body: lt(l, "intro"), rules: (l.rules || {})[L] || (l.rules || {}).en, show: l.kr }];
+    const Q = cards(lt(l, "title"), lt(l, "intro"), (l.rules || {})[L] || (l.rules || {}).en, l.kr);
     if (l.nasal || l.clusters) {
       const W = l.words.map(w => Array.isArray(w) ? w : [w, w]);
       W.forEach(([lat, k]) => Q.push({ t: "mc", ask: T.read, big: k, kr: true, ans: lat, opts: [lat, ...pick(W.map(x => x[0]).filter(x => x !== lat), 3)] }));
@@ -209,7 +221,9 @@
     return words.slice(0, 15).map(w => ({ t: "mc", ask: T.readThis, big: w, kr: true, ans: w, opts: [w, ...pick(words.filter(x => x !== w), 3)] }));
   }
   function twiQs(u) {
-    const k = S.script === "kr", items = u.items, Q = [{ t: "words", h: u[L] || u.en, items }];
+    const k = S.script === "kr", items = u.items, Q = [];
+    if (u.intro) Q.push(...cards(u[L] || u.en, u.intro[L] || u.intro.en, null, "akan"));
+    for (let i = 0; i < items.length; i += 6) Q.push({ t: "words", h: u[L] || u.en, items: items.slice(i, i + 6), part: Math.ceil(items.length / 6), n: i / 6 + 1 });
     const withIcon = items.filter(i => i[3]);
     shuffle(items).forEach((it, i) => {
       const others = items.filter(x => x !== it), m = i % 4;
@@ -247,11 +261,15 @@
     if (qi >= Q.length) { if (miss.length) { Q = Q.concat(miss.map(m => ({ ...m, again: true }))); miss = []; } else return finish(); }
     const q = Q[qi];
     const go = (label, f) => { $("go").onclick = () => { SFX.tap(); (f || next)(); }; };
-    if (q.t === "card") { frame(`<p class="ey">${T.newLesson}</p><div class="hero pop">${kr(q.show, "xl")}</div><h2>${esc(q.h)}</h2><p class="body">${esc(q.body)}</p>${(q.rules || []).map((r, i) => `<p class="rule rise" style="--d:${.15 + i * .08}s">${esc(r)}</p>`).join("")}`, `<button class="go" id="go">${T.start}</button>`); return go(); }
+    if (q.t === "card") {
+      const first = q.n === 1, last = q.n === q.part;
+      frame(`<p class="ey">${T.newLesson}${q.part > 1 ? ` · ${q.n}/${q.part}` : ""}</p>${first ? `<div class="shero pop">${kr(q.show, "xl")}</div>` : ""}<h2>${esc(q.h)}</h2>${q.body ? `<p class="body big-t rise">${esc(q.body)}</p>` : ""}${(q.rules || []).map((r, i) => `<p class="rule rise" style="--d:${.1 + i * .08}s">${esc(r)}</p>`).join("")}`,
+        `<button class="go" id="go">${last ? T.start : T.next}</button>`); return go();
+    }
     if (q.t === "learn") {
       const kw = q.key, starts = kw && seg(kw)[0].s === q.s;
       frame(`<p class="ey">${T.newSign}</p>
-        <div class="hero pop">${q.base ? `<span class="der">${kr(q.base, "lg dim")}<i>→</i></span>` : ""}${kr(q.s, "xl hlg")}</div>
+        <div class="shero pop">${q.base ? `<span class="der">${kr(q.base, "lg dim")}<i>→</i></span>` : ""}${kr(q.s, "xl hlg")}</div>
         <h2 class="snd">${esc(q.s)}</h2>
         ${q.look ? `<p class="body">${T.looks(esc(q.look))}</p>` : ""}
         <p class="body">${T.sound(esc(q.s))}${kw ? " " + (starts ? T.first(esc(q.s), esc(kw)) : T.inw(esc(q.s), esc(kw))) : ""}</p>
@@ -260,7 +278,7 @@
       return go();
     }
     if (q.t === "words") {
-      frame(`<p class="ey">${T.newWords}</p><h2>${esc(q.h)}</h2><ul class="wl${q.items.length > 8 ? " many" : ""}">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(kv(i), null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
+      frame(`<p class="ey">${T.newWords}${q.part > 1 ? ` · ${q.n}/${q.part}` : ""}</p><h2>${esc(q.h)}</h2><ul class="wl">${q.items.map((i, n) => `<li class="rise" style="--d:${n * .03}s">${i[3] ? `<span class="wi">${icon(i[3], 26)}</span>` : `<span class="wi"></span>`}<span>${S.script === "kr" ? krw(kv(i), null, "md") + `<small>${esc(i[0])}</small>` : `<b>${esc(i[0])}</b>`}</span><span class="gl">${esc(gloss(i))}</span></li>`).join("")}</ul>`, `<button class="go" id="go">${T.start}</button>`);
       return go();
     }
     if (q.t === "mc" || q.t === "mcg") {
@@ -339,7 +357,7 @@
     save(); (pass ? SFX.done : SFX.bad)();
     const lit = key === "final" && pass;
     frame(`${pass ? `<div class="confetti">${Array.from({ length: 18 }, () => `<i style="--x:${(Math.random() * 2 - 1) * 46}vw;--r:${Math.random() * 720 - 360}deg;--d:${Math.random() * .4}s">${icon("cowrie", 20)}</i>`).join("")}</div>` : ""}
-      <div class="hero pop">${kr(pass ? (lit ? "ayeekoo" : "ɛyɛ") : "bio", "lg")}</div><h2>${lit ? T.youRead : pass ? "Ayeekoo!" : (L === "fr" ? "Encore une fois" : "Once more")}</h2>
+      <div class="shero pop">${kr(pass ? (lit ? "ayeekoo" : "ɛyɛ") : "bio", "lg")}</div><h2>${lit ? T.youRead : pass ? "Ayeekoo!" : (L === "fr" ? "Encore une fois" : "Once more")}</h2>
       <div class="wins"><span class="st sc ${pass ? "on" : "low"}"><b>${right}/${total}</b></span><span class="st cw on">${icon("cowrie", 22)}<b>+${gain}</b></span><span class="st fl on">${icon("flame", 22)}<b>${S.streak}</b></span></div>
       <p class="body">${pass ? T.passed(pct) : T.need(pct)}</p>
       ${lit ? `<p class="rule">${T.share}</p>` : ""}${pass && !wasDone && key.startsWith("s-") && !lit ? `<p class="rule">${T.unlocked}</p>` : ""}`,
