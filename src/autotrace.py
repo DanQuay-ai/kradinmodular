@@ -250,37 +250,146 @@ def walk_end(st):
     return x, y
 
 
-def trace_glyph(face, ch, scale):
-    r = render(face, ch, scale)
-    if r is None: return None, None, 0
+def smooth(P, sigma):
+    if len(P) < 5 or sigma < 0.5: return P
+    Q = ndimage.gaussian_filter1d(P, sigma, axis=0, mode="nearest")
+    Q[0], Q[-1] = P[0], P[-1]
+    return Q
+
+
+def sharpen_corners(P, W):
+    """an L corner comes out of the medial axis as a small curve: rebuild it as a sharp vertex"""
+    P = np.asarray(P, float)
+    if len(P) < 8: return P
+    d = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]
+    win = max(3.0, 0.9 * W)
+    def head(i, back):
+        j = i
+        while 0 < j < len(P) - 1 and abs(d[j] - d[i]) < win: j += -1 if back else 1
+        v = P[i] - P[j] if back else P[j] - P[i]
+        return math.atan2(v[1], v[0]), j
+    out = [P[0]]; i = 1
+    while i < len(P) - 1:
+        a, ja = head(i, True); b, jb = head(i, False)
+        turn = abs(((math.degrees(b - a) + 180) % 360) - 180)
+        if turn > 55 and ja > 0 and jb < len(P) - 1:
+            # intersect the incoming and outgoing lines
+            p0, p1 = P[ja], P[jb]; u = np.array([math.cos(a), math.sin(a)]); v = np.array([math.cos(b), math.sin(b)])
+            M = np.array([u, -v]).T
+            try:
+                t = np.linalg.solve(M, p1 - p0); X = p0 + t[0] * u
+                if np.hypot(*(X - P[i])) < 1.5 * W:
+                    while out and np.hypot(*(out[-1] - P[ja])) > 1e-6 and len(out) > 1 and d[min(len(d)-1, i)] - 0 > 0 and np.hypot(*(out[-1] - X)) < win * 1.2: out.pop()
+                    out += [X, X]; i = jb; continue
+            except np.linalg.LinAlgError: pass
+        out.append(P[i]); i += 1
+    out.append(P[-1])
+    return np.array(out)
+
+
+def trace_glyph(face, ch, scale, S=2):
+    r = render(face, ch, scale * S, pad=40 * S)
+    if r is None: return None, None, 0, None
     ink, left, top, adv = r
     dist = ndimage.distance_transform_edt(ink)
     sk = skeletonize(ink)
-    W = float(np.median(dist[sk])) * 2 if sk.any() else 0
-    sk = prune(sk, W)
+    W = float(np.median(dist[sk])) * 2 if sk.any() else 0      # in px (= S per unit)
+    sk = prune(sk, W * 1.2)
     pts, nb = graph(sk)
-    if not pts: return [], W, adv
-    E = merge(edges_of(pts, nb), nb, W)
     strokes = []
-    for e in E:
-        if len(e) < max(4, W * 0.35): continue
-        P = extend(e, ink, dist, W) if e[0] != e[-1] else [tuple(map(float, p)) for p in e]
-        # to design coordinates: x = left + c, y = top - r
-        D = np.array([[left + c, top - rr] for rr, c in P])
-        st = to_turtle(fit_pieces(D, max(2.0, W / 8), W))
-        if st and st["segs"]: strokes.append(st)
+    if pts:
+        E = merge(edges_of(pts, nb), nb, W)
+        nodes_deg = {p: len(nb[p]) for p in pts}
+        for e in E:
+            if len(e) < max(4, W * 0.35): continue
+            P = [np.array(p, float) for p in e]
+            closed = e[0] == e[-1]
+            # junction ends: drop the curl inside the junction, come back in straight along the stroke
+            for at in ((0, 1) if not closed else ()):
+                node = P[0] if at == 0 else P[-1]
+                if nodes_deg.get(tuple(map(int, node)), 1) < 3: continue
+                rj = dist[int(node[0]), int(node[1])] * 1.15
+                seq = P if at == 0 else P[::-1]
+                k = 0
+                while k < len(seq) - 3 and np.hypot(*(seq[k] - node)) < rj: k += 1
+                if k < 2: continue
+                kk = min(len(seq) - 1, k + int(W))
+                t = seq[k] - seq[kk]; t /= (np.hypot(*t) or 1)
+                L = np.hypot(*(node - seq[k]))
+                rebuilt = [seq[k] + t * L * (j / 4) for j in range(4, 0, -1)] + list(seq[k:])
+                P = rebuilt if at == 0 else rebuilt[::-1]
+            P = np.array(P)
+            if not closed:
+                P = np.array(extend([tuple(p) for p in P], ink, dist, W))
+            P = resample(P, 2.0 * S)
+            P = smooth(P, max(1.0, W / 5 / 2.0))
+            P = sharpen_corners(P, W)
+            # width profile along the stroke, as a share of the glyph's median weight
+            Ls = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]; T = Ls[-1] or 1
+            ws = np.array([2 * dist[min(ink.shape[0]-1, max(0, int(round(p[0])))), min(ink.shape[1]-1, max(0, int(round(p[1]))))] for p in P])
+            interior = ws[(Ls > W * 0.6) & (Ls < T - W * 0.6)]
+            fill = float(np.median(interior)) if interior.size else float(np.median(ws))
+            ws = np.where((Ls < W * 0.6) | (Ls > T - W * 0.6), np.maximum(ws, 0.0), ws)
+            # ends: the medial axis thins out before the edge; hold the last interior width
+            for idx in np.nonzero(Ls < W * 0.6)[0]: ws[idx] = interior[0] if interior.size else fill
+            for idx in np.nonzero(Ls > T - W * 0.6)[0]: ws[idx] = interior[-1] if interior.size else fill
+            ws = ndimage.gaussian_filter1d(ws, max(1.0, len(ws) / 40))
+            D = np.array([[(left + c) / S, (top - rr) / S] for rr, c in P])
+            st = to_turtle(fit_pieces(D, max(1.5, W / S / 12), W / S))
+            if not st or not st["segs"]: continue
+            n = 16; tt = np.linspace(0, 1, n)
+            wp = np.interp(tt * T, Ls, ws) / W
+            if wp.max() - wp.min() > 0.08: st["wp"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(tt, wp)]
+            else: st["wk"] = round(float(np.median(wp)), 3)
+            strokes.append(st)
     # small separate marks (dots of i, j, punctuation) whose skeleton was pruned away
     lab, n = ndimage.label(ink)
     for c in range(1, n + 1):
         m = lab == c
         if (sk & m).sum() > W * 0.8: continue
-        rr, cc = np.nonzero(m); h = rr.max() - rr.min() + 1; w = cc.max() - cc.min() + 1
-        x0, y0 = left + (cc.min() + cc.max()) / 2, top - (rr.min() + rr.max()) / 2
-        if h >= w: L = float(h); strokes.append({"x": round(float(x0), 1), "y": round(float(y0 - L / 2), 1), "h": 90, "segs": [{"t": "L", "len": round(float(L), 1)}], "s": 0, "e": 1, "cap0": "butt", "cap1": "butt", "w": round(float(w), 1)})
-        else: L = float(w); strokes.append({"x": round(float(x0 - L / 2), 1), "y": round(float(y0), 1), "h": 0, "segs": [{"t": "L", "len": round(float(L), 1)}], "s": 0, "e": 1, "cap0": "butt", "cap1": "butt", "w": round(float(h), 1)})
-    # writing order: top-left first
+        rr, cc = np.nonzero(m); h = (rr.max() - rr.min() + 1) / S; w = (cc.max() - cc.min() + 1) / S
+        x0, y0 = (left + (cc.min() + cc.max()) / 2) / S, (top - (rr.min() + rr.max()) / 2) / S
+        vert = h >= w; L = h if vert else w; thick = (w if vert else h) / (W / S)
+        strokes.append({"x": round(float(x0 if vert else x0 - L / 2), 1), "y": round(float(y0 - L / 2 if vert else y0), 1), "h": 90 if vert else 0,
+                        "segs": [{"t": "L", "len": round(float(L), 1)}], "s": 0, "e": 1, "cap0": "butt", "cap1": "butt", "wk": round(float(thick), 3)})
     strokes.sort(key=lambda s: (round(s["x"] / 60), -s["y"]))
-    return strokes, W, adv
+    return strokes, W / S, adv / S, (ink, left, top, S)
+
+
+def score(strokes, W, raster):
+    """share of the reference ink covered, and share of the rebuild that falls outside it"""
+    ink, left, top, S = raster
+    from PIL import Image, ImageDraw
+    im = Image.new("L", (ink.shape[1], ink.shape[0]), 0); dr = ImageDraw.Draw(im)
+    for st in strokes:
+        for poly in outline_polys(st, W):
+            dr.polygon([(x * S - left, top - y * S) for x, y in poly], fill=255)
+    rb = np.array(im) > 127
+    inter = (rb & ink).sum(); return round(inter / max(1, ink.sum()), 3), round((rb & ~ink).sum() / max(1, rb.sum()), 3)
+
+
+def outline_polys(st, W):
+    """python mirror of KS.polygon for plain ends with width profile (for scoring)"""
+    pts = [(st["x"], st["y"], st["h"])]; x, y, h = st["x"], st["y"], st["h"]
+    for g in st["segs"]:
+        if g["t"] == "C": h += g["ang"]; pts.append((x, y, h)); continue
+        if g["t"] == "L":
+            n = max(1, int(g["len"] / 6))
+            for i in range(n): x += g["len"] / n * math.cos(math.radians(h)); y += g["len"] / n * math.sin(math.radians(h)); pts.append((x, y, h))
+        else:
+            sg = 1 if g["ang"] > 0 else -1; r = g["r"]
+            cx = x + r * math.cos(math.radians(h + 90 * sg)); cy = y + r * math.sin(math.radians(h + 90 * sg))
+            a0 = math.atan2(y - cy, x - cx); n = max(2, int(abs(g["ang"]) / 6))
+            for i in range(1, n + 1):
+                a = a0 + math.radians(g["ang"]) * i / n; x, y = cx + r * math.cos(a), cy + r * math.sin(a); pts.append((x, y, h + g["ang"] * i / n))
+            h += g["ang"]
+    P = np.array([(p[0], p[1]) for p in pts]); H = np.array([p[2] for p in pts])
+    Ls = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]; T = Ls[-1] or 1
+    if "wp" in st: wp = np.array(st["wp"]); w = np.interp(Ls / T, wp[:, 0], wp[:, 1]) * W
+    else: w = np.full(len(P), st.get("wk", 1) * W)
+    nx, ny = -np.sin(np.radians(H)), np.cos(np.radians(H))
+    Lf = np.c_[P[:, 0] + nx * w / 2, P[:, 1] + ny * w / 2]; Rt = np.c_[P[:, 0] - nx * w / 2, P[:, 1] - ny * w / 2]
+    return [np.vstack([Lf, Rt[::-1]]).tolist()]
 
 
 def main():
@@ -291,26 +400,51 @@ def main():
     ap.add_argument("--version", default="latin-1")
     a = ap.parse_args()
     tt = TTFont(a.font); upm = tt["head"].unitsPerEm
-    cap = getattr(tt["OS/2"], "sCapHeight", 0) or 0.7 * upm
-    xh = getattr(tt["OS/2"], "sxHeight", 0) or 0.5 * upm
+    from fontTools.pens.boundsPen import BoundsPen
+    def ybox(ch):
+        g = tt.getBestCmap().get(ord(ch)); b = BoundsPen(tt.getGlyphSet()); tt.getGlyphSet()[g].draw(b); return b.bounds
+    cap = getattr(tt["OS/2"], "sCapHeight", 0) or ybox("H")[3]
+    xh = getattr(tt["OS/2"], "sxHeight", 0) or ybox("x")[3]
     k = 700 / cap                                     # design units per font unit
-    face = freetype.Face(a.font); face.set_char_size(int(upm * k * 64))   # 1 px = 1 design unit
-    glyphs = {}; Ws = []
+    face = freetype.Face(a.font); face.set_char_size(int(upm * k * 2 * 64))   # 2 px = 1 design unit (S = 2)
+    glyphs = {}; Ws = []; report = {}
     gs = tt.getGlyphSet(); cmap = tt.getBestCmap(); ghost = {}
     for ch in a.chars:
         if ord(ch) not in cmap: continue
-        st, W, adv = trace_glyph(face, ch, k)
+        st, W, adv, raster = trace_glyph(face, ch, k)
         if st is None: continue
-        Ws.append(W)
+        Ws.append(W); cov, spill = score(st, W, raster); report[ch] = {"covered": cov, "outside": spill, "strokes": len(st)}
         key = ch if ch.isalnum() else "@" + {".": "period", ",": "comma", "-": "hyphen", "!": "exclam", "?": "question", "'": "quote"}.get(ch, "u%04x" % ord(ch))
         glyphs[key] = {"type": "radical", "group": "upper" if ch.isupper() else "lower" if ch.islower() else "digit" if ch.isdigit() else "other",
-                       "strokes": st, "status": "draft", "adv": round(adv, 1), "W": round(W, 1)}
+                       "strokes": st, "status": "draft", "adv": round(adv, 1), "W": round(W, 1), "fit": report[ch]}
         sp = SVGPathPen(gs); gs[cmap[ord(ch)]].draw(TransformPen(sp, (k, 0, 0, k, 0, 0)))
         ghost[key] = {"d": sp.getCommands()}
     W = float(np.median(Ws)) if Ws else 60
+    # each glyph's widths are relative to its own median weight; rescale them to the font's
+    for kk, g in glyphs.items():
+        r = g["W"] / W
+        for st in g["strokes"]:
+            if "wp" in st: st["wp"] = [[a, round(b * r, 3)] for a, b in st["wp"]]
+            else: st["wk"] = round(st.get("wk", 1) * r, 3)
+    # Twi letters missing from the reference: Ɔ ɔ mirror C c, Ɛ ɛ mirror 3 (scaled to the x-height for ɛ)
+    def mirror(st, cx):
+        m = dict(st); m["x"] = round(2 * cx - st["x"], 1); m["h"] = round((180 - st["h"]) % 360, 2)
+        m["segs"] = [dict(g, ang=-g["ang"]) if "ang" in g else dict(g) for g in st["segs"]]; return m
+    def scaled_st(st, k):
+        m = dict(st); m["x"] = round(st["x"] * k, 1); m["y"] = round(st["y"] * k, 1)
+        m["segs"] = [dict(g, len=round(g["len"] * k, 1)) if g["t"] == "L" else dict(g, r=round(g["r"] * k, 1)) if g["t"] == "A" else dict(g) for g in st["segs"]]; return m
+    def make(src, key, k=1.0):
+        if src not in glyphs or key in glyphs: return
+        g = glyphs[src]; cx = g["adv"] / 2
+        glyphs[key] = dict(g, strokes=[scaled_st(mirror(s_, cx), k) for s_ in g["strokes"]], status="draft", made=f"mirror of {src}" + (f" x {k:.2f}" if k != 1 else ""))
+        if key in ghost or src not in ghost: pass
+    make("C", "Ɔ"); make("c", "ɔ"); make("3", "Ɛ", 700 / max(1, ybox("3")[3] * k)); make("3", "ɛ", (xh * k) / max(1, ybox("3")[3] * k))
     out = {"_version": a.version, "name": a.name or tt["name"].getDebugName(1), "metrics": {"cap": 700, "x": round(xh * k), "asc": round(tt["hhea"].ascent * k), "desc": round(tt["hhea"].descent * k), "W": round(W, 1)}, "glyphs": glyphs}
     json.dump(out, open(a.out, "w"), ensure_ascii=False, separators=(",", ":"))
     if a.ghost: json.dump(ghost, open(a.ghost, "w"), separators=(",", ":"))
+    json.dump(report, open(a.out.replace(".json", "-fit.json"), "w"), ensure_ascii=False, indent=0)
+    cv = [r["covered"] for r in report.values()]; sp = [r["outside"] for r in report.values()]
+    print("ink covered %.3f (worst %s %.2f), rebuild outside the ink %.3f" % (np.mean(cv), min(report, key=lambda c: report[c]["covered"]), min(cv), np.mean(sp)))
     print(len(glyphs), "glyphs, stroke weight", round(W, 1), "x-height", out["metrics"]["x"])
 
 

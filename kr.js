@@ -280,8 +280,8 @@
  // every script the lab can draw. Latin fonts are rebuilt from a reference font by gen/autotrace.py.
  root.KR_SCRIPTS = [{ id: "kradin", name: "Kɔradin" }, { id: "adinkra", name: "Adinkra alphabet" },
    { id: "latin:franklin", name: "Franklin Gothic", ref: "traced from Libre Franklin (OFL), after Morris Fuller Benton, 1902" },
-   { id: "latin:eckmann", name: "Eckmannschrift", ref: "Otto Eckmann, 1900", pending: true },
-   { id: "latin:auriol", name: "Auriol", ref: "George Auriol, 1901", pending: true },
-   { id: "latin:bocklin", name: "Arnold Böcklin", ref: "Otto Weisert, 1904", pending: true }];
+   { id: "latin:eckmann", name: "Eckmannschrift", ref: "Otto Eckmann, 1900" },
+   { id: "latin:auriol", name: "Auriol", ref: "George Auriol, 1901" },
+   { id: "latin:bocklin", name: "Arnold Böcklin", ref: "Otto Weisert, 1904" }];
  const cache = {}; root.KRL = id => cache[id] || (cache[id] = root.KR.SCRIPT === "latin:" + id ? root.KR : make("latin:" + id));
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -60,10 +60,11 @@ const KS = (() => {
       segs: st.segs.map(g => g.t === "L" ? Object.assign({}, g, { len: g.len * k }) : g.t === "A" ? Object.assign({}, g, { r: g.r * k }) : g) });
   }
   function svgStroke(st, W, o = {}) {
+    if (st.wp) { const pg = polygon(st, W); return `<path d="M${pg.map(p => f(p[0]) + " " + f(p[1])).join("L")}Z" fill="${o.color || "var(--ink)"}"${o.attr || ""}/>`; }
     st = scaled(st, W);
     const { d, t } = path(st, W), s = st.s ?? 0, e = st.e ?? 1;
     const dash = (s > 0 || e < 1) ? ` pathLength="1000" stroke-dasharray="0 ${f(s * 1000)} ${f((e - s) * 1000)} 3000"` : "";
-    return `<path d="${d}" fill="none" stroke="${o.color || "var(--ink)"}" stroke-width="${W}" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10"${dash}${o.attr || ""}/>`;
+    return `<path d="${d}" fill="none" stroke="${o.color || "var(--ink)"}" stroke-width="${W * (st.wk || 1)}" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10"${dash}${o.attr || ""}/>`;
   }
   function guides(W, x0 = -100, x1 = 1000) {
     if (BODY.lines) return BODY.lines.map(([n, y], i) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity="${y === 0 ? .6 : .35}" stroke-width="${y === 0 ? 3 : 2}" ${y === 0 ? "" : 'stroke-dasharray="12 10"'}/>`).join("");
@@ -134,15 +135,23 @@ const KS = (() => {
     if (sy < 0 && p[1] <= CUT_TOL) return 0; if (sy > 0 && p[1] >= 700 - CUT_TOL) return 700; return null;
   }
   // returns a clockwise polygon [[x,y]...]; tf(x,y) -> [x,y] is applied last (width, slant)
+  function wpAt(wp, t) {
+    if (t <= wp[0][0]) return wp[0][1];
+    for (let i = 1; i < wp.length; i++) if (t <= wp[i][0]) { const a = wp[i - 1], b = wp[i], u = (t - a[0]) / ((b[0] - a[0]) || 1); return a[1] + u * (b[1] - a[1]); }
+    return wp[wp.length - 1][1];
+  }
   function polygon(st, W, tf) {
-    const k = K(W), P = trimCL(centreline(st), st.s ?? 0, st.e ?? 1), n = P.length, hw = W / 2;
+    const k = K(W), P = trimCL(centreline(st), st.s ?? 0, st.e ?? 1), n = P.length;
+    // width profile (traced fonts): st.wp = [[t 0..1, width as a share of W], ...] along the stroke
+    const C0 = P.map(p => [p[0] * k, 350 + (p[1] - 350) * k]), Lc = [0]; for (let i = 1; i < n; i++) Lc.push(Lc[i - 1] + Math.hypot(C0[i][0] - C0[i - 1][0], C0[i][1] - C0[i - 1][1]));
+    const HW = P.map((p, i) => W / 2 * (st.wp ? wpAt(st.wp, Lc[i] / (Lc[n - 1] || 1)) : (st.wk || 1)));
     const c0 = st.cap0 !== "butt" ? cutDecision(P[0], P[0][3], true) : null, c1 = st.cap1 !== "butt" ? cutDecision(P[n - 1], P[n - 1][2], false) : null;
     const C = P.map(p => [p[0] * k, 350 + (p[1] - 350) * k]); const left = [], right = [];
     P.forEach((p, i) => {
       let hin = p[2], hout = p[3]; if (i === 0) hin = hout; if (i === n - 1) hout = hin;
       const [x, y] = C[i], a = (((hout - hin) + 180) % 360 + 360) % 360 - 180;
-      if (Math.abs(a) < 1e-6) { const nx = -Math.sin(hin * R), ny = Math.cos(hin * R); left.push([x + nx * hw, y + ny * hw]); right.push([x - nx * hw, y - ny * hw]); }
-      else { const bis = (hin + a / 2) * R, m = hw / Math.max(0.25, Math.cos(a / 2 * R)), nx = -Math.sin(bis), ny = Math.cos(bis); left.push([x + nx * m, y + ny * m]); right.push([x - nx * m, y - ny * m]); }
+      if (Math.abs(a) < 1e-6) { const nx = -Math.sin(hin * R), ny = Math.cos(hin * R); left.push([x + nx * HW[i], y + ny * HW[i]]); right.push([x - nx * HW[i], y - ny * HW[i]]); }
+      else { const bis = (hin + a / 2) * R, m = HW[i] / Math.max(0.25, Math.cos(a / 2 * R)), nx = -Math.sin(bis), ny = Math.cos(bis); left.push([x + nx * m, y + ny * m]); right.push([x - nx * m, y - ny * m]); }
     });
     const cut = (E, iE, iN, lim, h) => { const dy = Math.sin(h * R), dx = Math.cos(h * R); if (Math.abs(dy) < 1e-6) return; const t = (lim - E[iE][1]) / dy; E[iE] = [E[iE][0] + t * dx, lim]; };
     if (c1 !== null) { cut(left, n - 1, n - 2, c1, P[n - 1][2]); cut(right, n - 1, n - 2, c1, P[n - 1][2]); }
@@ -219,5 +228,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 ${700 - hi - 60} ${r + 100} ${hi - lo + 120}" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="${lo}" width="${r + 600}" height="${hi - lo}"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, wpAt, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

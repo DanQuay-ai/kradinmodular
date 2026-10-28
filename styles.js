@@ -76,7 +76,7 @@ const KST = (() => {
     const shape = d => { if (P.ends === "flat" || !P.endAmt) return 1; const s = Math.max(0, 1 - d / el); return P.ends === "taper" ? 1 - P.endAmt * 0.88 * s : 1 + P.endAmt * s * s; };
     const hw = CLp.map((p, i) => {
       const h = i === 0 ? p[3] : i === n - 1 ? p[2] : (p[2] + p[3]) / 2;
-      let f = fdir(h);
+      let f = fdir(h) * (st.wp ? KS.wpAt(st.wp, L[i] / T) : (st.wk || 1));
       if (free0) f *= shape(L[i]);
       if (free1) f *= shape(T - L[i]);
       return W / 2 * Math.max(f, 0.04);

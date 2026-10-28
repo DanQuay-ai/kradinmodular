@@ -1,0 +1,342 @@
+{
+"A": {
+"covered": 0.807,
+"outside": 0.067,
+"strokes": 2
+},
+"B": {
+"covered": 0.793,
+"outside": 0.049,
+"strokes": 2
+},
+"C": {
+"covered": 0.808,
+"outside": 0.054,
+"strokes": 1
+},
+"D": {
+"covered": 0.851,
+"outside": 0.062,
+"strokes": 1
+},
+"E": {
+"covered": 0.816,
+"outside": 0.064,
+"strokes": 2
+},
+"F": {
+"covered": 0.789,
+"outside": 0.091,
+"strokes": 2
+},
+"G": {
+"covered": 0.858,
+"outside": 0.062,
+"strokes": 2
+},
+"H": {
+"covered": 0.878,
+"outside": 0.027,
+"strokes": 3
+},
+"I": {
+"covered": 0.852,
+"outside": 0.134,
+"strokes": 2
+},
+"J": {
+"covered": 0.865,
+"outside": 0.057,
+"strokes": 2
+},
+"K": {
+"covered": 0.87,
+"outside": 0.048,
+"strokes": 4
+},
+"L": {
+"covered": 0.729,
+"outside": 0.1,
+"strokes": 1
+},
+"M": {
+"covered": 0.825,
+"outside": 0.094,
+"strokes": 2
+},
+"N": {
+"covered": 0.793,
+"outside": 0.11,
+"strokes": 1
+},
+"O": {
+"covered": 0.832,
+"outside": 0.069,
+"strokes": 1
+},
+"P": {
+"covered": 0.757,
+"outside": 0.07,
+"strokes": 1
+},
+"Q": {
+"covered": 0.841,
+"outside": 0.05,
+"strokes": 2
+},
+"R": {
+"covered": 0.781,
+"outside": 0.066,
+"strokes": 1
+},
+"S": {
+"covered": 0.735,
+"outside": 0.161,
+"strokes": 1
+},
+"T": {
+"covered": 0.884,
+"outside": 0.076,
+"strokes": 4
+},
+"U": {
+"covered": 0.72,
+"outside": 0.118,
+"strokes": 1
+},
+"V": {
+"covered": 0.709,
+"outside": 0.146,
+"strokes": 1
+},
+"W": {
+"covered": 0.894,
+"outside": 0.077,
+"strokes": 7
+},
+"X": {
+"covered": 0.875,
+"outside": 0.054,
+"strokes": 3
+},
+"Y": {
+"covered": 0.884,
+"outside": 0.048,
+"strokes": 2
+},
+"Z": {
+"covered": 0.892,
+"outside": 0.049,
+"strokes": 3
+},
+"a": {
+"covered": 0.797,
+"outside": 0.091,
+"strokes": 1
+},
+"b": {
+"covered": 0.846,
+"outside": 0.04,
+"strokes": 1
+},
+"c": {
+"covered": 0.839,
+"outside": 0.036,
+"strokes": 1
+},
+"d": {
+"covered": 0.788,
+"outside": 0.091,
+"strokes": 1
+},
+"e": {
+"covered": 0.828,
+"outside": 0.039,
+"strokes": 1
+},
+"f": {
+"covered": 0.823,
+"outside": 0.114,
+"strokes": 2
+},
+"g": {
+"covered": 0.777,
+"outside": 0.117,
+"strokes": 1
+},
+"h": {
+"covered": 0.843,
+"outside": 0.056,
+"strokes": 2
+},
+"i": {
+"covered": 0.899,
+"outside": 0.074,
+"strokes": 2
+},
+"j": {
+"covered": 0.892,
+"outside": 0.08,
+"strokes": 2
+},
+"k": {
+"covered": 0.829,
+"outside": 0.052,
+"strokes": 4
+},
+"l": {
+"covered": 0.819,
+"outside": 0.052,
+"strokes": 1
+},
+"m": {
+"covered": 0.808,
+"outside": 0.07,
+"strokes": 2
+},
+"n": {
+"covered": 0.759,
+"outside": 0.148,
+"strokes": 1
+},
+"o": {
+"covered": 0.818,
+"outside": 0.066,
+"strokes": 1
+},
+"p": {
+"covered": 0.81,
+"outside": 0.084,
+"strokes": 1
+},
+"q": {
+"covered": 0.766,
+"outside": 0.062,
+"strokes": 1
+},
+"r": {
+"covered": 0.72,
+"outside": 0.037,
+"strokes": 1
+},
+"s": {
+"covered": 0.777,
+"outside": 0.084,
+"strokes": 1
+},
+"t": {
+"covered": 0.867,
+"outside": 0.069,
+"strokes": 2
+},
+"u": {
+"covered": 0.857,
+"outside": 0.053,
+"strokes": 3
+},
+"v": {
+"covered": 0.764,
+"outside": 0.065,
+"strokes": 1
+},
+"w": {
+"covered": 0.837,
+"outside": 0.09,
+"strokes": 3
+},
+"x": {
+"covered": 0.866,
+"outside": 0.073,
+"strokes": 3
+},
+"y": {
+"covered": 0.835,
+"outside": 0.065,
+"strokes": 2
+},
+"z": {
+"covered": 0.886,
+"outside": 0.059,
+"strokes": 3
+},
+"0": {
+"covered": 0.845,
+"outside": 0.035,
+"strokes": 1
+},
+"1": {
+"covered": 0.961,
+"outside": 0.073,
+"strokes": 4
+},
+"2": {
+"covered": 0.828,
+"outside": 0.04,
+"strokes": 2
+},
+"3": {
+"covered": 0.832,
+"outside": 0.059,
+"strokes": 3
+},
+"4": {
+"covered": 0.854,
+"outside": 0.058,
+"strokes": 4
+},
+"5": {
+"covered": 0.775,
+"outside": 0.102,
+"strokes": 1
+},
+"6": {
+"covered": 0.859,
+"outside": 0.036,
+"strokes": 1
+},
+"7": {
+"covered": 0.785,
+"outside": 0.082,
+"strokes": 1
+},
+"8": {
+"covered": 0.812,
+"outside": 0.07,
+"strokes": 2
+},
+"9": {
+"covered": 0.831,
+"outside": 0.053,
+"strokes": 1
+},
+".": {
+"covered": 0.524,
+"outside": 0.182,
+"strokes": 1
+},
+",": {
+"covered": 0.576,
+"outside": 0.207,
+"strokes": 1
+},
+"-": {
+"covered": 0.965,
+"outside": 0.092,
+"strokes": 1
+},
+"!": {
+"covered": 0.888,
+"outside": 0.191,
+"strokes": 2
+},
+"?": {
+"covered": 0.802,
+"outside": 0.088,
+"strokes": 2
+},
+"'": {
+"covered": 0.582,
+"outside": 0.215,
+"strokes": 1
+}
+}
