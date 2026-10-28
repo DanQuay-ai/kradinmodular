@@ -4,7 +4,8 @@
 "outside": 0.083,
 "strokes": 5,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "B": {
@@ -12,7 +13,8 @@
 "outside": 0.062,
 "strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 28
 }
 },
 "C": {
@@ -20,7 +22,8 @@
 "outside": 0.048,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "D": {
@@ -28,7 +31,8 @@
 "outside": 0.06,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 28
 }
 },
 "E": {
@@ -36,7 +40,8 @@
 "outside": 0.065,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 28
 }
 },
 "F": {
@@ -44,15 +49,17 @@
 "outside": 0.065,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "G": {
 "covered": 0.911,
 "outside": 0.051,
-"strokes": 4,
+"strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 55
 }
 },
 "H": {
@@ -60,7 +67,8 @@
 "outside": 0.06,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "I": {
@@ -68,7 +76,8 @@
 "outside": 0.047,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "J": {
@@ -76,7 +85,8 @@
 "outside": 0.069,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "K": {
@@ -84,23 +94,26 @@
 "outside": 0.068,
 "strokes": 5,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "L": {
-"covered": 0.919,
-"outside": 0.039,
-"strokes": 3,
+"covered": 0.93,
+"outside": 0.044,
+"strokes": 2,
 "variant": {
-"local": true
+"local": false,
+"angle": 55
 }
 },
 "M": {
 "covered": 0.931,
-"outside": 0.054,
-"strokes": 8,
+"outside": 0.053,
+"strokes": 7,
 "variant": {
-"local": true
+"local": true,
+"angle": 55
 }
 },
 "N": {
@@ -108,7 +121,8 @@
 "outside": 0.034,
 "strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "O": {
@@ -116,7 +130,8 @@
 "outside": 0.027,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "P": {
@@ -124,7 +139,8 @@
 "outside": 0.035,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "Q": {
@@ -132,7 +148,8 @@
 "outside": 0.035,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "R": {
@@ -140,7 +157,8 @@
 "outside": 0.048,
 "strokes": 5,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "S": {
@@ -148,7 +166,8 @@
 "outside": 0.044,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "T": {
@@ -156,7 +175,8 @@
 "outside": 0.04,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "U": {
@@ -164,7 +184,8 @@
 "outside": 0.036,
 "strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "V": {
@@ -172,31 +193,35 @@
 "outside": 0.084,
 "strokes": 4,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "W": {
-"covered": 0.96,
-"outside": 0.036,
-"strokes": 9,
+"covered": 0.958,
+"outside": 0.03,
+"strokes": 7,
 "variant": {
-"local": true
+"local": true,
+"angle": 55
 }
 },
 "X": {
 "covered": 0.878,
-"outside": 0.047,
-"strokes": 5,
+"outside": 0.044,
+"strokes": 4,
 "variant": {
-"local": false
+"local": false,
+"angle": 55
 }
 },
 "Y": {
 "covered": 0.957,
-"outside": 0.049,
-"strokes": 6,
+"outside": 0.048,
+"strokes": 5,
 "variant": {
-"local": false
+"local": false,
+"angle": 55
 }
 },
 "Z": {
@@ -204,7 +229,8 @@
 "outside": 0.118,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "a": {
@@ -212,7 +238,8 @@
 "outside": 0.053,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "b": {
@@ -220,7 +247,8 @@
 "outside": 0.056,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "c": {
@@ -228,7 +256,8 @@
 "outside": 0.041,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "d": {
@@ -236,7 +265,8 @@
 "outside": 0.059,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "e": {
@@ -244,7 +274,8 @@
 "outside": 0.035,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "f": {
@@ -252,7 +283,8 @@
 "outside": 0.06,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "g": {
@@ -260,7 +292,8 @@
 "outside": 0.054,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "h": {
@@ -268,7 +301,8 @@
 "outside": 0.077,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "i": {
@@ -276,7 +310,8 @@
 "outside": 0.069,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "j": {
@@ -284,15 +319,17 @@
 "outside": 0.056,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "k": {
 "covered": 0.878,
 "outside": 0.051,
-"strokes": 5,
+"strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 55
 }
 },
 "l": {
@@ -300,7 +337,8 @@
 "outside": 0.057,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "m": {
@@ -308,7 +346,8 @@
 "outside": 0.071,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "n": {
@@ -316,7 +355,8 @@
 "outside": 0.073,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "o": {
@@ -324,7 +364,8 @@
 "outside": 0.042,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "p": {
@@ -332,7 +373,8 @@
 "outside": 0.05,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "q": {
@@ -340,7 +382,8 @@
 "outside": 0.105,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "r": {
@@ -348,7 +391,8 @@
 "outside": 0.08,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "s": {
@@ -356,7 +400,8 @@
 "outside": 0.047,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "t": {
@@ -364,7 +409,8 @@
 "outside": 0.083,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "u": {
@@ -372,15 +418,17 @@
 "outside": 0.068,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "v": {
-"covered": 0.903,
-"outside": 0.036,
-"strokes": 3,
+"covered": 0.909,
+"outside": 0.039,
+"strokes": 2,
 "variant": {
-"local": true
+"local": false,
+"angle": 55
 }
 },
 "w": {
@@ -388,15 +436,17 @@
 "outside": 0.031,
 "strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 28
 }
 },
 "x": {
-"covered": 0.933,
-"outside": 0.034,
-"strokes": 6,
+"covered": 0.932,
+"outside": 0.03,
+"strokes": 5,
 "variant": {
-"local": true
+"local": true,
+"angle": 55
 }
 },
 "y": {
@@ -404,15 +454,17 @@
 "outside": 0.032,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "z": {
-"covered": 0.818,
-"outside": 0.049,
-"strokes": 2,
+"covered": 0.822,
+"outside": 0.05,
+"strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "0": {
@@ -420,7 +472,8 @@
 "outside": 0.034,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "1": {
@@ -428,7 +481,8 @@
 "outside": 0.125,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 28
 }
 },
 "2": {
@@ -436,7 +490,8 @@
 "outside": 0.062,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "3": {
@@ -444,7 +499,8 @@
 "outside": 0.047,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "4": {
@@ -452,15 +508,17 @@
 "outside": 0.052,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "5": {
-"covered": 0.841,
-"outside": 0.052,
+"covered": 0.848,
+"outside": 0.048,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "6": {
@@ -468,7 +526,8 @@
 "outside": 0.037,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "7": {
@@ -476,7 +535,8 @@
 "outside": 0.029,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "8": {
@@ -484,7 +544,8 @@
 "outside": 0.029,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "9": {
@@ -492,7 +553,8 @@
 "outside": 0.039,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 ".": {
@@ -500,7 +562,8 @@
 "outside": 0.197,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 ",": {
@@ -508,7 +571,8 @@
 "outside": 0.035,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "-": {
@@ -516,7 +580,8 @@
 "outside": 0.012,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "!": {
@@ -524,7 +589,8 @@
 "outside": 0.072,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "?": {
@@ -532,7 +598,8 @@
 "outside": 0.066,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "'": {
@@ -540,7 +607,8 @@
 "outside": 0.004,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 }
 }

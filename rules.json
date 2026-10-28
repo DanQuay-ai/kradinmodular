@@ -1,20 +1,81 @@
 {
  "_about": "Rules learned from the owner's edits in the Construction lab. The lab drafts with them, the Trace study shows them beside every sign, and GPT/Codex read them here. Add a rule when an edit teaches one.",
  "kradin": [
-  {"id": "axes", "rule": "Bars sit exactly on an axis: base 49, mid 350, top 651 (at Black).", "from": "edits of 10 Oct"},
-  {"id": "extend", "rule": "Continue an existing stroke end (extension) rather than adding a new stroke: hya, hye, hyi, za, vɛ, vi, ma, mɛ, ba, bu.", "from": "edits of 10 and 28 Oct"},
-  {"id": "bar-start", "rule": "A modifier bar starts at the rightmost element's crossing and runs about 120 past the sign; tighter spacing is fine.", "from": "edits of 10 Oct"},
-  {"id": "bracket", "rule": "kp / gb bracket: one stroke at the top axis, L40, quarter turn r100, straight down, quarter turn r100, L40 (longer tail allowed); for o, ɛ, ɔ it hangs from mid height.", "from": "kpa, kpe, kpi, kpo, kpɔ, kpu, gba..gbu, 28 Oct"},
-  {"id": "y-glide", "rule": "y glide: a small loop on the left that comes down as a stem to the baseline (ya). Drawn for ye..yu from ya.", "from": "ya, 28 Oct"},
-  {"id": "w-glide", "rule": "w glide: a bar along the top axis running left from the vowel and ending in a curl under itself (wa). Drawn for we..wu from wa.", "from": "wa, 28 Oct"},
-  {"id": "detached", "rule": "When a composite needs it, unlock and redraw it as one sign (gu, ya, kwa, kwe) instead of forcing the parts.", "from": "28 Oct"},
-  {"id": "fidelity", "rule": "Stay close to the original Koradin over strict clearance; free angles are accepted.", "from": "edits of 10 Oct"},
-  {"id": "reference", "rule": "Koradin.otf is the immutable reference; interpret strokes and reusable components, not every junction as a new shape; preserve vertical and horizontal supports; mirrored counterparts come from one base.", "from": "trace/CLAUDE.md"}
+  {
+   "id": "axes",
+   "rule": "Bars sit exactly on an axis: base 49, mid 350, top 651 (at Black).",
+   "from": "edits of 10 Oct"
+  },
+  {
+   "id": "extend",
+   "rule": "Continue an existing stroke end (extension) rather than adding a new stroke: hya, hye, hyi, za, vɛ, vi, ma, mɛ, ba, bu.",
+   "from": "edits of 10 and 28 Oct"
+  },
+  {
+   "id": "bar-start",
+   "rule": "A modifier bar starts at the rightmost element's crossing and runs about 120 past the sign; tighter spacing is fine.",
+   "from": "edits of 10 Oct"
+  },
+  {
+   "id": "bracket",
+   "rule": "kp / gb bracket: one stroke at the top axis, L40, quarter turn r100, straight down, quarter turn r100, L40 (longer tail allowed); for o, ɛ, ɔ it hangs from mid height.",
+   "from": "kpa, kpe, kpi, kpo, kpɔ, kpu, gba..gbu, 28 Oct"
+  },
+  {
+   "id": "y-glide",
+   "rule": "y glide: a small loop on the left that comes down as a stem to the baseline (ya). Drawn for ye..yu from ya.",
+   "from": "ya, 28 Oct"
+  },
+  {
+   "id": "w-glide",
+   "rule": "w glide: a bar along the top axis running left from the vowel and ending in a curl under itself (wa). Drawn for we..wu from wa.",
+   "from": "wa, 28 Oct"
+  },
+  {
+   "id": "detached",
+   "rule": "When a composite needs it, unlock and redraw it as one sign (gu, ya, kwa, kwe) instead of forcing the parts.",
+   "from": "28 Oct"
+  },
+  {
+   "id": "fidelity",
+   "rule": "Stay close to the original Koradin over strict clearance; free angles are accepted.",
+   "from": "edits of 10 Oct"
+  },
+  {
+   "id": "reference",
+   "rule": "Koradin.otf is the immutable reference; interpret strokes and reusable components, not every junction as a new shape; preserve vertical and horizontal supports; mirrored counterparts come from one base.",
+   "from": "trace/CLAUDE.md"
+  },
+  {
+   "id": "comma",
+   "rule": "The comma is one closed stroke: a square with concave sides and four points, after the original.",
+   "from": "28 Oct"
+  }
  ],
  "latin": [
-  {"id": "lines", "rule": "Every glyph sits exactly on the baseline, x-height and cap height (points within 14 units are snapped)."},
-  {"id": "feet", "rule": "Near-vertical stem ends at an alignment line run straight on and are cut flat on it; the foot width is measured on the line."},
-  {"id": "nodes", "rule": "Outlines: nodes only at extrema and corners, horizontal/vertical handles at extrema, integer coordinates, no overlaps."},
-  {"id": "weight-only", "rule": "Modular Latin fonts take the weight axis only, no style presets."}
+  {
+   "id": "lines",
+   "rule": "Every glyph sits exactly on the baseline, x-height and cap height (points within 14 units are snapped)."
+  },
+  {
+   "id": "feet",
+   "rule": "Near-vertical stem ends at an alignment line run straight on and are cut flat on it; the foot width is measured on the line."
+  },
+  {
+   "id": "nodes",
+   "rule": "Outlines: nodes only at extrema and corners, horizontal/vertical handles at extrema, integer coordinates, no overlaps."
+  },
+  {
+   "id": "weight-only",
+   "rule": "Modular Latin fonts take the weight axis only, no style presets."
+  },
+  {
+   "id": "plans",
+   "rule": "Each letter has a stroke plan (a = bowl + stem, n = stem + arch, M = up to 4 strokes; see PLAN in src/autotrace.py). The tracer prefers readings that match it and splits a letter at its sharpest corner when it has too few strokes."
+  },
+  {
+   "id": "shared-stems",
+   "rule": "Straight upright stems of the same case share one middle weight across the font; their ends keep their own flare or taper."
+  }
  ]
 }

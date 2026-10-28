@@ -30,6 +30,16 @@ def cross2(v, P):
 
 CUTS = []
 VARIANT = {}
+# Letter plans: how many pen strokes each letter is built from (alternatives allowed). The tracer prefers the
+# reading that matches, so a Böcklin "a" keeps its stem and an M is not read as one zigzag.
+PLAN = {c: tuple(v) for c, v in {
+    "a": (2,), "b": (2,), "c": (1,), "d": (2,), "e": (1, 2), "f": (2,), "g": (2, 3), "h": (2,), "i": (2,), "j": (2,),
+    "k": (2, 3), "l": (1,), "m": (3, 2), "n": (2,), "o": (1,), "p": (2,), "q": (2,), "r": (2,), "s": (1,), "t": (2,),
+    "u": (2,), "v": (1, 2), "w": (1, 2, 4), "x": (2,), "y": (2,), "z": (1, 3),
+    "A": (3,), "B": (2, 3), "C": (1,), "D": (2,), "E": (2, 4), "F": (2, 3), "G": (1, 2), "H": (3,), "I": (1,), "J": (1,),
+    "K": (3, 2), "L": (1, 2), "M": (4, 3, 2), "N": (3, 2), "O": (1,), "P": (2,), "Q": (2,), "R": (2, 3), "S": (1,),
+    "T": (2,), "U": (1, 2), "V": (1, 2), "W": (1, 2, 4), "X": (2,), "Y": (2, 3), "Z": (1, 3),
+    "0": (1,), "1": (1, 2), "2": (1,), "3": (1,), "4": (2, 3), "5": (1, 2), "6": (1,), "7": (1, 2), "8": (1, 2), "9": (1,)}.items()}
 
 N8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
@@ -131,7 +141,7 @@ def merge(E, nb, W):
                     if i == j: continue
                     ta = tangent(E[i], a == 0, 1.5 * W); tb = tangent(E[j], b == 0, 1.5 * W)
                     straight = -float(ta @ tb)       # 1 = runs straight through
-                    if straight > math.cos(math.radians(40)) and (best is None or straight > best[0]):
+                    if straight > math.cos(math.radians(VARIANT.get('angle', 40))) and (best is None or straight > best[0]):
                         best = (straight, i, a, j, b)
         if not best: break
         _, i, a, j, b = best
@@ -592,12 +602,16 @@ def main():
     for ch in a.chars:
         if ord(ch) not in cmap: continue
         best = None
-        for var in ({"local": True}, {"local": False}):     # two readings of the junction widths; keep the better fit
+        want = PLAN.get(ch)
+        for var in [{"local": l, "angle": an} for l in (True, False) for an in (15, 28, 40, 55)]:
             VARIANT.clear(); VARIANT.update(var)
             st_, W_, adv_, raster_ = trace_glyph(face, ch, k, lines=LINES)
             if st_ is None: continue
             cov, spill = score(st_, W_, raster_)
-            if best is None or cov - 1.5 * spill > best[0]: best = (cov - 1.5 * spill, st_, W_, adv_, cov, spill, var)
+            n_ = sum(1 for x in st_ if len(x["segs"]) > 1 or x["segs"][0].get("len", 99) > 40)
+            off = 0 if not want else min(abs(n_ - w_) for w_ in want)
+            q = cov - 1.5 * spill - 0.06 * off            # the letter plan: prefer the reading with the planned strokes
+            if best is None or q > best[0]: best = (q, st_, W_, adv_, cov, spill, var)
         if best is None: continue
         _, st, W, adv, cov, spill, var = best
         Ws.append(W); report[ch] = {"covered": cov, "outside": spill, "strokes": len(st), "variant": var}
@@ -607,6 +621,28 @@ def main():
         sp = SVGPathPen(gs); gs[cmap[ord(ch)]].draw(TransformPen(sp, (k, 0, 0, k, 0, 0)))
         ghost[key] = {"d": sp.getCommands()}
     W = float(np.median(Ws)) if Ws else 60
+    # shared parts: every straight upright stem of the same case gets the same middle weight (ends keep their shape)
+    def stem_mid(st):
+        segs = st["segs"]; h = st["h"]; ok = 0; tot = 0
+        for g in segs:
+            if g["t"] == "C": h += g["ang"]; continue
+            L_ = g.get("len") if g["t"] == "L" else abs(g["ang"]) * math.pi / 180 * g["r"]
+            if g["t"] == "L" and abs(math.sin(math.radians(h))) > 0.97: ok += L_
+            if g["t"] == "A": h += g["ang"]
+            tot += L_
+        return tot > 0 and ok / tot > 0.8 and tot > 250
+    for case in ("upper", "lower"):
+        mids = []
+        for kk, g in glyphs.items():
+            if g["group"] != case: continue
+            for st in g["strokes"]:
+                if "wp" in st and stem_mid(st): mids.append((g, st, float(np.mean([b for a_, b in st["wp"] if 0.2 <= a_ <= 0.8])) * g["W"]))
+        if len(mids) < 3: continue
+        target = float(np.median([m[2] for m in mids]))
+        for g, st, mean in mids:
+            f_ = target / mean
+            if 0.75 < f_ < 1.33:
+                st["wp"] = [[a_, round(b * (f_ if 0.15 <= a_ <= 0.85 else 1 + (f_ - 1) * 0.5), 3)] for a_, b in st["wp"]]
     # each glyph's widths are relative to its own median weight; rescale them to the font's
     for kk, g in glyphs.items():
         r = g["W"] / W

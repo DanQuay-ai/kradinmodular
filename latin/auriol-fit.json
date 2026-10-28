@@ -1,10 +1,11 @@
 {
 "A": {
-"covered": 0.969,
-"outside": 0.016,
-"strokes": 5,
+"covered": 0.974,
+"outside": 0.017,
+"strokes": 4,
 "variant": {
-"local": true
+"local": false,
+"angle": 55
 }
 },
 "B": {
@@ -12,7 +13,8 @@
 "outside": 0.077,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "C": {
@@ -20,7 +22,8 @@
 "outside": 0.025,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "D": {
@@ -28,7 +31,8 @@
 "outside": 0.075,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "E": {
@@ -36,7 +40,8 @@
 "outside": 0.149,
 "strokes": 5,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "F": {
@@ -44,7 +49,8 @@
 "outside": 0.165,
 "strokes": 4,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "G": {
@@ -52,7 +58,8 @@
 "outside": 0.035,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "H": {
@@ -60,7 +67,8 @@
 "outside": 0.106,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "I": {
@@ -68,7 +76,8 @@
 "outside": 0.024,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "J": {
@@ -76,7 +85,8 @@
 "outside": 0.133,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "K": {
@@ -84,7 +94,8 @@
 "outside": 0.087,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "L": {
@@ -92,7 +103,8 @@
 "outside": 0.113,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "M": {
@@ -100,7 +112,8 @@
 "outside": 0.057,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "N": {
@@ -108,7 +121,8 @@
 "outside": 0.052,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 40
 }
 },
 "O": {
@@ -116,7 +130,8 @@
 "outside": 0.028,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "P": {
@@ -124,7 +139,8 @@
 "outside": 0.083,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "Q": {
@@ -132,7 +148,8 @@
 "outside": 0.051,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "R": {
@@ -140,7 +157,8 @@
 "outside": 0.085,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "S": {
@@ -148,7 +166,8 @@
 "outside": 0.19,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "T": {
@@ -156,7 +175,8 @@
 "outside": 0.023,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "U": {
@@ -164,7 +184,8 @@
 "outside": 0.064,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "V": {
@@ -172,7 +193,8 @@
 "outside": 0.075,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "W": {
@@ -180,7 +202,8 @@
 "outside": 0.092,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "X": {
@@ -188,7 +211,8 @@
 "outside": 0.027,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "Y": {
@@ -196,7 +220,8 @@
 "outside": 0.057,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "Z": {
@@ -204,7 +229,8 @@
 "outside": 0.089,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "a": {
@@ -212,7 +238,8 @@
 "outside": 0.043,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "b": {
@@ -220,7 +247,8 @@
 "outside": 0.094,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "c": {
@@ -228,7 +256,8 @@
 "outside": 0.028,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "d": {
@@ -236,7 +265,8 @@
 "outside": 0.085,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "e": {
@@ -244,7 +274,8 @@
 "outside": 0.028,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "f": {
@@ -252,7 +283,8 @@
 "outside": 0.126,
 "strokes": 4,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "g": {
@@ -260,7 +292,8 @@
 "outside": 0.056,
 "strokes": 4,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "h": {
@@ -268,7 +301,8 @@
 "outside": 0.098,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "i": {
@@ -276,7 +310,8 @@
 "outside": 0.229,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "j": {
@@ -284,7 +319,8 @@
 "outside": 0.062,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "k": {
@@ -292,7 +328,8 @@
 "outside": 0.104,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "l": {
@@ -300,7 +337,8 @@
 "outside": 0.121,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "m": {
@@ -308,7 +346,8 @@
 "outside": 0.084,
 "strokes": 3,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "n": {
@@ -316,7 +355,8 @@
 "outside": 0.037,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "o": {
@@ -324,7 +364,8 @@
 "outside": 0.037,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "p": {
@@ -332,7 +373,8 @@
 "outside": 0.133,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "q": {
@@ -340,7 +382,8 @@
 "outside": 0.092,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "r": {
@@ -348,7 +391,8 @@
 "outside": 0.036,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "s": {
@@ -356,7 +400,8 @@
 "outside": 0.045,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "t": {
@@ -364,7 +409,8 @@
 "outside": 0.032,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "u": {
@@ -372,7 +418,8 @@
 "outside": 0.034,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "v": {
@@ -380,7 +427,8 @@
 "outside": 0.034,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "w": {
@@ -388,7 +436,8 @@
 "outside": 0.125,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "x": {
@@ -396,7 +445,8 @@
 "outside": 0.036,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "y": {
@@ -404,7 +454,8 @@
 "outside": 0.056,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "z": {
@@ -412,7 +463,8 @@
 "outside": 0.031,
 "strokes": 3,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "0": {
@@ -420,7 +472,8 @@
 "outside": 0.036,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "1": {
@@ -428,7 +481,8 @@
 "outside": 0.024,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 40
 }
 },
 "2": {
@@ -436,7 +490,8 @@
 "outside": 0.038,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "3": {
@@ -444,7 +499,8 @@
 "outside": 0.029,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "4": {
@@ -452,7 +508,8 @@
 "outside": 0.025,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "5": {
@@ -460,7 +517,8 @@
 "outside": 0.022,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "6": {
@@ -468,7 +526,8 @@
 "outside": 0.023,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "7": {
@@ -476,7 +535,8 @@
 "outside": 0.017,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 28
 }
 },
 "8": {
@@ -484,7 +544,8 @@
 "outside": 0.032,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "9": {
@@ -492,7 +553,8 @@
 "outside": 0.027,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 ".": {
@@ -500,7 +562,8 @@
 "outside": 0.37,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 ",": {
@@ -508,7 +571,8 @@
 "outside": 0.031,
 "strokes": 1,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "-": {
@@ -516,7 +580,8 @@
 "outside": 0.024,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "!": {
@@ -524,7 +589,8 @@
 "outside": 0.149,
 "strokes": 2,
 "variant": {
-"local": false
+"local": false,
+"angle": 15
 }
 },
 "?": {
@@ -532,7 +598,8 @@
 "outside": 0.112,
 "strokes": 2,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 },
 "'": {
@@ -540,7 +607,8 @@
 "outside": 0.227,
 "strokes": 1,
 "variant": {
-"local": true
+"local": true,
+"angle": 15
 }
 }
 }
