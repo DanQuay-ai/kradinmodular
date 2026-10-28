@@ -3,7 +3,8 @@
 (function (root) {
  function make(SCRIPT) {
   const AD = SCRIPT === "adinkra", LAT = SCRIPT.startsWith("latin:"), LID = LAT ? SCRIPT.slice(6) : "";
-  const P0 = AD ? "ad-" : LAT ? "lt-" + LID + "-" : "kr-";
+  const SOFT = SCRIPT === "kradin-soft";   // Kɔradin Soft: same skeletons (own tweaks), rule-based contrast + soft corners (soft.js)
+  const P0 = AD ? "ad-" : LAT ? "lt-" + LID + "-" : SOFT ? "ksoft-" : "kr-";
   let BODYDEF = null; // Latin: baseline 0, cap height 700, glyphs keep their position as the weight changes
   // studio projects: each named font keeps its own edits, builds and styles under its own prefix
   const PROJ = (() => { try { return JSON.parse(localStorage.getItem("studio-cur-" + P0)) || ""; } catch (e) { return ""; } })();
@@ -40,7 +41,7 @@
     EDIT = LS.get(P + "edits", {});
     if (PROJ && LS.get(P + "fresh", false)) { EDIT = {}; LS.set(P + "fresh", false); save(); }
     // a new set of glyphs: your edits so far are baked into it, so park them in a backup and start clean
-    const VK = (AD ? "ad-ver" : LAT ? P0 + "ver" : "kr-ver2") + (PROJ ? "-" + PROJ : "");
+    const VK = (AD ? "ad-ver" : LAT || SOFT ? P0 + "ver" : "kr-ver2") + (PROJ ? "-" + PROJ : "");
     if (LS.get(VK, "") !== VER) {
       if (Object.keys(EDIT).length) LS.set(P + "edits-backup-" + (LS.get(VK, "") || "v1"), EDIT);
       EDIT = {}; LS.set(VK, VER); save();
@@ -201,6 +202,7 @@
   }
   // style: "regular" (uniform stroke) or "tapered" (brush logic: thin horizontals, thick verticals, decorated ends)
   function buildFont(snapshot, W, wdth, slnt, family, style) {
+    const mergeS = q => SOFT && typeof KSOFT !== "undefined" ? KSOFT.soften(merge(q), W) : merge(q);
     const SB = 50, t = Math.tan((-slnt || 0) * Math.PI / 180), xs = (wdth || 100) / 100;
     const tf = (x, y) => [x * xs + (y - 350) * t, y];
     // style: "regular" | "tapered" | {P, ov} (a rule-based style from styles.js / the Serif lab)
@@ -211,8 +213,9 @@
     const haloOf = s => { const c = Math.min(0.3, 1.2 * W / (KS.trace(s).len || 1)); return Object.assign({}, s, { over: false, wk: undefined, s: c, e: 1 - c, cap0: "butt", cap1: "butt", wp: (s.wp || [[0, s.wk || 1], [1, s.wk || 1]]).map(([t, w]) => [t, w + 2 * (s.halo ?? 0.16)]) }); }; // ends trimmed: the halo never bites where the stroke joins
     const polysOf = (key, strokes, tfn) => {
       if (rule) return KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]);
-      const out = [];
-      for (const st of strokes) { if (st.loop && st.loop.at > 0) { const mp = KS.selfLoop(st, W, tfn, poly); const p = mp[0][0].slice(0, -1); p.mp = mp; out.push(p); continue; } for (const s of KS.split(st)) { const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); } }
+      const out = [], softC = SOFT && typeof KSOFT !== "undefined" ? KSOFT.params(W).c : 0;
+      if (softC) strokes = strokes.map(st => Object.assign({}, st, { _c: softC }));
+      for (const st of strokes) { if (st.loop && st.loop.at > 0) { const mp = KS.selfLoop(st, W, tfn, poly); const p = mp[0][0].slice(0, -1); p.mp = mp; out.push(p); continue; } for (const s0 of KS.split(st)) { const s = st._c ? KSOFT.contrast(s0, st._c) : s0; const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); } }
       return out;
     };
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
@@ -227,7 +230,7 @@
         const P = new opentype.Path(), polys = polysOf(k, snapshot[k], tf), un = polysOf(k, snapshot[k], (x, y) => [x * xs, y]);
         let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
         if (!isFinite(x0)) { x0 = 0; x1 = 300; }
-        for (const pg of merge(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
+        for (const pg of mergeS(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
         const up = ch.toUpperCase(), adv = Math.round(x1 - x0 + 2 * SB);
         glyphs.push(new opentype.Glyph({ name: "ad" + i, unicode: ch.codePointAt(0), advanceWidth: adv, path: P }));
         if (AD && up !== ch) glyphs.push(new opentype.Glyph({ name: "adU" + i, unicode: up.codePointAt(0), advanceWidth: adv, path: P }));
@@ -242,7 +245,7 @@
       const un = polysOf(g.k, snapshot[g.k], (x, y) => [x * xs, y]);
       let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
       if (!isFinite(x0)) { x0 = 0; x1 = 300; }
-      for (const pg of merge(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
+      for (const pg of mergeS(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
       const adv = Math.round(x1 - x0 + 2 * SB);
       if (CODA.includes(g.n)) { marks.push([CODA.indexOf(g.n), g, i, un]); return; }
       half.set(i, Math.round(adv / 2));
@@ -284,7 +287,7 @@
     const np = P0 + id + "-";
     if (copy) { LS.set(np + "edits", EDIT); LS.set(np + "styles", LS.get(P + "styles", LS.get("kr-styles", []))); }
     else LS.set(np + "fresh", true);
-    LS.set((AD ? "ad-ver" : LAT ? P0 + "ver" : "kr-ver2") + "-" + id, VER);
+    LS.set((AD ? "ad-ver" : LAT || SOFT ? P0 + "ver" : "kr-ver2") + "-" + id, VER);
     return id;
   }
   function useProject(id) { LS.set("studio-cur-" + P0, id || ""); }
@@ -308,11 +311,11 @@
     get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : LAT ? "latin/" + LID + "-ghost.json" : "radicals-ghost.json", META, useBody };
   return api;
  }
- root.KR = make(/^(adinkra|latin:\w+)$/.test(root.KR_SCRIPT || "") ? root.KR_SCRIPT : "kradin");
+ root.KR = make(/^(adinkra|kradin-soft|latin:\w+)$/.test(root.KR_SCRIPT || "") ? root.KR_SCRIPT : "kradin");
  root.KRA = root.KR.SCRIPT === "adinkra" ? root.KR : make("adinkra");
  root.KRK = root.KR.SCRIPT === "kradin" ? root.KR : make("kradin");
  // every script the lab can draw. Latin fonts are rebuilt from a reference font by gen/autotrace.py.
- root.KR_SCRIPTS = [{ id: "kradin", name: "Kɔradin" }, { id: "adinkra", name: "Adinkra alphabet" },
+ root.KR_SCRIPTS = [{ id: "kradin", name: "Kɔradin" }, { id: "kradin-soft", name: "Kɔradin Soft", ref: "rule-based: optical contrast + soft corners, Ojuju light to Oja black" }, { id: "adinkra", name: "Adinkra alphabet" },
    { id: "latin:franklin", name: "Franklin Gothic", ref: "traced from Libre Franklin (OFL), after Morris Fuller Benton, 1902" },
    { id: "latin:eckmann", name: "Eckmannschrift", ref: "Otto Eckmann, 1900" },
    { id: "latin:auriol", name: "Auriol", ref: "George Auriol, 1901" },

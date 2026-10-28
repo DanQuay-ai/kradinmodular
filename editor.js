@@ -69,6 +69,10 @@
     s += KS.guides(w, -100, xmax);
     (B.lines || [["0", 0], ["base", w / 2], ["mid", 350], ["top", 700 - w / 2], ["700", 700]]).forEach(([n, y]) => s += `<text transform="translate(-95,${y + 6}) scale(1,-1)" font-size="18" fill="var(--tint)" font-family="system-ui">${n}</text>`);
     if ($("gh").checked && GH[cur]) s += `<path d="${GH[cur].d}" fill="#ff9500" fill-opacity=".22"/>`;
+    if (KR.SCRIPT === "kradin-soft" && typeof KSOFT !== "undefined") {   // the rendered soft glyph under the skeleton
+      try { const rings = KSOFT.outline(res.map(t => Object.assign({}, t)), w);
+        s += `<path d="${rings.map(r => "M" + r.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z").join("")}" fill="var(--ink)" fill-opacity=".9" fill-rule="nonzero" pointer-events="none"/>`; } catch (e) {}
+    }
     const tails = lock.filter(t => t.ext).map(t => ({ t: extTail(t), ei: t.ext.ei }));
     if (!$("hide").checked) {
       s += `<g clip-path="url(#body)">` + lock.map(t => KS.svgStroke(t, w, { color: "url(#lk)", attr: ' class="stk lockd" pointer-events="none"' })).join("") +

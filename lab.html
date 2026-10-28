@@ -40,8 +40,9 @@ if(KR_SCRIPT==="adinkra")document.title="Adinkra Alphabet Construction Lab";</sc
 const scr=document.getElementById("scr");scr.innerHTML=KR_SCRIPTS.map(s=>`<option value="${s.id}"${s.pending?" disabled":""}>${s.name}${s.pending?" (needs reference font)":""}</option>`).join("");scr.value=KR.SCRIPT;
 scr.onchange=()=>{location.href="lab.html"+(scr.value==="kradin"?"":"?s="+scr.value)};
 </script>
+<script>if(KR_SCRIPT==="kradin-soft"){const w=document.getElementById("w");w.max=150;}</script>
 <script src="editor.js"></script>
-<script src="vendor/opentype.min.js"></script><script src="vendor/polygon-clipping.umd.min.js"></script>
+<script src="vendor/opentype.min.js"></script><script src="vendor/polygon-clipping.umd.min.js"></script><script src="vendor/clipper.js"></script><script src="soft.js"></script>
 <script src="styles.js"></script>
 <script src="studio.js"></script>
 </body>
