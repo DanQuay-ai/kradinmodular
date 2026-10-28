@@ -64,6 +64,7 @@
     if (!d) return null;
     if (d.type === "radical") return { type: "radical", strokes: e.strokes || d.strokes };
     if (e.detached) return { type: "composite", kind: d.kind, detached: true, comps: [], strokes: e.strokes, exts: [], wait: [] };
+    if (d.detached && !e.comps) return { type: "composite", kind: d.kind, detached: true, comps: [], strokes: e.strokes || d.strokes, exts: [], wait: [] };
     return { type: "composite", kind: d.kind, comps: e.comps || d.comps, strokes: e.strokes || d.strokes, exts: e.exts || d.exts || [], wait: d.wait || [] };
   }
   function edit(k) {

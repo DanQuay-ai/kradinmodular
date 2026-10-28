@@ -24,5 +24,8 @@ Pipeline: `autotrace.py` (skeleton -> chord-refined centreline and width profile
 then `buildotf.py latin/<id>.json REF OUT.otf "Family"` (union of strokes -> Béziers with nodes only on extrema and corners, H/V handles at extrema, integer coordinates) -> fonts/latin/*.otf + .woff2.
 `diffsheet.py REF latin/<id>.json out.png` shows missing ink in red, excess in blue.
 
+## Rules
+`rules.json` holds every rule learned from the owner's lab edits (Kɔradin and Latin). Draft with it, show it in the Trace study, add to it when an edit teaches something new.
+
 ## Rules the owner has set (Kɔradin)
 See `trace/CLAUDE.md`: Koradin.otf is the immutable reference; interpret strokes and reusable components, not every junction as a new shape; preserve vertical/horizontal supports; mirrored counterparts from one base; the owner validates, agents do the fitting.

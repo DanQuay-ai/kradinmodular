@@ -39,4 +39,11 @@ document.getElementById("exportState").onclick=()=>{const b=new Blob([JSON.strin
 document.getElementById("importState").onclick=()=>{const i=document.createElement("input");i.type="file";i.accept=".json";i.onchange=async()=>{TraceStudio.importState(JSON.parse(await i.files[0].text()));location.reload()};i.click()};
 </script>
 <script src="kfont.js"></script>
+<script>
+// rules learned in the Construction lab, shown beside the study so both readings use the same grammar
+fetch("rules.json").then(r=>r.json()).then(R=>{const box=document.createElement("details");box.className="lab-rules";box.open=true;
+ box.innerHTML=`<summary>Rules from the Construction lab (${R.kradin.length})</summary><ul>${R.kradin.map(r=>`<li><b>${r.id}</b> ${r.rule}<small>${r.from||""}</small></li>`).join("")}</ul>`;
+ const a=document.querySelector(".trace aside");if(a)a.appendChild(box)}).catch(()=>{});
+</script>
+<style>.trace .lab-rules{margin-top:22px;font-size:11px;line-height:1.5;color:var(--label2)}.trace .lab-rules summary{cursor:pointer;font-weight:700;color:var(--label);letter-spacing:.06em}.trace .lab-rules ul{padding-left:16px;margin:8px 0}.trace .lab-rules li{margin:5px 0}.trace .lab-rules b{color:var(--tint);display:block}.trace .lab-rules small{display:block;opacity:.7}</style>
 </body></html>
