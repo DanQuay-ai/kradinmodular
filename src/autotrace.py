@@ -16,7 +16,7 @@ Method
      written as turtle segments: L len, A r,ang (+ anticlockwise), C ang for a sharp corner.
 Ends are plain ("butt"): Latin glyphs are not cut flat at the baseline/top like Kɔradin.
 """
-import argparse, json, math
+import argparse, json, math, os
 import numpy as np, freetype
 from scipy import ndimage
 from skimage.morphology import skeletonize
@@ -27,6 +27,9 @@ from fontTools.pens.transformPen import TransformPen
 def cross2(v, P):
     P = np.atleast_2d(P); return v[0] * P[:, 1] - v[1] * P[:, 0]
 
+
+CUTS = []
+VARIANT = {}
 
 N8 = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
@@ -206,35 +209,84 @@ def fit_pieces(P, tol, W):
     return out
 
 
-def to_turtle(pieces, cap="butt"):
-    first = pieces[0][1]
-    x, y = first[0]; h = None; segs = []
+def to_turtle(pieces, cap="butt", corner=28):
+    """turtle segments that hit every piece end exactly. Inside a stroke the heading is continuous
+    (lines become flat arcs when they would kink); a sharp corner (> corner degrees) stays a corner."""
     def ang(v): return math.degrees(math.atan2(v[1], v[0]))
     def turn(a, b): return ((b - a + 180) % 360) - 180
+    P0 = pieces[0][1][0]; pos = np.array(P0, float); segs = []; h = None; h0 = None
     for kind, Q, arc in pieces:
-        if kind == "L":
-            v = Q[-1] - Q[0]; hh = ang(v); L = float(np.hypot(*v))
-            if L < 1: continue
-            if h is None: h0 = hh; h = hh
-            elif abs(turn(h, hh)) > 0.5: segs.append({"t": "C", "ang": round(turn(h, hh), 2)}); h = hh
-            segs.append({"t": "L", "len": round(L, 1)})
+        E = np.array(Q[-1], float); v = E - pos; d = float(np.hypot(*v))
+        if d < 0.8: continue
+        # the heading the data wants at the start of this piece
+        k = min(len(Q) - 1, 3); want = ang(np.array(Q[k]) - np.array(Q[0])) if kind == "A" else ang(v)
+        if h is None: h = want; h0 = want
+        elif abs(turn(h, want)) > corner: segs.append({"t": "C", "ang": round(turn(h, want), 2)}); h = want
+        phi = math.radians(turn(h, ang(v)))
+        if abs(math.sin(phi)) < 0.004 or (kind == "L" and abs(math.degrees(phi)) < 0.3):
+            segs.append({"t": "L", "len": round(d, 1)})
+            h = ang(v) if abs(math.degrees(phi)) < 0.3 else h
         else:
-            cx, cy, r, _ = arc
-            a0 = math.atan2(Q[0][1] - cy, Q[0][0] - cx); a1 = math.atan2(Q[-1][1] - cy, Q[-1][0] - cx)
-            mid = Q[len(Q) // 2]; am = math.atan2(mid[1] - cy, mid[0] - cx)
-            # direction of travel: anticlockwise if the middle lies between a0 and a1 going +
-            d01 = (a1 - a0) % (2 * math.pi); d0m = (am - a0) % (2 * math.pi)
-            sweep = d01 if d0m < d01 else d01 - 2 * math.pi
-            if len(Q) > 8 and np.hypot(*(Q[0] - Q[-1])) < 2: sweep = 2 * math.pi * (1 if d0m < math.pi else -1)
-            sg = 1 if sweep > 0 else -1
-            ht = math.degrees(a0) + 90 * sg       # tangent heading at the start
-            if h is None: h0 = ht; h = ht
-            elif abs(turn(h, ht)) > 0.5: segs.append({"t": "C", "ang": round(turn(h, ht), 2)}); h = ht
-            segs.append({"t": "A", "r": round(r, 1), "ang": round(math.degrees(sweep), 2)})
-            h += math.degrees(sweep)
-    if h is None: return None
-    return {"x": round(float(x), 1), "y": round(float(y), 1), "h": round(h0 % 360, 2), "segs": segs,
+            r = d / (2 * abs(math.sin(phi))); sweep = 2 * math.degrees(phi)
+            if r > 20000: segs.append({"t": "L", "len": round(d, 1)})
+            else: segs.append({"t": "A", "r": round(r, 1), "ang": round(sweep, 2)}); h += sweep
+        pos = E
+    if h0 is None: return None
+    return {"x": round(float(P0[0]), 1), "y": round(float(P0[1]), 1), "h": round(h0 % 360, 2), "segs": segs,
             "s": 0, "e": 1, "cap0": cap, "cap1": cap}
+
+
+def biarc_turtle(D, W, corner=40):
+    """G1 arc spline: knots every ~W/1.5 along the path (and at sharp corners), a biarc between knots
+    matching the data tangent at both ends. Smooth everywhere, exact at every knot, no kinks."""
+    D = resample(np.asarray(D, float), 2.0)
+    if len(D) < 3:
+        v = D[-1] - D[0]; return {"x": round(float(D[0][0]), 1), "y": round(float(D[0][1]), 1), "h": round(math.degrees(math.atan2(v[1], v[0])) % 360, 2), "segs": [{"t": "L", "len": round(float(np.hypot(*v)), 1)}], "s": 0, "e": 1, "cap0": "butt", "cap1": "butt"}
+    Ls = np.r_[0, np.cumsum(np.hypot(*np.diff(D, axis=0).T))]; T = Ls[-1]
+    win = max(3, int(W / 3 / 2))
+    def tan(i, side):
+        a = max(0, i - win) if side <= 0 else i; b = min(len(D) - 1, i + win) if side >= 0 else i
+        v = D[b] - D[a]; n = np.hypot(*v); return v / n if n else np.array([1.0, 0])
+    # corners
+    cor = []
+    for i in range(1, len(D) - 1):
+        ti, to = tan(i, -1), tan(i, 1)
+        if math.degrees(math.acos(max(-1, min(1, ti @ to)))) > corner: cor.append(i)
+    cor = [c for j, c in enumerate(cor) if not j or c - cor[j - 1] > 2 * win]
+    step = max(20.0, W / 1.5)
+    knots = sorted(set([0, len(D) - 1] + cor + [int(np.searchsorted(Ls, s_)) for s_ in np.arange(step, T - step / 2, step)]))
+    knots = [k for j, k in enumerate(knots) if j == 0 or k - knots[j - 1] >= 3 or k == len(D) - 1]
+    def ang(v): return math.degrees(math.atan2(v[1], v[0]))
+    def turn(a, b): return ((b - a + 180) % 360) - 180
+    segs = []; h = ang(tan(0, 1)); h0 = h; pos = D[0].copy()
+    def arc_to(E):
+        nonlocal h, pos
+        v = E - pos; d = float(np.hypot(*v))
+        if d < 0.3: return
+        phi = math.radians(turn(h, ang(v)))
+        if abs(math.sin(phi)) < 0.003: segs.append({"t": "L", "len": round(d, 1)})
+        else:
+            r = d / (2 * abs(math.sin(phi))); sw = 2 * math.degrees(phi)
+            if r > 30000: segs.append({"t": "L", "len": round(d, 1)})
+            else: segs.append({"t": "A", "r": round(r, 1), "ang": round(sw, 2)}); h += sw
+        pos = E.copy()
+    for a, b in zip(knots, knots[1:]):
+        t0 = np.array([math.cos(math.radians(h)), math.sin(math.radians(h))])
+        tin = tan(a, 1)
+        if a in cor or a == 0:
+            want = ang(tin)
+            if abs(turn(h, want)) > 0.5 and a != 0: segs.append({"t": "C", "ang": round(turn(h, want), 2)})
+            h = want; t0 = tin
+        t1 = tan(b, -1) if b in cor or b == len(D) - 1 else tan(b, 0)
+        P0, P1 = pos, D[b]; v = P1 - P0; tt = t0 + t1
+        c = v @ v; bb = 2 * (v @ tt); aa = 2 * (1 - t0 @ t1)
+        if abs(aa) < 1e-6: dd = c / (4 * (v @ t1)) if abs(v @ t1) > 1e-6 else 0
+        else:
+            disc = bb * bb + 4 * aa * c; dd = (-bb + math.sqrt(max(0, disc))) / (2 * aa)
+        if not np.isfinite(dd) or dd <= 0: arc_to(P1); continue
+        J = (P0 + P1 + dd * (t0 - t1)) / 2
+        arc_to(J); arc_to(P1)
+    return {"x": round(float(D[0][0]), 1), "y": round(float(D[0][1]), 1), "h": round(h0 % 360, 2), "segs": segs, "s": 0, "e": 1, "cap0": "butt", "cap1": "butt"}
 
 
 def walk_end(st):
@@ -287,10 +339,92 @@ def sharpen_corners(P, W):
     return np.array(out)
 
 
-def trace_glyph(face, ch, scale, S=2):
+def chord(ink, p, n, lim):
+    """distance to the ink edge on each side of p along the normal n (in px)"""
+    out = []
+    for sg in (1, -1):
+        t = 0.0
+        while t < lim:
+            q = p + n * (t + 0.5) * sg; r, c = int(round(q[0])), int(round(q[1]))
+            if not (0 <= r < ink.shape[0] and 0 <= c < ink.shape[1]) or not ink[r, c]: break
+            t += 0.5
+        out.append(t)
+    return out
+
+
+def chords(ink, P, N, lim):
+    """vectorised chord(): distances to the ink edge on both sides for every point"""
+    ts = np.arange(0.5, lim + 0.5, 0.5)
+    out = []
+    for sg in (1, -1):
+        Q = P[:, None, :] + sg * N[:, None, :] * ts[None, :, None]
+        r = np.clip(np.rint(Q[..., 0]).astype(int), 0, ink.shape[0] - 1); c = np.clip(np.rint(Q[..., 1]).astype(int), 0, ink.shape[1] - 1)
+        inside = ink[r, c] & (Q[..., 0] >= 0) & (Q[..., 1] >= 0) & (Q[..., 0] < ink.shape[0]) & (Q[..., 1] < ink.shape[1])
+        run = np.cumprod(inside, axis=1)
+        out.append(run.sum(axis=1) * 0.5)
+    return out[0], out[1]
+
+
+def normals(P):
+    T = np.gradient(P, axis=0); T /= np.maximum(1e-9, np.hypot(*T.T))[:, None]
+    return np.c_[-T[:, 1], T[:, 0]], T
+
+
+def refine(P, ink, W, free, closed):
+    """move each centreline point to the middle of the ink chord across it and read the true width there;
+    ink chords that run into another stroke (junctions) are ignored. Free ends are then grown along the
+    stroke while ink remains, measuring the width as they go: tapers, flares and blobs come out of that."""
+    P = np.asarray(P, float).copy()
+    ws = np.full(len(P), W)
+    for it in range(3):
+        N, _ = normals(P); ok = np.zeros(len(P), bool); newP = P.copy()
+        med = np.median(ws)
+        A, B = chords(ink, P, N, 2.4 * med + 4)
+        Wd = A + B
+        ok = (Wd < 2.3 * med + 2) & (A < 2.4 * med + 4) & (B < 2.4 * med + 4)
+        # a chord that runs into a crossing stroke jumps far above its neighbours: drop it
+        loc = ndimage.median_filter(np.where(ok, Wd, med), size=max(5, int(2.5 * W / 1.5) | 1), mode="nearest")
+        if VARIANT.get('local', True): ok &= Wd < 1.4 * loc + 2
+        newP = np.where(ok[:, None], P + N * ((A - B) / 2)[:, None], P); ws = np.where(ok, Wd, ws)
+        if ok.sum() < 2: break
+        idx = np.arange(len(P))
+        ws = np.interp(idx, idx[ok], ws[ok])
+        for k in (0, 1): newP[:, k] = np.interp(idx, idx[ok], newP[ok, k])
+        sig = max(1.0, W / 6)
+        P = smooth(newP, sig) if not closed else ndimage.gaussian_filter1d(newP, sig, axis=0, mode="wrap")
+        ws = ndimage.gaussian_filter1d(ws, max(1.0, W / 10), mode="wrap" if closed else "nearest")
+    # free ends: no smoothing of the width there (flares, feet, tapers are short)
+    N, _ = normals(P); A, B = chords(ink, P, N, 3 * np.median(ws) + 4); raw = A + B
+    Ls = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]; T = Ls[-1] or 1
+    for at in (0, 1):
+        if not free[at]: continue
+        near = (Ls < W * 0.6) if at == 0 else (Ls > T - W * 0.6)
+        raw_ok = near & (raw < 3 * np.median(ws))
+        ws = np.where(raw_ok, np.maximum(ws, ndimage.median_filter(raw, 3)), ws)
+    # grow free ends
+    for at in (0, 1):
+        if not free[at]: continue
+        seq = P if at == 0 else P[::-1]; wseq = ws if at == 0 else ws[::-1]
+        k = min(len(seq) - 1, max(2, int(W / 1.5)))
+        t = seq[0] - seq[k]; t /= (np.hypot(*t) or 1); n = np.array([-t[1], t[0]])
+        add, aw = [], []; q = seq[0].copy()
+        for step in range(int(0.8 * W)):
+            q2 = q + t * 1.5
+            a, b = chord(ink, q2, n, 3 * W)
+            if a + b < 1.0 or (aw and a + b > 1.6 * aw[-1] + 2): break
+            q = q2 + n * (a - b) / 2; add.append(q.copy()); aw.append(a + b)
+        if add:
+            add = np.array(add[::-1]); aw = np.array(aw[::-1])
+            if at == 0: P = np.vstack([add, P]); ws = np.r_[aw, ws]
+            else: P = np.vstack([P, add[::-1]]); ws = np.r_[ws, aw[::-1]]
+    return P, ws
+
+
+def trace_glyph(face, ch, scale, S=2, lines=()):
     r = render(face, ch, scale * S, pad=40 * S)
     if r is None: return None, None, 0, None
     ink, left, top, adv = r
+    lines_px = [top - y * S for y in lines]
     dist = ndimage.distance_transform_edt(ink)
     sk = skeletonize(ink)
     W = float(np.median(dist[sk])) * 2 if sk.any() else 0      # in px (= S per unit)
@@ -321,32 +455,67 @@ def trace_glyph(face, ch, scale, S=2):
             P = np.array(P)
             if not closed:
                 P = np.array(extend([tuple(p) for p in P], ink, dist, W))
-            P = resample(P, 2.0 * S)
-            P = smooth(P, max(1.0, W / 5 / 2.0))
-            P = sharpen_corners(P, W)
-            # width profile along the stroke, as a share of the glyph's median weight
+            P = resample(P, 1.5 * S)
+            P = smooth(P, max(1.0, W / 8))
+            free = (not closed and nodes_deg.get(tuple(map(int, e[0])), 1) < 3, not closed and nodes_deg.get(tuple(map(int, e[-1])), 1) < 3)
+            P, ws = refine(P, ink, W, free, closed)
+            if len(P) < 3: continue
+            P0_ = P.copy(); P = sharpen_corners(P, W)
+            # widths follow the nearest original point (sharpening removes points around corners)
+            from scipy.spatial import cKDTree
+            ws = ws[cKDTree(P0_).query(P)[1]]
+            cap = ["butt", "butt"]
+            # serif / foot logic: a free end that stops near an alignment line runs straight on through it
+            # and is cut flat on the line; its width there is the ink measured along the line
+            for at in (0, 1):
+                if not free[at] or not lines_px: continue
+                seq = P if at == 0 else P[::-1]; wq = ws if at == 0 else ws[::-1]
+                # the medial axis bends into the corner of a foot: drop the last stretch, take the direction
+                # from the stretch before it, and come back in straight
+                Lq = np.r_[0, np.cumsum(np.hypot(*np.diff(seq, axis=0).T))]
+                cut_i = int(np.searchsorted(Lq, 0.9 * W)); far_i = int(np.searchsorted(Lq, 2.2 * W))
+                if far_i >= len(seq) - 2: continue
+                t = seq[cut_i] - seq[far_i]; t /= (np.hypot(*t) or 1)
+                if abs(t[0]) < 0.8: continue                       # rows = vertical; only near-vertical ends get a foot
+                Lr = min(lines_px, key=lambda r_: abs(r_ - seq[0][0]))
+                if abs(Lr - seq[0][0]) > 0.9 * W or (Lr - seq[0][0]) * t[0] < -0.35 * W: continue
+                seq = seq[cut_i:]; wq = wq[cut_i:]
+                P = seq if at == 0 else seq[::-1]; ws = wq if at == 0 else wq[::-1]
+                steps = (Lr - seq[0][0]) / t[0] + 2.0
+                if steps <= 0: continue
+                ext = [seq[0] + t * u for u in np.arange(steps, 0, -1.5)]
+                # foot width: ink measured along the line just inside it, around the stroke
+                rr = int(round(Lr - np.sign(t[0]) * 3)); cc = int(round(seq[0][1] + t[1] * (Lr - seq[0][0]) / t[0]))
+                row = ink[min(max(rr, 0), ink.shape[0] - 1)]; cc = min(max(cc, 1), len(row) - 2); l_ = cc; r_ = cc
+                while l_ > 0 and row[l_ - 1] and cc - l_ < 3 * W: l_ -= 1
+                while r_ < len(row) - 1 and row[r_ + 1] and r_ - cc < 3 * W: r_ += 1
+                fw = (r_ - l_ + 1) * abs(t[0]) if row[min(max(cc, 0), len(row) - 1)] else (ws[0] if at == 0 else ws[-1])
+                wseq = (ws if at == 0 else ws[::-1]).copy()
+                # the foot flares over about one stroke weight above the line
+                Lw = np.r_[0, np.cumsum(np.hypot(*np.diff(P if at == 0 else P[::-1], axis=0).T))]
+                span = 1.2 * W
+                u = np.clip(Lw / span, 0, 1); wseq = np.maximum(wseq, fw + (wseq - fw) * (3 * u * u - 2 * u ** 3))
+                if at == 0: ws = wseq
+                else: ws = wseq[::-1]
+                ramp = np.full(len(ext), fw)
+                if at == 0: P = np.vstack([np.array(ext), P]); ws = np.r_[ramp, ws]
+                else: P = np.vstack([P, np.array(ext)[::-1]]); ws = np.r_[ws, ramp[::-1]]
+                cap[at] = "auto"
             Ls = np.r_[0, np.cumsum(np.hypot(*np.diff(P, axis=0).T))]; T = Ls[-1] or 1
-            ws = np.array([2 * dist[min(ink.shape[0]-1, max(0, int(round(p[0])))), min(ink.shape[1]-1, max(0, int(round(p[1]))))] for p in P])
-            interior = ws[(Ls > W * 0.6) & (Ls < T - W * 0.6)]
-            fill = float(np.median(interior)) if interior.size else float(np.median(ws))
-            ws = np.where((Ls < W * 0.6) | (Ls > T - W * 0.6), np.maximum(ws, 0.0), ws)
-            # ends: the medial axis thins out before the edge; hold the last interior width
-            for idx in np.nonzero(Ls < W * 0.6)[0]: ws[idx] = interior[0] if interior.size else fill
-            for idx in np.nonzero(Ls > T - W * 0.6)[0]: ws[idx] = interior[-1] if interior.size else fill
-            ws = ndimage.gaussian_filter1d(ws, max(1.0, len(ws) / 40))
             D = np.array([[(left + c) / S, (top - rr) / S] for rr, c in P])
-            st = to_turtle(fit_pieces(D, max(1.5, W / S / 12), W / S))
+            st = biarc_turtle(D, W / S)
             if not st or not st["segs"]: continue
-            n = 16; tt = np.linspace(0, 1, n)
+            st["cap0"], st["cap1"] = cap
+            n = 33; tt = (1 - np.cos(np.linspace(0, np.pi, n))) / 2   # denser near the ends, where flares and tapers live
             wp = np.interp(tt * T, Ls, ws) / W
-            if wp.max() - wp.min() > 0.08: st["wp"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(tt, wp)]
+            if wp.max() - wp.min() > 0.06: st["wp"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(tt, wp)]
             else: st["wk"] = round(float(np.median(wp)), 3)
             strokes.append(st)
     # small separate marks (dots of i, j, punctuation) whose skeleton was pruned away
     lab, n = ndimage.label(ink)
     for c in range(1, n + 1):
         m = lab == c
-        if (sk & m).sum() > W * 0.8: continue
+        if (sk & m).sum() > W * 1.6: continue
         rr, cc = np.nonzero(m); h = (rr.max() - rr.min() + 1) / S; w = (cc.max() - cc.min() + 1) / S
         x0, y0 = (left + (cc.min() + cc.max()) / 2) / S, (top - (rr.min() + rr.max()) / 2) / S
         vert = h >= w; L = h if vert else w; thick = (w if vert else h) / (W / S)
@@ -389,6 +558,15 @@ def outline_polys(st, W):
     else: w = np.full(len(P), st.get("wk", 1) * W)
     nx, ny = -np.sin(np.radians(H)), np.cos(np.radians(H))
     Lf = np.c_[P[:, 0] + nx * w / 2, P[:, 1] + ny * w / 2]; Rt = np.c_[P[:, 0] - nx * w / 2, P[:, 1] - ny * w / 2]
+    for at, cap in ((0, st.get("cap0")), (-1, st.get("cap1"))):
+        if cap != "auto" or not CUTS: continue
+        hh = H[at] + (180 if at == 0 else 0); sy = math.sin(math.radians(hh))
+        if abs(sy) < 0.2: continue
+        cand = [L for L in CUTS if -(W * 1.2) < ((P[at][1] - L) if sy < 0 else (L - P[at][1])) <= 2]
+        if not cand: continue
+        L = min(cand, key=lambda L: abs(P[at][1] - L)); dx, dy = math.cos(math.radians(H[at])), math.sin(math.radians(H[at]))
+        for E in (Lf, Rt):
+            if abs(dy) > 1e-6: tt_ = (L - E[at][1]) / dy; E[at] = (E[at][0] + tt_ * dx, L)
     return [np.vstack([Lf, Rt[::-1]]).tolist()]
 
 
@@ -408,12 +586,21 @@ def main():
     k = 700 / cap                                     # design units per font unit
     face = freetype.Face(a.font); face.set_char_size(int(upm * k * 2 * 64))   # 2 px = 1 design unit (S = 2)
     glyphs = {}; Ws = []; report = {}
+    LINES = [round(tt["hhea"].descent * k), 0, round(xh * k), 700, round(tt["hhea"].ascent * k)]
+    global CUTS; CUTS = LINES
     gs = tt.getGlyphSet(); cmap = tt.getBestCmap(); ghost = {}
     for ch in a.chars:
         if ord(ch) not in cmap: continue
-        st, W, adv, raster = trace_glyph(face, ch, k)
-        if st is None: continue
-        Ws.append(W); cov, spill = score(st, W, raster); report[ch] = {"covered": cov, "outside": spill, "strokes": len(st)}
+        best = None
+        for var in ({"local": True}, {"local": False}):     # two readings of the junction widths; keep the better fit
+            VARIANT.clear(); VARIANT.update(var)
+            st_, W_, adv_, raster_ = trace_glyph(face, ch, k, lines=LINES)
+            if st_ is None: continue
+            cov, spill = score(st_, W_, raster_)
+            if best is None or cov - 1.5 * spill > best[0]: best = (cov - 1.5 * spill, st_, W_, adv_, cov, spill, var)
+        if best is None: continue
+        _, st, W, adv, cov, spill, var = best
+        Ws.append(W); report[ch] = {"covered": cov, "outside": spill, "strokes": len(st), "variant": var}
         key = ch if ch.isalnum() else "@" + {".": "period", ",": "comma", "-": "hyphen", "!": "exclam", "?": "question", "'": "quote"}.get(ch, "u%04x" % ord(ch))
         glyphs[key] = {"type": "radical", "group": "upper" if ch.isupper() else "lower" if ch.islower() else "digit" if ch.isdigit() else "other",
                        "strokes": st, "status": "draft", "adv": round(adv, 1), "W": round(W, 1), "fit": report[ch]}

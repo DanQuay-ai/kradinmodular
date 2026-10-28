@@ -32,7 +32,7 @@
     const d = await fetch(AD ? "adinkra.json" : LAT ? "latin/" + LID + ".json" : "glyphs.json").then(r => r.json());
     if (LAT) {
       const m = d.metrics; META.name = d.name; META.W = m.W;
-      BODYDEF = { fixed: true, lo: m.desc - 40, hi: Math.max(m.asc, 760) + 40, lines: [["desc", m.desc], ["base", 0], ["x-height", m.x], ["cap", 700], ["asc", m.asc]] };
+      BODYDEF = { fixed: true, cuts: [m.desc, 0, m.x, 700, m.asc], cutTol: m.W * 1.2, lo: m.desc - 40, hi: Math.max(m.asc, 760) + 40, lines: [["desc", m.desc], ["base", 0], ["x-height", m.x], ["cap", 700], ["asc", m.asc]] };
       const rank = k => /^[A-ZƐƆ]$/.test(k) ? 0 : /^\d$/.test(k) ? 2 : 1;
       VOW.length = 0; Object.keys(d.glyphs).filter(k => !k.startsWith("@")).sort((a, b) => rank(a) - rank(b)).forEach(k => VOW.push(k));
     }

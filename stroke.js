@@ -132,6 +132,11 @@ const KS = (() => {
   function cutDecision(p, hOut, back) {
     const hh = hOut + (back ? 180 : 0), sy = Math.sin(hh * R);
     if (Math.abs(sy) < 0.2) return null;
+    if (BODY.cuts) { // Latin: an end that runs past an alignment line (baseline, x-height, cap...) is cut flat on it
+      let best = null;
+      for (const L of BODY.cuts) { const d = sy < 0 ? p[1] - L : L - p[1]; if (d <= 2 && d > -(BODY.cutTol || 60) && (best === null || Math.abs(p[1] - L) < Math.abs(p[1] - best))) best = L; }
+      return best;
+    }
     if (sy < 0 && p[1] <= CUT_TOL) return 0; if (sy > 0 && p[1] >= 700 - CUT_TOL) return 700; return null;
   }
   // returns a clockwise polygon [[x,y]...]; tf(x,y) -> [x,y] is applied last (width, slant)

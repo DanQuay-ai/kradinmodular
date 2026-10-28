@@ -19,7 +19,10 @@ Both agents work from this repository. Keep edits small, commit with a clear mes
 ## Rebuilding a font from a reference
 `python3 src/autotrace.py REF.ttf latin/<id>.json --name "..." --ghost latin/<id>-ghost.json --version <id>-1`
 (skeleton, good-continuation merge through junctions, line/arc fit). Output is a draft: check it in the lab over the orange ghost, fix junction overshoots and over-split curves, approve.
-Pending references: Eckmannschrift, Auriol, Arnold Böcklin (need font files from the owner). Franklin is traced from Libre Franklin (OFL).
+References: Libre Franklin (OFL), Eckmann, Auriol, Arnold Böcklin Std (owner's files, kept outside the repo).
+Pipeline: `autotrace.py` (skeleton -> chord-refined centreline and width profile -> foot/flat cuts on alignment lines -> G1 biarc spline; two variants per glyph, best fit kept; scores in latin/<id>-fit.json)
+then `buildotf.py latin/<id>.json REF OUT.otf "Family"` (union of strokes -> Béziers with nodes only on extrema and corners, H/V handles at extrema, integer coordinates) -> fonts/latin/*.otf + .woff2.
+`diffsheet.py REF latin/<id>.json out.png` shows missing ink in red, excess in blue.
 
 ## Rules the owner has set (Kɔradin)
 See `trace/CLAUDE.md`: Koradin.otf is the immutable reference; interpret strokes and reusable components, not every junction as a new shape; preserve vertical/horizontal supports; mirrored counterparts from one base; the owner validates, agents do the fitting.

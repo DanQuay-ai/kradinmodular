@@ -135,6 +135,10 @@ const FONTS={
   dua:{name:"Koradin Dua",styles:[],fam:()=>"KDua",axes:[],dl:[]},
   aao:{name:"Adinkra Alphabet",styles:[],fam:()=>"AAO",axes:[],dl:[]},
   lat:{name:"Latin, Twi letters only",styles:[],fam:()=>"var(--font)",axes:[],dl:[]}};
+// the redrawn Latin fonts (static .otf built from the stroke data by gen/buildotf.py)
+const DRAWN={franklin:["Franklin Modular","FranklinModular"],eckmann:["Eckmann Modular","EckmannModular"],auriol:["Auriol Modular","AuriolModular"],bocklin:["Böcklin Modular","BoecklinModular"]};
+for(const [id,[nm,file]] of Object.entries(DRAWN)){FONTS["otf:"+id]={name:nm+" (drawn)",styles:[],fam:()=>"LT-"+file,axes:[],dl:[["fonts/latin/"+file+"-Regular.otf",nm+" .otf"]]};
+  const st_=document.createElement("style");st_.textContent=`@font-face{font-family:"LT-${file}";src:url(fonts/latin/${file}-Regular.woff2) format("woff2");font-display:block}`;document.head.append(st_)}
 const NOTE={kradin:"Each syllable is one sign. Ligatures draw it from the Latin you type.",
   aalpha:"One sign per letter (Adinkra Alphabet font). ɛ and ɔ use its E and O.",
   latin:"Only the 22 letters of the Twi alphabet; loan letters are respelled (c → k, j → gy, v → f, z → s)."};
@@ -151,7 +155,7 @@ const LT=()=>st.sys==="latin";
 const KK=()=>LT()?KRL(st.lver):AL()?KRA:KR;
 const ver=()=>LT()?"live":AL()?st.aver:st.kver;
 const setVer=v=>{if(LT()){if(v==="live")return;st.lver="sys"}else if(AL())st.aver=v;else st.kver=v};
-const genOn=()=>(st.sys==="kradin"&&isGen(st.kver))||(AL()&&isGen(st.aver))||(LT()&&st.lver!=="sys");
+const genOn=()=>(st.sys==="kradin"&&isGen(st.kver))||(AL()&&isGen(st.aver))||(LT()&&st.lver!=="sys"&&!st.lver.startsWith("otf:"));
 function exportsList(){return KK().fonts()}
 function fillExports(){
   const opt=f=>`<option value="${f.id}">${esc(f.name)}${f.test?" (test)":""}</option>`;
@@ -169,7 +173,7 @@ async function ensureExport(){
   await KK().fontFace(g,W,st.wdth,st.slnt,fam,so.P?so:so.id);
   built={key,fam,n:built.n}; return fam;
 }
-const fontKey=()=>st.sys==="kradin"?st.kver:st.sys==="aalpha"?"aao":"lat";
+const fontKey=()=>st.sys==="kradin"?st.kver:st.sys==="aalpha"?"aao":st.lver.startsWith("otf:")?st.lver:"lat";
 function convert(raw){
   if(st.sys==="kradin")return isGen(st.kver)?KR.shape(raw,new Set(Object.keys(snapFor(st.kver)||{})),built.fam):TwiScript.toKradin(raw);
   if(st.sys==="aalpha")return isGen(st.aver)?TwiScript.twiLatin(raw):TwiScript.toAdinkra(raw);
@@ -180,7 +184,7 @@ document.querySelectorAll("#sys button").forEach(b=>{b.setAttribute("role","radi
 $("kver").onchange=e=>{st.kver=e.target.value;render()};
 $("aver").onchange=e=>{st.aver=e.target.value;render()};
 $("lver").onchange=e=>{st.lver=e.target.value;render()};
-$("lver").innerHTML=`<option value="sys">Twi letters, system font</option>`+KR_SCRIPTS.filter(s=>s.id.startsWith("latin:")).map(s=>`<option value="${s.id.slice(6)}"${s.pending?" disabled":""}>${s.name} modular${s.pending?" (needs reference font)":" (live)"}</option>`).join("");
+$("lver").innerHTML=`<option value="sys">Twi letters, system font</option><optgroup label="Drawn fonts (.otf)">`+Object.entries(DRAWN).map(([id,[nm]])=>`<option value="otf:${id}">${nm}</option>`).join("")+`</optgroup><optgroup label="Stroke fonts (live, editable in the lab)">`+KR_SCRIPTS.filter(s=>s.id.startsWith("latin:")).map(s=>`<option value="${s.id.slice(6)}"${s.pending?" disabled":""}>${s.name} modular${s.pending?" (needs reference font)":" (live)"}</option>`).join("")+`</optgroup>`;
 // generated fonts take any style: Regular, Tapered, the rule presets and the styles saved in the Serif lab
 const GSTY=()=>KST.all();
 const styleObj=id=>GSTY().find(s=>s.id===id)||GSTY()[0];
