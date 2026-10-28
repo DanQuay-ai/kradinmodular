@@ -5,8 +5,9 @@ from shapely.geometry import Polygon, MultiPolygon
 from shapely.ops import unary_union
 from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import DecomposingRecordingPen
-REF = "/mnt/user-data/attachments/095e6311-fc75-5a2c-9c6a-0bc6be907c52/fd01f856-ArnoldBoecklinStd.ttf"
-W = 125.0; XH = 516; CAP = 700; CUTS = [0, 516, 700, -200]
+import os
+REF = os.environ.get("BKREF", "/mnt/user-data/attachments/095e6311-fc75-5a2c-9c6a-0bc6be907c52/fd01f856-ArnoldBoecklinStd.ttf")
+W = float(os.environ.get("BKW", 125.0)); XH = 516; CAP = 700; CUTS = [float(v) for v in os.environ.get("BKCUTS", "0,516,700,-200").split(",")]
 
 class S:
     def __init__(s, x, y, h, w=1.0):
@@ -102,7 +103,11 @@ def glyph_shape(strokes):
     return acc
 
 _f = TTFont(REF); _gs = _f.getGlyphSet(); _cm = _f.getBestCmap()
-_cap = _f["OS/2"].sCapHeight or 700; SC = 700.0 / _cap
+_cap = getattr(_f["OS/2"], "sCapHeight", 0)
+if not _cap:
+    from fontTools.pens.boundsPen import BoundsPen
+    _b = BoundsPen(_gs); _gs[_cm[ord("H")]].draw(_b); _cap = _b.bounds[3]
+SC = 700.0 / _cap
 def ref_shape(ch):
     pen = DecomposingRecordingPen(_gs); _gs[_cm[ord(ch)]].draw(pen)
     from fontTools.pens.basePen import BasePen
