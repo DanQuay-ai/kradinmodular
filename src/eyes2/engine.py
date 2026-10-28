@@ -105,7 +105,7 @@ def cut_lines(S, far, R=None):
         out.append(ln)
     return out
 
-def squircle(cx, cy, a, b, ang, n=3.0, k=72):
+def squircle(cx, cy, a, b, ang, n=3.6, k=72):
     t = np.linspace(0, 2 * math.pi, k, endpoint=False); c, s = np.cos(t), np.sin(t)
     x = a * np.sign(c) * np.abs(c) ** (2 / n); y = b * np.sign(s) * np.abs(s) ** (2 / n)
     return affinity.translate(affinity.rotate(Polygon(np.c_[x, y]), ang, origin=(0, 0)), cx, cy)
@@ -246,11 +246,12 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
         if others: v = v.difference(unary_union(others).buffer(gap + 0.18 * W))
         A = A.union(v.intersection(box(-3000, 0, 4000, 700)))
     A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])   # crumbs left by the cuts
-    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines)
+    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines, skel=lines_w)
 
 PRESETS = {  # weight: gap, outer radius, inner radius
     40: dict(gap=14, ro=4, ri=3),
     150: dict(gap=46, ro=20, ri=10, relax=True),
+    140: dict(gap=52, ro=19, ri=9, relax=True),
 }
 
 def run(path, out):

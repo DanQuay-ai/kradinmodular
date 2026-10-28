@@ -15,7 +15,7 @@ def comp_labels(geom, pts, tol):
         lab.append(best)
     return np.array(lab), G
 
-def check(k, D, W="150", P=None):
+def check(k, D, W="140", P=None):
     thin = D["G"][k]["40"]; heavy = D["G"][k][W]
     g, dbg = engine.build(heavy, thin, float(W), 40., key=k, **(P or engine.PRESETS[int(W)]))
     S0, _, sid = engine.samples(thin, thin)
@@ -33,7 +33,7 @@ def check(k, D, W="150", P=None):
     return issues, g
 
 if __name__ == "__main__":
-    D = json.load(open("/tmp/claude-0/rad2.json")); bad = 0
+    D = json.load(open(sys.argv[2] if len(sys.argv) > 2 else "/tmp/claude-0/rad3.json")); bad = 0
     ks = sys.argv[1].split(",") if len(sys.argv) > 1 else D["keys"]
     for k in ks:
         iss, _ = check(k, D)

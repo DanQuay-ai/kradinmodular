@@ -17,6 +17,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         try: A = Polygon(st["poly"]).buffer(0).area
         except Exception: A = W * L
         hw_s.append(min(W / 2 * 1.05, max(W * 0.15, A / (2 * max(L, 1)))))
+    hw_s = [W / 2 * st.get("wk", 1) for st in strokes]       # one weight for every stroke (monoline)
     hw = np.array([hw_s[i] for i in sid])
     C = np.array([P0[sid == i].mean(axis=0) for i in range(ns)])
     pinB = P0[:, 1] <= W / 2 + 6; pinT = P0[:, 1] >= 700 - W / 2 - 6
@@ -60,11 +61,11 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
             c = Q[idx].mean(axis=0); r.append(4.0 * np.maximum(0, Rneed - np.hypot(*(Q[idx] - c).T)) / W)
         r.append(10.0 * (Q[pin, 1] - P0[pin, 1]) / W)
         r.append(10.0 * (np.maximum(0, 0.45 * W - Q[:, 1]) + np.maximum(0, Q[:, 1] - (700 - 0.45 * W))) / W)   # stay in the body
-        r.append(np.r_[2.5 * X[:, 0] / W, 3.0 * X[:, 1] / W, (X[:, 2] - 1) * 4, (X[:, 3] - 1) * 4, (X[:, 2] - X[:, 3]) * 4, [(x[-1] - 1) * 5]])
+        r.append(np.r_[2.5 * X[:, 0] / W, 3.0 * X[:, 1] / W, (X[:, 2] - 1) * 4, (X[:, 3] - 1) * 4, (X[:, 2] - X[:, 3]) * 4, [(x[-1] - 1) * 1.0]])
         if len(CP): r.append(1.5 * (X[CP[:, 0], 0] - X[CP[:, 1], 0]) / W)
         return np.concatenate(r)
     x0 = np.r_[np.tile([0, 0, 1, 1], ns).astype(float), 1.0]
-    lo = np.r_[np.tile([-70, -40, 0.95, 0.9], ns), 0.98]; hi = np.r_[np.tile([70, 40, 1.15, 1.2], ns), 1.06]   # little drift
+    lo = np.r_[np.tile([-45, -40, 0.95, 0.9], ns), 0.98]; hi = np.r_[np.tile([45, 40, 1.12, 1.2], ns), 1.45]   # strokes barely drift; the whole glyph may widen
     e = 1e-6
     for i in range(ns):
         if hasB[i] or hasT[i]: lo[4 * i + 1], hi[4 * i + 1] = -e, e            # no vertical shift
