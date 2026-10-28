@@ -2,7 +2,7 @@ import json, sys, engine
 from PIL import Image, ImageDraw
 D = json.load(open("/tmp/claude-0/rad2.json")); k = sys.argv[1]; W = sys.argv[2] if len(sys.argv) > 2 else "150"
 P = engine.PRESETS[int(W)]
-g, dbg = engine.build(D["G"][k][W], D["G"][k]["40"], float(W), 40., **P)
+g, dbg = engine.build(D["G"][k][W], D["G"][k]["40"], float(W), 40., key=k, **P)
 im = Image.new("RGB", (900, 900), (255, 255, 255)); d = ImageDraw.Draw(im); s = 0.95
 tf = lambda x, y: (100 + x * s, 830 - y * s)
 for p in engine.polys(dbg["raw"]): d.polygon([tf(*q) for q in p.exterior.coords], fill=(230, 200, 170))

@@ -134,6 +134,18 @@ def fit_eye(H):
                 if best is None or sq.area > best.area: best = sq
     return best
 
+EYE_CLASSES = (0.34, 0.5, 0.72, 1.0, 1.4)     # eye widths, as shares of the weight
+def uniform(eye, W):
+    """snap a fitted eye to the standard eye widths (never wider than it fits): eyes repeat across glyphs"""
+    if eye is None: return None
+    mrr = eye.minimum_rotated_rectangle; xy = np.array(mrr.exterior.coords)[:4]
+    e1, e2 = xy[1] - xy[0], xy[2] - xy[1]; L1, L2 = np.hypot(*e1), np.hypot(*e2); v = e1 if L1 >= L2 else e2
+    ang = math.degrees(math.atan2(v[1], v[0])); A, B = max(L1, L2) / 2, min(L1, L2) / 2
+    cls = [c * W / 2 for c in EYE_CLASSES if c * W / 2 <= B + 0.5]
+    if not cls: return eye
+    b = max(cls); a = max(b, A - (B - b) * 0.6)
+    return squircle(eye.centroid.x, eye.centroid.y, a, b, ang)
+
 def kscale(W): return (700 - W) / 602
 
 def thin_eyes(lines, W, Wthin, mineye):
@@ -161,14 +173,35 @@ def thin_eyes(lines, W, Wthin, mineye):
             out.append(eye)
     return out
 
-def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False):
+def ring_merge(far, S0, thin):
+    """exception (ku): small rings may join the parts around them; only their eye must stay"""
+    tink = unary_union([Polygon(s["poly"]).buffer(0) for s in thin if len(s["poly"]) >= 3]); comps = polys(tink)
+    from shapely import contains_xy
+    lab = np.full(len(S0), -1)
+    for c, g in enumerate(comps): lab[contains_xy(g.buffer(1), S0[:, 0], S0[:, 1]) & (lab < 0)] = c
+    ring = [len(g.interiors) > 0 and g.area < 60000 for g in comps]
+    R = np.array([ring[l] if l >= 0 else False for l in lab])
+    diff = lab[:, None] != lab[None, :]
+    far.M = far.M & ~(diff & (R[:, None] | R[None, :]))
+    f0 = far
+    def f(a, b): return bool(f0.M[a, b])
+    f.M = far.M; f.touch = far.touch; return f
+
+EXCEPT = {"ku": "rings"}
+
+def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
     S0, S, sid = samples(thin, strokes)
-    far = separation(S0, sid, Wthin, thin); far.thin = thin
+    far = separation(S0, sid, Wthin, thin)
+    if W > Wthin and EXCEPT.get(key) == "rings": far = ring_merge(far, S0, thin)
+    far.thin = thin
     raw = unary_union([Polygon(s["poly"]).buffer(0) for s in strokes if len(s["poly"]) >= 3])
     lines_w = [s["cl"] for s in strokes]
     if relax:
         import relax as RX
-        S, raw, lines_w = RX.relax(S0, S, sid, strokes, far, W, Wthin, gap)
+        S, raw, lines_w, alive = RX.relax(S0, S, sid, strokes, far, W, Wthin, gap)
+        if not alive.all():                       # retracted ends: drop their samples, keep the index map
+            keep = np.where(alive)[0]; f0 = far
+            far = lambda a, b: f0(keep[a], keep[b]); S = S[keep]
     ink = raw.buffer(ri, quad_segs=8).buffer(-ri, quad_segs=8) if ri > 0.5 else raw
     lines = [l for l in cut_lines(S, far, W / 2 + gap / 2)]
     cut = None
@@ -184,12 +217,12 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False):
         for r in p.interiors:
             H = Polygon(r)
             island = any(H.contains(q.representative_point()) for q in polys(A) if q is not p)
-            eye = None if island or H.area < (0.25 * W) ** 2 else fit_eye(H)
+            eye = None if island or H.area < (0.25 * W) ** 2 else uniform(fit_eye(H), W)
             if eye is not None and eye.area >= eye_min * H.area: holes.append(eye); eyes.append(eye)
             else: holes.append(H)
         out.append(Polygon(p.exterior).difference(unary_union(holes)) if holes else Polygon(p.exterior))
     A = unary_union(out)
-    for e in thin_eyes(lines_w, W, Wthin, max(30, 0.32 * W)):
+    for e in thin_eyes(lines_w, W, Wthin, max(30, 0.42 * W)):
         if not any(h.intersects(e.centroid) for p in polys(A) for h in [Polygon(r) for r in p.interiors]):
             A = A.difference(e)
     if cut is not None: A = A.difference(cut)
@@ -227,7 +260,7 @@ def run(path, out):
         P = PRESETS.get(W) or dict(gap=0.3 * W, ro=0.13 * W, ri=0.07 * W)
         res[W] = {}
         for k in D["keys"]:
-            g, _ = build(D["G"][k][str(W)], D["G"][k][str(Wt)], float(W), float(Wt), **P)
+            g, _ = build(D["G"][k][str(W)], D["G"][k][str(Wt)], float(W), float(Wt), key=k, **P)
             res[W][k] = [[np.round(np.array(p.exterior.coords), 1).tolist()] + [np.round(np.array(r.coords), 1).tolist() for r in p.interiors] for p in polys(g)]
     json.dump(res, open(out, "w"))
 

@@ -25,6 +25,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         if hasB[i] and not hasT[i]: C[i, 1] = P0[sid == i][:, 1].min()
         elif hasT[i] and not hasB[i]: C[i, 1] = P0[sid == i][:, 1].max()
     T = far.touch.tocoo(); J = np.array([(i, j) for i, j in zip(T.row, T.col) if sid[i] != sid[j]], int).reshape(-1, 2)
+    Jself = set(int(i) for i, j in zip(T.row, T.col) if sid[i] == sid[j] and abs(i - j) > 3) | set(int(j) for i, j in zip(T.row, T.col) if sid[i] == sid[j] and abs(i - j) > 3)
     RJ = P0[J[:, 1]] - P0[J[:, 0]] if len(J) else np.zeros((0, 2))
     need_all = hw[:, None] + hw[None, :] + gap
     pr = cKDTree(P0).query_pairs(float(need_all.max()) * 1.6, output_type="ndarray")
@@ -59,11 +60,11 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
             c = Q[idx].mean(axis=0); r.append(4.0 * np.maximum(0, Rneed - np.hypot(*(Q[idx] - c).T)) / W)
         r.append(10.0 * (Q[pin, 1] - P0[pin, 1]) / W)
         r.append(10.0 * (np.maximum(0, 0.45 * W - Q[:, 1]) + np.maximum(0, Q[:, 1] - (700 - 0.45 * W))) / W)   # stay in the body
-        r.append(np.r_[1.2 * X[:, 0] / W, 2.0 * X[:, 1] / W, (X[:, 2] - 1) * 2, (X[:, 3] - 1) * 2, (X[:, 2] - X[:, 3]) * 4, [(x[-1] - 1) * 3]])
+        r.append(np.r_[2.5 * X[:, 0] / W, 3.0 * X[:, 1] / W, (X[:, 2] - 1) * 4, (X[:, 3] - 1) * 4, (X[:, 2] - X[:, 3]) * 4, [(x[-1] - 1) * 5]])
         if len(CP): r.append(1.5 * (X[CP[:, 0], 0] - X[CP[:, 1], 0]) / W)
         return np.concatenate(r)
     x0 = np.r_[np.tile([0, 0, 1, 1], ns).astype(float), 1.0]
-    lo = np.r_[np.tile([-160, -60, 0.9, 0.85], ns), 0.95]; hi = np.r_[np.tile([120, 60, 1.3, 1.3], ns), 1.1]
+    lo = np.r_[np.tile([-70, -40, 0.95, 0.9], ns), 0.98]; hi = np.r_[np.tile([70, 40, 1.15, 1.2], ns), 1.06]   # little drift
     e = 1e-6
     for i in range(ns):
         if hasB[i] or hasT[i]: lo[4 * i + 1], hi[4 * i + 1] = -e, e            # no vertical shift
@@ -71,10 +72,25 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     x0 = np.clip(x0, lo, hi)
     sol = least_squares(res, x0, bounds=(lo, hi), x_scale=np.r_[np.tile([W, W, 1, 1], ns), 1], max_nfev=300)
     P = place(sol.x)
+    # retract free ends that still crowd a separate part (shorter strokes instead of bites)
+    alive = np.ones(n, bool); tree = cKDTree(P); Jset = set(J.ravel().tolist()) | Jself
+    for i in range(ns):
+        idx = np.where(sid == i)[0]
+        if len(idx) < 4 or np.hypot(*(P0[idx[0]] - P0[idx[-1]])) < 2 * hw[idx[0]]: continue   # closed strokes (rings) have no ends
+        L = np.r_[0, np.cumsum(np.hypot(*np.diff(P[idx], axis=0).T))]
+        for end in (0, 1):
+            order = idx if end == 0 else idx[::-1]; Lo = L if end == 0 else L[-1] - L[::-1]
+            if _cut_end(strokes[i], 0 if end == 0 else -1): continue
+            if any(j in Jset for j, l in zip(order, Lo) if l < 0.6 * W): continue     # a junction end: keep
+            k = 0
+            while k < len(order) - 1 and Lo[k] < 0.9 * W and (L[-1] - Lo[k]) > 1.4 * W:
+                e = order[k]; nb = tree.query_ball_point(P[e], hw[e] + hw.max() + gap)
+                if not any(alive[j] and far.M[e, j] and np.hypot(*(P[j] - P[e])) < hw[e] + hw[j] + gap for j in nb): break
+                alive[e] = False; k += 1
     # rebuild the heavy strokes around the relaxed centrelines
     lines, polys = [], []
     for i in range(len(strokes)):
-        Q = P[sid == i]
+        Q = P[(sid == i) & alive]
         if len(Q) < 2: continue
         Q = Q.copy()
         for end, nb in ((0, 1), (-1, -2)):            # ends on the body lines: run past, cut flat by the clip
@@ -84,7 +100,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         lines.append(Q.tolist())
         polys.append(LineString(Q).buffer(hw_s[i], cap_style=2, join_style=1, quad_segs=8))
     raw = unary_union(polys).intersection(box(-2000, 0, 3000, 700))
-    return P, raw, lines
+    return P, raw, lines, alive
 
 def _cut_end(st, end):
     """the original stroke was cut flat on a body line at this end (its polygon reaches 0 or 700 there)"""

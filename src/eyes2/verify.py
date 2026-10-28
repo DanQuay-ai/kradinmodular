@@ -17,14 +17,14 @@ def comp_labels(geom, pts, tol):
 
 def check(k, D, W="150", P=None):
     thin = D["G"][k]["40"]; heavy = D["G"][k][W]
-    g, dbg = engine.build(heavy, thin, float(W), 40., **(P or engine.PRESETS[int(W)]))
+    g, dbg = engine.build(heavy, thin, float(W), 40., key=k, **(P or engine.PRESETS[int(W)]))
     S0, _, sid = engine.samples(thin, thin)
     tink = unary_union([Polygon(s["poly"]).buffer(0) for s in thin])
     lt, Gt = comp_labels(tink, S0, 25); lh, Gh = comp_labels(g, dbg["S"], 90)
     issues = []
     for c in set(lh) - {-1}:
         ts = set(lt[lh == c]) - {-1}
-        if len(ts) > 1: issues.append(f"merge {sorted(ts)}")
+        if len(ts) > 1 and engine.EXCEPT.get(k) != "rings": issues.append(f"merge {sorted(ts)}")
     for c in set(lt) - {-1}:
         hs = set(lh[lt == c]) - {-1}
         if len(hs) > 1: issues.append(f"break t{c}->{len(hs)}")
