@@ -16,6 +16,8 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, "/home/claude/work/gen")
 import autotrace as AT
 import freetype
+import bkplans as PL
+PLANNED = set()
 from fontTools.ttLib import TTFont
 from fontTools.pens.boundsPen import BoundsPen
 
@@ -48,7 +50,7 @@ class Stroke:
         s = np.linspace(0, T, n)
         self.C = np.c_[np.interp(s, L, P[:, 0]), np.interp(s, L, P[:, 1])]
         self.w = np.interp(s, L, w * W)
-        self.closed = closed; self.caps = caps; self.over = False; self.halo = 0.16
+        self.closed = closed; self.caps = caps; self.over = False; self.halo = 0.16; self.kind = "s"
 
     def curve(self, m=8):
         n = len(self.C); t = np.arange(n)
@@ -158,11 +160,12 @@ def to_turtle(s, W):
     st["wp"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(tt, np.interp(tt * T, L, w) / W)]
     st["cap0"], st["cap1"] = "butt", "butt"
     if s.over: st["over"] = True; st["halo"] = s.halo
+    st["part"] = s.kind
     return st
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("font"); ap.add_argument("data"); ap.add_argument("--chars", default=""); ap.add_argument("--out", default="")
+    ap = argparse.ArgumentParser(); ap.add_argument("font"); ap.add_argument("data"); ap.add_argument("--chars", default=""); ap.add_argument("--out", default=""); ap.add_argument("--plans", action="store_true")
     a = ap.parse_args()
     d = json.load(open(a.data)); m = d["metrics"]; W = m["W"]
     tt = TTFont(a.font); upm = tt["head"].unitsPerEm; gs = tt.getGlyphSet(); cm = tt.getBestCmap()
@@ -186,13 +189,32 @@ def main():
                 if st.get("over"): s_.over = True; s_.halo = st.get("halo", 0.16)
                 strokes.append(s_)
         c0 = G.cost(strokes)
-        optimise(G, strokes, W)
-        for _ in range(2):          # missing parts: read them, add them, fit everything again
+        if a.plans and ch in PL.PLANS:
+            # standard parts from the letter plan, fitted to the reference; kept unless clearly worse than the trace
+            traced = strokes; c_tr = G.cost(traced)
+            ys, xs = np.nonzero(ink); x0 = left + xs.min(); x1 = left + xs.max()
+            plan = []
+            for kind, pts, over in PL.PLANS[ch]:
+                P = np.array([[x0 + (x1 - x0) * u, y] for u, y in pts], float)
+                if kind == "f": w = np.interp(np.linspace(0, 1, 9), np.linspace(0, 1, len(PL.FOOT_W)), PL.FOOT_W)
+                else: w = np.full(2, PL.WIDTH[kind])
+                P = np.array([np.interp(np.linspace(0, 1, 9 if kind == "f" else max(3, len(P) * 2)), np.linspace(0, 1, len(P)), P[:, k]) for k in (0, 1)]).T
+                s_ = Stroke(P, np.interp(np.linspace(0, 1, len(P)), np.linspace(0, 1, len(w)), w), W); s_.kind = kind; s_.over = over
+                plan.append(s_)
+            optimise(G, plan, W)
+            new = residual_strokes(G, plan, W)
+            if new: plan += new; optimise(G, plan, W, rounds=2)
+            if G.cost(plan) <= c_tr + 0.12: strokes = plan; c0 = c_tr; PLANNED.add(ch)
+            else: optimise(G, strokes, W)
+        else:
+            optimise(G, strokes, W)
+        for _ in range(0 if ch in PLANNED else 2):          # missing parts: read them, add them, fit everything again
             new = residual_strokes(G, strokes, W)
             if not new: break
             strokes += new; optimise(G, strokes, W, rounds=3)
         # a stroke that crosses itself: the later part is the loop that passes over the earlier part
         for s in list(strokes):
+            if ch in PLANNED: break
             P, w = s.curve(4); n = len(P); hit = None
             for i in range(0, n - 8, 2):
                 for j in range(i + 8, n - 1, 2):
@@ -203,10 +225,12 @@ def main():
             a_, b_ = Stroke(P[:cut + 1], w[:cut + 1] / W, W), Stroke(P[cut:], w[cut:] / W, W); b_.over = True
             trial = [x for x in strokes if x is not s] + [a_, b_]
             if G.cost(trial) < G.cost(strokes) - 0.005: strokes = trial
-        # loops: try each stroke as one that passes over the others with a white halo (drawn last)
-        base = G.cost(strokes) + smooth_pen(strokes, W)
-        for s in list(strokes):
-            if len(strokes) < 2: break
+        if ch in PLANNED: pass
+        else:
+          # loops: try each stroke as one that passes over the others with a white halo (drawn last)
+          base = G.cost(strokes) + smooth_pen(strokes, W)
+          for s in list(strokes):
+            if len(strokes) < 2 or ch in PLANNED: break
             trial = [x for x in strokes if x is not s] + [s]; s.over = True
             for hv in (0.12, 0.2):
                 s.halo = hv; c = G.cost(trial) + smooth_pen(trial, W)
@@ -215,7 +239,7 @@ def main():
         if any(s.over for s in strokes): optimise(G, strokes, W, rounds=2)
         c1 = G.cost(strokes)
         # a reading that went wrong (a Z read as a loop): start again from the letter's plan, in clean lines
-        if ch in TEMPLATES and c1 > 0.15:
+        if ch in TEMPLATES and c1 > 0.15 and ch not in PLANNED:
             ys, xs = np.nonzero(ink); x0, x1 = left + xs.min() + W / 2, left + xs.max() - W / 2; y0, y1 = top - ys.max() + W / 2, top - ys.min() - W / 2
             alt = [Stroke(np.array([[x0 + (x1 - x0) * u, y0 + (y1 - y0) * v] for u, v in seg]), np.ones(2), W) for seg in TEMPLATES[ch]]
             optimise(G, alt, W)
