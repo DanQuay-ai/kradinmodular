@@ -214,7 +214,7 @@
     const polysOf = (key, strokes, tfn) => {
       if (rule) return KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]);
       const out = [], softC = SOFT && typeof KSOFT !== "undefined" ? KSOFT.params(W).c : 0;
-      if (softC) strokes = strokes.map(st => Object.assign({}, st, { _c: softC }));
+      if (softC) { for (const s of KSOFT.prep(strokes, W)) out.push(poly(s, W, tfn)); return out; }
       for (const st of strokes) { if (st.loop && st.loop.at > 0) { const mp = KS.selfLoop(st, W, tfn, poly); const p = mp[0][0].slice(0, -1); p.mp = mp; out.push(p); continue; } for (const s0 of KS.split(st)) { const s = st._c ? KSOFT.contrast(s0, st._c) : s0; const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); } }
       return out;
     };
