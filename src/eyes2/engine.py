@@ -105,10 +105,11 @@ def cut_lines(S, far, R=None):
         out.append(ln)
     return out
 
-def squircle(cx, cy, a, b, ang, n=3.6, k=72):
-    t = np.linspace(0, 2 * math.pi, k, endpoint=False); c, s = np.cos(t), np.sin(t)
-    x = a * np.sign(c) * np.abs(c) ** (2 / n); y = b * np.sign(s) * np.abs(s) ** (2 / n)
-    return affinity.translate(affinity.rotate(Polygon(np.c_[x, y]), ang, origin=(0, 0)), cx, cy)
+def squircle(cx, cy, a, b, ang, n=None, k=72):
+    """Ojuju counter: a rounded rectangle, corner radius 42 % of its short half side"""
+    r = 0.42 * min(a, b)
+    q = box(-a + r, -b + r, a - r, b - r).buffer(r, quad_segs=10) if a > r and b > r else Point(0, 0).buffer(min(a, b), quad_segs=10)
+    return affinity.translate(affinity.rotate(q, ang, origin=(0, 0)), cx, cy)
 
 def fit_eye(H):
     """the biggest squircle, in the counter's own orientation, that fits inside the counter H"""
@@ -246,7 +247,27 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
         if others: v = v.difference(unary_union(others).buffer(gap + 0.18 * W))
         A = A.union(v.intersection(box(-3000, 0, 4000, 700)))
     A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])   # crumbs left by the cuts
+    if W > Wthin: A = finish(A, tink, W, ro)
     return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines, skel=lines_w)
+
+def finish(A, tink, W, ro):
+    """body lines and symmetry, as read on Thin:
+    - a glyph that sits on the baseline and reaches the top in Thin does so in Black, exactly (0 and 700)
+    - a glyph that is mirror-symmetric in Thin is made exactly symmetric in Black (kept where both halves agree)"""
+    tb = tink.bounds; b = A.bounds
+    lo = 0 if tb[1] < 3 else None; hi = 700 if tb[3] > 697 else None
+    if lo is not None or hi is not None:
+        y0 = b[1] if lo is None else lo; y1 = b[3] if hi is None else hi
+        if b[3] - b[1] > 10 and abs(y0 - b[1]) < 60 and abs(y1 - b[3]) < 60:
+            f = (y1 - y0) / (b[3] - b[1]); A = affinity.translate(affinity.scale(A, 1, f, origin=(0, b[1])), 0, y0 - b[1])
+    cx = (tb[0] + tb[2]) / 2; m = affinity.scale(tink, -1, 1, origin=(cx, 0))
+    if tink.symmetric_difference(m).area < 0.08 * tink.area:
+        b = A.bounds; c = (b[0] + b[2]) / 2
+        S = A.intersection(affinity.scale(A, -1, 1, origin=(c, 0)))
+        S = S.buffer(-ro * 0.5, quad_segs=8).buffer(ro * 0.5, quad_segs=8)
+        parts = lambda g: len(polys(g)); holes = lambda g: sum(len(p.interiors) for p in polys(g))
+        if parts(S) == parts(A) and holes(S) >= holes(A) and S.area > 0.85 * A.area: A = S
+    return A
 
 PRESETS = {  # weight: gap, outer radius, inner radius
     40: dict(gap=14, ro=4, ri=3),

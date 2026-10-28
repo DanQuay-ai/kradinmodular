@@ -12,7 +12,9 @@ def rc_of(r): return min(r, max(45.0, min(110.0, 0.42 * r)))
 def square_arc(g):
     r, ang = g["r"], g["ang"]; th = abs(ang)
     if th < 85 or r <= 46: return [g]
-    n = max(1, int(round(th / 90))); piece = ang / n; rc = rc_of(r)
+    n = int(round(th / 90))
+    if abs(th - 90 * n) > 6: return [g]           # only right-angle turns get squared (a 210 or 150 stays round)
+    piece = ang / n; rc = rc_of(r)
     a = (r - rc) * math.tan(math.radians(abs(piece)) / 2)
     out = []
     for _ in range(n):
