@@ -76,6 +76,10 @@
   {
    "id": "shared-stems",
    "rule": "Straight upright stems of the same case share one middle weight across the font; their ends keep their own flare or taper."
+  },
+  {
+   "id": "fit-to-ink",
+   "rule": "Clean lines first (few control points per stroke), then widths: both are fitted to the reference ink with a smoothness term; Thickness handles in the lab (start, ¼, middle, ¾, end) adjust the result."
   }
  ]
 }

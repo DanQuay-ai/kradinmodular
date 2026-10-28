@@ -127,6 +127,7 @@
       <div class="f"><span>Start cap</span><select data-cap="cap0"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
       <div class="f"><span>End cap</span><select data-cap="cap1"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
       <p class="hint">Ends at x ${Math.round(tr.x)}, y ${Math.round(tr.y)}, heading ${Math.round(((tr.h % 360) + 360) % 360)}° · length ${Math.round(tr.len)}</p>
+      ${KS.BODY.fixed ? widthEditor(t) : ""}
       <h4>Segments<span class="btns"><button class="mini" data-add="L">+ Line</button><button class="mini" data-add="A">+ Arc</button><button class="mini" data-add="C">+ Corner</button></span></h4>` + segEditor(t.segs) +
         `<p class="hint">Headings snap to 30° steps. Turn: positive turns left (anticlockwise), negative right. Arc 180 = bowl, 270 = curl, 360 = loop; chain arcs for a spiral.</p>`;
     } else if (isExtSel()) {
@@ -143,6 +144,21 @@
     if (sel < mine.length) $("ins").querySelectorAll("[data-cap]").forEach(x => x.value = mine[sel][x.dataset.cap] || "auto");
     wire();
   }
+  // Latin: thickness along the stroke. Five handles (start, quarter, middle, three quarters, end) scale the
+  // traced width profile; the traced profile is kept in wp0 so the handles never lose its detail.
+  const WT = [0, 0.25, 0.5, 0.75, 1];
+  function widthEditor(t) {
+    const f = t.wf || [1, 1, 1, 1, 1];
+    return `<h4>Thickness<span class="btns"><button class="mini" id="wreset">Reset</button></span></h4>` +
+      WT.map((p, i) => `<div class="f"><span>${["Start", "¼", "Middle", "¾", "End"][i]}</span><input type="range" min="20" max="250" step="1" value="${Math.round(f[i] * 100)}" data-wf="${i}"><span>${Math.round(f[i] * 100)}%</span></div>`).join("") +
+      `<p class="hint">Scales the traced thickness at five points along the stroke: taper an end to 20%, swell a bowl to 150%.</p>`;
+  }
+  function applyWidth(t) {
+    if (!t.wp0) t.wp0 = t.wp ? t.wp.map(p => p.slice()) : [[0, t.wk || 1], [1, t.wk || 1]];
+    const f = t.wf || [1, 1, 1, 1, 1], at = u => { for (let i = 1; i < 5; i++) if (u <= WT[i]) { const a = (u - WT[i - 1]) / 0.25; return f[i - 1] + (f[i] - f[i - 1]) * a; } return f[4]; };
+    const base = t.wp0.length >= 3 ? t.wp0 : [0, .125, .25, .375, .5, .625, .75, .875, 1].map(u => [u, KS.wpAt(t.wp0, u)]);
+    t.wp = base.map(([u, w]) => [u, +(w * at(u)).toFixed(3)]); delete t.wk;
+  }
   // target of segment edits: the selected stroke, or the selected extension
   const segsTarget = () => sel < nOwn() ? E().strokes[sel].segs : E().exts[sel - nOwn()].segs;
   function wireHead() {
@@ -150,6 +166,11 @@
   }
   function wire() {
     const I = $("ins");
+    I.querySelectorAll("input[data-wf]").forEach(inp => {
+      inp.onpointerdown = inp.onfocus = () => commit();
+      inp.oninput = () => { const t = E().strokes[sel]; t.wf = t.wf || [1, 1, 1, 1, 1]; t.wf[+inp.dataset.wf] = +inp.value / 100; inp.nextElementSibling.textContent = inp.value + "%"; applyWidth(t); KR.save(); canvas(); };
+    });
+    if ($("wreset")) $("wreset").onclick = () => { commit(); const t = E().strokes[sel]; if (t.wp0) t.wp = t.wp0; delete t.wf; delete t.wp0; KR.save(); render(); };
     wireHead();
     if ($("relock")) $("relock").onclick = () => { if (confirm(`Lock ${L(cur)} again? Your stroke edits to it are dropped and it follows ${KR.DEF[cur].comps.map(c => L(c.ref)).join(" + ")} again.`)) { KR.relock(cur); sel = 0; pick(); render(); } };
     I.querySelectorAll('input[data-o^="c"]').forEach(inp => {

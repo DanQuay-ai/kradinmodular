@@ -22,6 +22,7 @@ Both agents work from this repository. Keep edits small, commit with a clear mes
 References: Libre Franklin (OFL), Eckmann, Auriol, Arnold Böcklin Std (owner's files, kept outside the repo).
 Pipeline: `autotrace.py` (skeleton -> chord-refined centreline and width profile -> foot/flat cuts on alignment lines -> G1 biarc spline; two variants per glyph, best fit kept; scores in latin/<id>-fit.json)
 then `buildotf.py latin/<id>.json REF OUT.otf "Family"` (union of strokes -> Béziers with nodes only on extrema and corners, H/V handles at extrema, integer coordinates) -> fonts/latin/*.otf + .woff2.
+`fitopt.py REF latin/<id>.json` (Böcklin): turns each traced stroke into a few clean control points with widths and moves them until the rebuild covers the reference ink (smoothness kept), adds strokes for ink nothing covers, falls back to clean-line letter plans (TEMPLATES) when a reading fails.
 `diffsheet.py REF latin/<id>.json out.png` shows missing ink in red, excess in blue.
 
 ## Rules
