@@ -60,6 +60,10 @@ const KS = (() => {
       segs: st.segs.map(g => g.t === "L" ? Object.assign({}, g, { len: g.len * k }) : g.t === "A" ? Object.assign({}, g, { r: g.r * k }) : g) });
   }
   function svgStroke(st, W, o = {}) {
+    if (st.loop && st.loop.at > 0) {
+      const mp = selfLoop(st, W), rings = mp.flatMap(pl => pl.map(r => `M${r.map(p => f(p[0]) + " " + f(p[1])).join("L")}Z`)).join("");
+      return `<path d="${rings}" fill="${o.color || "var(--ink)"}" fill-rule="nonzero"${o.attr || ""}/>`;
+    }
     if (st.wp || st.over) {
       const pg = polygon(st, W), dpath = q => `M${q.map(p => f(p[0]) + " " + f(p[1])).join("L")}Z`;
       // a stroke that passes over others is drawn with its white halo first (faux depth)
@@ -196,6 +200,32 @@ const KS = (() => {
   // Tapered (brush / Mincho logic): thickness follows the stroke direction (thin horizontals, thick verticals),
   // curves and diagonals sweep out to a point at a free end, horizontals end in a triangular scale (uroko),
   // verticals end with an angled cut. Ends that run past the baseline or the top are still cut flat.
+
+  // passover / passunder: a stroke that crosses itself. Split at segment loop.at into an early part A and a
+  // late part B. "over": B passes over A, so B's white halo is cut out of A only (never out of other strokes);
+  // "under": B passes under A, A's halo is cut out of B. The halo starts ~1.5 W away from the join so the
+  // stroke stays one continuous stroke there.
+  function subStroke(st, a, b) {
+    const T = trace(st).len || 1, pre = trace(Object.assign({}, st, { segs: st.segs.slice(0, a) })), mid = trace(Object.assign({}, st, { segs: st.segs.slice(0, b) }));
+    const t0 = pre.len / T, t1 = mid.len / T, wp = st.wp ? [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1].map(u => [u, wpAt(st.wp, t0 + u * (t1 - t0))]) : undefined;
+    const o = Object.assign({}, st, { x: pre.x, y: pre.y, h: pre.h, segs: st.segs.slice(a, b), s: 0, e: 1, loop: undefined, wp, len: t1 - t0 });
+    if (a > 0) o.cap0 = "butt"; if (b < st.segs.length) o.cap1 = "butt"; return o;
+  }
+  function selfLoop(st, W, tf, polyFn) {
+    const PC = (typeof window !== "undefined" ? window : globalThis).polygonClipping, lp = st.loop;
+    if (!lp || !(lp.at > 0 && lp.at < st.segs.length)) return null;
+    const pf = polyFn || polygon, A = subStroke(st, 0, lp.at), B = subStroke(st, lp.at, st.segs.length);
+    const hw = lp.halo ?? 0.16, haloOf = (s, fromEnd) => { const L = trace(s).len || 1, cut = Math.min(0.45, 1.5 * W / L);
+      return Object.assign({}, s, { wk: undefined, wp: (s.wp || [[0, s.wk || 1], [1, s.wk || 1]]).map(([t, w]) => [t, w + 2 * hw]), s: fromEnd ? 0 : cut, e: fromEnd ? 1 - cut : 1, cap0: "butt", cap1: "butt" }); };
+    const pa = pf(A, W, tf), pb = pf(B, W, tf);
+    if (!PC) return [pa, pb];
+    const G = q => [q.concat([q[0]])];
+    try {
+      let mp = lp.mode === "under" ? PC.union([G(pa)], PC.difference([G(pb)], [G(pf(haloOf(A, true), W, tf))]))
+                                   : PC.union(PC.difference([G(pa)], [G(pf(haloOf(B, false), W, tf))]), [G(pb)]);
+      return mp;
+    } catch (e) { return [[pa.concat([pa[0]])], [pb.concat([pb[0]])]]; }
+  }
   function polygonTapered(st, W, tf) {
     const k = K(W), P = trimCL(centreline(st), st.s ?? 0, st.e ?? 1), n = P.length;
     const c0 = st.cap0 !== "butt" ? cutDecision(P[0], P[0][3], true) : null, c1 = st.cap1 !== "butt" ? cutDecision(P[n - 1], P[n - 1][2], false) : null;
@@ -262,5 +292,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 ${700 - hi - 60} ${r + 100} ${hi - lo + 120}" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="${lo}" width="${r + 600}" height="${hi - lo}"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, wpAt, tidy, split, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, selfLoop, subStroke, place, centreline, trimCL, cutDecision, glyphSVG, wpAt, tidy, split, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

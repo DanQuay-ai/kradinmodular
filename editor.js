@@ -128,6 +128,9 @@
       <div class="f"><span>End cap</span><select data-cap="cap1"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
       <p class="hint">Ends at x ${Math.round(tr.x)}, y ${Math.round(tr.y)}, heading ${Math.round(((tr.h % 360) + 360) % 360)}° · length ${Math.round(tr.len)}</p>
       ${KS.BODY.fixed ? widthEditor(t) + `<div class="f"><span>Passes over</span><input type="checkbox" id="over"${t.over ? " checked" : ""}><span></span></div>${t.over ? num("Halo", "halo", Math.round((t.halo ?? 0.16) * 100), 4, 60, 1, "p") : ""}<p class="hint">Passes over: the stroke crosses what was drawn before it with a white halo (Böcklin's loops). Draw it last.</p>` : ""}
+      <h4>Loop</h4><div class="f"><span>Crossing</span><select id="loopm"><option value="">None</option><option value="over">Passover</option><option value="under">Passunder</option></select><span></span></div>
+      ${t.loop ? num("From segment", "loopat", t.loop.at, 1, Math.max(1, t.segs.length - 1), 1, "l") + num("White outline", "loophalo", Math.round((t.loop.halo ?? 0.16) * 100), 4, 60, 1, "l") : ""}
+      <p class="hint">Passover: from that segment on, the stroke crosses over its own earlier part with a white outline. Passunder: it goes under it. The outline only cuts this stroke, never the others.</p>
       <h4>Segments<span class="btns"><button class="mini" data-add="L">+ Line</button><button class="mini" data-add="A">+ Arc</button><button class="mini" data-add="C">+ Corner</button></span></h4>` + segEditor(t.segs) +
         `<p class="hint">Headings snap to 30° steps. Turn: positive turns left (anticlockwise), negative right. Arc 180 = bowl, 270 = curl, 360 = loop; chain arcs for a spiral.</p>`;
     } else if (isExtSel()) {
@@ -170,6 +173,11 @@
       inp.onpointerdown = inp.onfocus = () => commit();
       inp.oninput = () => { const t = E().strokes[sel]; t.wf = t.wf || [1, 1, 1, 1, 1]; t.wf[+inp.dataset.wf] = +inp.value / 100; inp.nextElementSibling.textContent = inp.value + "%"; applyWidth(t); KR.save(); canvas(); };
     });
+    if ($("loopm")) { $("loopm").value = (E().strokes[sel] || {}).loop ? E().strokes[sel].loop.mode : "";
+      $("loopm").onchange = () => { commit(); const t = E().strokes[sel], m = $("loopm").value;
+        if (!m) delete t.loop; else t.loop = Object.assign({ at: Math.max(1, Math.floor(t.segs.length / 2)), halo: 0.16 }, t.loop || {}, { mode: m }); KR.save(); render(); }; }
+    I.querySelectorAll('input[data-k="loopat"],input[data-k="loophalo"]').forEach(inp => { inp.onpointerdown = inp.onfocus = () => commit();
+      inp.oninput = () => { const t = E().strokes[sel]; if (!t.loop) return; if (inp.dataset.k === "loopat") t.loop.at = Math.round(+inp.value); else t.loop.halo = +inp.value / 100; I.querySelectorAll(`input[data-k="${inp.dataset.k}"]`).forEach(x => { if (x !== inp) x.value = inp.value; }); KR.save(); canvas(); }; });
     if ($("over")) $("over").onchange = () => { commit(); const t = E().strokes[sel]; t.over = $("over").checked; if (!t.over) delete t.halo; KR.save(); render(); };
     if ($("wreset")) $("wreset").onclick = () => { commit(); const t = E().strokes[sel]; if (t.wp0) t.wp = t.wp0; delete t.wf; delete t.wp0; KR.save(); render(); };
     wireHead();

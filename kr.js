@@ -183,10 +183,10 @@
     const hasOver = polys.some(p => p.knock);
     for (const r of [1000, 100, 10]) {          // the library can trip on near-coincident points: retry coarser
       try {
-        if (!hasOver) { const g = polys.map(q => prep(q, r)).filter(Boolean); return g.length ? rings(PC.union(...g)) : []; }
+        if (!hasOver) { const g = polys.map(q => q.mp || prep(q, r)).filter(Boolean); return g.length ? rings(PC.union(...g)) : []; }
         let acc = [];
         for (const q of polys) {
-          const g = prep(q, r); if (!g) continue;
+          const g = q.mp ? q.mp : prep(q, r); if (!g) continue;
           if (q.knock && acc.length) { const k = prep(q.knock, r); if (k) acc = PC.difference(acc, k); }
           acc = acc.length ? PC.union(acc, g) : [g];
         }
@@ -195,7 +195,7 @@
     }
     // last resort: add the strokes one by one, keeping any that refuse to merge as they are
     let acc = null; const loose = [];
-    for (const q of polys) { const g = prep(q, 10); if (!g) continue;
+    for (const q of polys) { const g = q.mp || prep(q, 10); if (!g) continue;
       try { acc = acc ? PC.union(acc, g) : [g]; } catch (e) { loose.push(q); } }
     return (acc ? rings(acc) : []).concat(loose);
   }
@@ -208,11 +208,11 @@
     const poly = style === "tapered" ? KS.polygonTapered : KS.polygon;
     // a stroke marked "over" passes over what was drawn before it with a white halo around it (Böcklin's loops):
     // its halo (the same stroke, wider by 2 x halo) is cut out of the earlier strokes before it is added
-    const haloOf = s => Object.assign({}, s, { over: false, wk: undefined, wp: (s.wp || [[0, s.wk || 1], [1, s.wk || 1]]).map(([t, w]) => [t, w + 2 * (s.halo ?? 0.16)]) });
+    const haloOf = s => { const c = Math.min(0.3, 1.2 * W / (KS.trace(s).len || 1)); return Object.assign({}, s, { over: false, wk: undefined, s: c, e: 1 - c, cap0: "butt", cap1: "butt", wp: (s.wp || [[0, s.wk || 1], [1, s.wk || 1]]).map(([t, w]) => [t, w + 2 * (s.halo ?? 0.16)]) }); }; // ends trimmed: the halo never bites where the stroke joins
     const polysOf = (key, strokes, tfn) => {
       if (rule) return KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]);
       const out = [];
-      for (const st of strokes) for (const s of KS.split(st)) { const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); }
+      for (const st of strokes) { if (st.loop && st.loop.at > 0) { const mp = KS.selfLoop(st, W, tfn, poly); const p = mp[0][0].slice(0, -1); p.mp = mp; out.push(p); continue; } for (const s of KS.split(st)) { const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); } }
       return out;
     };
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
