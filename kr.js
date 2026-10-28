@@ -178,13 +178,16 @@
   // shape, so no overlap can cancel out and leave a hole. Needs vendor/polygon-clipping (falls back to raw polygons).
   function merge(polys) {
     const PC = root.polygonClipping; if (!PC) return polys;
-    try {
-      const geoms = polys.filter(p => p.length >= 3).map(p => [p.concat([p[0]])]);
-      if (!geoms.length) return [];
-      const out = [];
-      for (const poly of PC.union(...geoms)) for (const ring of poly) out.push(ring.slice(0, -1));
-      return out;
-    } catch (e) { return polys; }
+    const prep = (q, r) => { const p = q.map(([x, y]) => [Math.round(x * r) / r, Math.round(y * r) / r]).filter((pt, i, a) => !i || pt[0] !== a[i - 1][0] || pt[1] !== a[i - 1][1]); return p.length >= 3 ? [p.concat([p[0]])] : null; };
+    const rings = mp => { const out = []; for (const poly of mp) for (const ring of poly) out.push(ring.slice(0, -1)); return out; };
+    for (const r of [1000, 100, 10]) {          // the library can trip on near-coincident points: retry coarser
+      try { const g = polys.map(q => prep(q, r)).filter(Boolean); return g.length ? rings(PC.union(...g)) : []; } catch (e) {}
+    }
+    // last resort: add the strokes one by one, keeping any that refuse to merge as they are
+    let acc = null; const loose = [];
+    for (const q of polys) { const g = prep(q, 10); if (!g) continue;
+      try { acc = acc ? PC.union(acc, g) : [g]; } catch (e) { loose.push(q); } }
+    return (acc ? rings(acc) : []).concat(loose);
   }
   // style: "regular" (uniform stroke) or "tapered" (brush logic: thin horizontals, thick verticals, decorated ends)
   function buildFont(snapshot, W, wdth, slnt, family, style) {
@@ -193,7 +196,7 @@
     // style: "regular" | "tapered" | {P, ov} (a rule-based style from styles.js / the Serif lab)
     const rule = style && typeof style === "object" && style.P && typeof KST !== "undefined" ? style : null;
     const poly = style === "tapered" ? KS.polygonTapered : KS.polygon;
-    const polysOf = (key, strokes, tfn) => rule ? KST.glyph(strokes, W, tfn, rule.P, (rule.ov || {})[key]) : strokes.map(s => poly(s, W, tfn));
+    const polysOf = (key, strokes, tfn) => rule ? KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]) : strokes.flatMap(KS.split).map(s => poly(s, W, tfn));
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
       new opentype.Glyph({ name: "space", unicode: 32, advanceWidth: 300, path: new opentype.Path() })];
     const prevBody = Object.assign({}, KS.BODY); useBody();
@@ -283,7 +286,7 @@
   }
 
   const api = { projects, createProject, useProject, renameProject, deleteProject, projectName, downloadFont, get PROJ() { return PROJ; }, PREFIX: P, load, save, def, edit, status, setStatus, setDeleted, deleted, unlock, relock, blockedBy, resolve, progress, radicalKeys, compositeKeys, otherKeys, allKeys, liveKeys,
-    fonts, exportFont, deleteFont, snapshot, fontmap, shape, buildFont, fontFace, label, VOW, RAD_ROWS, COMP_ROWS, OTHER,
+    fonts, exportFont, deleteFont, snapshot, fontmap, shape, buildFont, merge, fontFace, label, VOW, RAD_ROWS, COMP_ROWS, OTHER,
     get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : LAT ? "latin/" + LID + "-ghost.json" : "radicals-ghost.json", META, useBody };
   return api;
  }

@@ -99,7 +99,31 @@ const KS = (() => {
   }
 
   // ---------- outline polygon for fonts (port of gen/outline.py): fixed point structure, flat cuts at 0 / 700
+  // drop corners with nothing after them (a trailing turn has no geometry and twists the end) and empty lines
+  function tidy(st) {
+    let segs = st.segs.filter(g => !(g.t === "L" && Math.abs(g.len) < 1e-6));
+    while (segs.length && segs[segs.length - 1].t === "C") segs = segs.slice(0, -1);
+    let h = st.h; while (segs.length && segs[0].t === "C") { h += segs[0].ang; segs = segs.slice(1); }
+    return segs === st.segs && h === st.h ? st : Object.assign({}, st, { h, segs });
+  }
+  // a stroke that turns back on itself (a corner of more than 170 degrees) is drawn as two strokes meeting
+  // there with plain ends: a mitre there would shoot out a spike
+  function split(st) {
+    st = tidy(st); const out = []; let cur = [], x = st.x, y = st.y, h = st.h;
+    const push = cap1 => { if (cur.length) out.push(Object.assign({}, st, { x: x0, y: y0, h: h0, segs: cur, cap0: out.length ? "butt" : st.cap0, cap1 })); };
+    let x0 = x, y0 = y, h0 = h;
+    for (const g of st.segs) {
+      if (g.t === "C" && Math.abs(g.ang) > 170) {
+        const t = trace(Object.assign({}, st, { x: x0, y: y0, h: h0, segs: cur })); push("butt");
+        x0 = t.x; y0 = t.y; h0 = t.h + g.ang; cur = []; continue;
+      }
+      cur.push(g);
+    }
+    if (!out.length) return [st];
+    push(st.cap1); return out.filter(s => s.segs.some(g => g.t !== "C"));
+  }
   function centreline(st) {
+    st = tidy(st);
     let x = st.x, y = st.y, h = st.h; const P = [[x, y, h, h, "end"]];
     for (const g of st.segs) {
       if (g.t === "C") { h += g.ang; P[P.length - 1][3] = h; P[P.length - 1][4] = "corner"; continue; }
@@ -233,5 +257,5 @@ const KS = (() => {
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
     return `<svg viewBox="-60 ${700 - hi - 60} ${r + 100} ${hi - lo + 120}" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="${lo}" width="${r + 600}" height="${hi - lo}"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, wpAt, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, wpAt, tidy, split, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();
