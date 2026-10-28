@@ -48,7 +48,7 @@ class Stroke:
         s = np.linspace(0, T, n)
         self.C = np.c_[np.interp(s, L, P[:, 0]), np.interp(s, L, P[:, 1])]
         self.w = np.interp(s, L, w * W)
-        self.closed = closed; self.caps = caps
+        self.closed = closed; self.caps = caps; self.over = False; self.halo = 0.16
 
     def curve(self, m=8):
         n = len(self.C); t = np.arange(n)
@@ -57,8 +57,8 @@ class Stroke:
         tt = np.linspace(0, n - 1, (n - 1) * m + 1)
         return cs(tt), np.maximum(cw(tt), 2.0)
 
-    def polygon(self):
-        P, w = self.curve()
+    def polygon(self, extra=0.0):
+        P, w = self.curve(); w = w + extra
         T = np.gradient(P, axis=0); T /= np.maximum(1e-9, np.hypot(*T.T))[:, None]
         N = np.c_[-T[:, 1], T[:, 0]]
         return np.vstack([P + N * (w / 2)[:, None], (P - N * (w / 2)[:, None])[::-1]])
@@ -66,7 +66,7 @@ class Stroke:
 
 class Glyph:
     def __init__(self, ink, left, top, cuts):
-        self.ink = ink; self.left = left; self.top = top; self.cuts = cuts
+        self.ink = ink; self.left = left; self.top = top; self.cuts = cuts; self.W = 90.0
         self.area = ink.sum()
         # weight map: being wrong far from an edge matters more than a pixel at the edge
         self.din = ndimage.distance_transform_edt(ink); self.dout = ndimage.distance_transform_edt(~ink)
@@ -74,6 +74,7 @@ class Glyph:
     def raster(self, strokes):
         im = Image.new("L", (self.ink.shape[1], self.ink.shape[0]), 0); dr = ImageDraw.Draw(im)
         for s in strokes:
+            if s.over: dr.polygon([(x - self.left, self.top - y) for x, y in s.polygon(2 * s.halo * self.W)], fill=0)
             pg = s.polygon(); dr.polygon([(x - self.left, self.top - y) for x, y in pg], fill=255)
         # flat cuts on the alignment lines: nothing below the baseline unless the reference has ink there
         return np.array(im) > 127
@@ -156,6 +157,7 @@ def to_turtle(s, W):
     tt = (1 - np.cos(np.linspace(0, np.pi, 33))) / 2
     st["wp"] = [[round(float(a), 3), round(float(b), 3)] for a, b in zip(tt, np.interp(tt * T, L, w) / W)]
     st["cap0"], st["cap1"] = "butt", "butt"
+    if s.over: st["over"] = True; st["halo"] = s.halo
     return st
 
 
@@ -175,17 +177,42 @@ def main():
         r = AT.render(face, ch, k, pad=30)
         if r is None: continue
         ink, left, top, adv = r
-        G = Glyph(ink, left, top, [m["desc"], 0, m["x"], 700, m["asc"]])
+        G = Glyph(ink, left, top, [m["desc"], 0, m["x"], 700, m["asc"]]); G.W = W
         strokes = []
         for st in g["strokes"]:
             P, w = stroke_points(st)
-            if len(P) >= 2 and np.hypot(*(P[-1] - P[0])) + 1 > 2: strokes.append(Stroke(P, w, W))
+            if len(P) >= 2 and np.hypot(*(P[-1] - P[0])) + 1 > 2:
+                s_ = Stroke(P, w, W)
+                if st.get("over"): s_.over = True; s_.halo = st.get("halo", 0.16)
+                strokes.append(s_)
         c0 = G.cost(strokes)
         optimise(G, strokes, W)
         for _ in range(2):          # missing parts: read them, add them, fit everything again
             new = residual_strokes(G, strokes, W)
             if not new: break
             strokes += new; optimise(G, strokes, W, rounds=3)
+        # a stroke that crosses itself: the later part is the loop that passes over the earlier part
+        for s in list(strokes):
+            P, w = s.curve(4); n = len(P); hit = None
+            for i in range(0, n - 8, 2):
+                for j in range(i + 8, n - 1, 2):
+                    if np.hypot(*(P[i] - P[j])) < W * 0.25: hit = (i, j); break
+                if hit: break
+            if not hit: continue
+            j = hit[1]; cut = max(hit[0] + 4, j - int(W / 4))
+            a_, b_ = Stroke(P[:cut + 1], w[:cut + 1] / W, W), Stroke(P[cut:], w[cut:] / W, W); b_.over = True
+            trial = [x for x in strokes if x is not s] + [a_, b_]
+            if G.cost(trial) < G.cost(strokes) - 0.005: strokes = trial
+        # loops: try each stroke as one that passes over the others with a white halo (drawn last)
+        base = G.cost(strokes) + smooth_pen(strokes, W)
+        for s in list(strokes):
+            if len(strokes) < 2: break
+            trial = [x for x in strokes if x is not s] + [s]; s.over = True
+            for hv in (0.12, 0.2):
+                s.halo = hv; c = G.cost(trial) + smooth_pen(trial, W)
+                if c < base - 0.01: base = c; strokes = trial; break
+            else: s.over = False
+        if any(s.over for s in strokes): optimise(G, strokes, W, rounds=2)
         c1 = G.cost(strokes)
         # a reading that went wrong (a Z read as a loop): start again from the letter's plan, in clean lines
         if ch in TEMPLATES and c1 > 0.15:

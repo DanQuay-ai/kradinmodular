@@ -151,14 +151,21 @@ def main():
     for key, g in d["glyphs"].items():
         ch = PUN.get(key, key)
         if len(ch) != 1: continue
-        polys = []
+        polys = []; acc = None
+        def P_(pg):
+            p = Polygon(pg); return p if p.is_valid else p.buffer(0)
         for st in g["strokes"]:
             for pg in autotrace.outline_polys(st, W):
-                p = Polygon(pg)
-                if not p.is_valid: p = p.buffer(0)
-                if p.area > 1: polys.append(p)
+                p = P_(pg)
+                if p.area <= 1: continue
+                polys.append(p)
+                if st.get("over") and acc is not None:   # passes over: cut its white halo out of what is already drawn
+                    halo = dict(st, over=False, wk=None, wp=[[t, w + 2 * st.get("halo", 0.16)] for t, w in (st.get("wp") or [[0, st.get("wk", 1)], [1, st.get("wk", 1)]])])
+                    halo.pop("wk")
+                    for hg in autotrace.outline_polys(halo, W): acc = acc.difference(P_(hg))
+                acc = p if acc is None else acc.union(p)
         if not polys: continue
-        shape = unary_union(polys)
+        shape = acc
         if shape.is_empty or not shape.is_valid: shape = unary_union([p.buffer(0) for p in polys])
         if hasattr(shape, "geoms") and not isinstance(shape, MultiPolygon): shape = MultiPolygon([g_ for g_ in shape.geoms if isinstance(g_, Polygon)])
         geoms = list(shape.geoms) if isinstance(shape, MultiPolygon) else [shape]

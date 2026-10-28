@@ -127,7 +127,7 @@
       <div class="f"><span>Start cap</span><select data-cap="cap0"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
       <div class="f"><span>End cap</span><select data-cap="cap1"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
       <p class="hint">Ends at x ${Math.round(tr.x)}, y ${Math.round(tr.y)}, heading ${Math.round(((tr.h % 360) + 360) % 360)}° · length ${Math.round(tr.len)}</p>
-      ${KS.BODY.fixed ? widthEditor(t) : ""}
+      ${KS.BODY.fixed ? widthEditor(t) + `<div class="f"><span>Passes over</span><input type="checkbox" id="over"${t.over ? " checked" : ""}><span></span></div>${t.over ? num("Halo", "halo", Math.round((t.halo ?? 0.16) * 100), 4, 60, 1, "p") : ""}<p class="hint">Passes over: the stroke crosses what was drawn before it with a white halo (Böcklin's loops). Draw it last.</p>` : ""}
       <h4>Segments<span class="btns"><button class="mini" data-add="L">+ Line</button><button class="mini" data-add="A">+ Arc</button><button class="mini" data-add="C">+ Corner</button></span></h4>` + segEditor(t.segs) +
         `<p class="hint">Headings snap to 30° steps. Turn: positive turns left (anticlockwise), negative right. Arc 180 = bowl, 270 = curl, 360 = loop; chain arcs for a spiral.</p>`;
     } else if (isExtSel()) {
@@ -170,6 +170,7 @@
       inp.onpointerdown = inp.onfocus = () => commit();
       inp.oninput = () => { const t = E().strokes[sel]; t.wf = t.wf || [1, 1, 1, 1, 1]; t.wf[+inp.dataset.wf] = +inp.value / 100; inp.nextElementSibling.textContent = inp.value + "%"; applyWidth(t); KR.save(); canvas(); };
     });
+    if ($("over")) $("over").onchange = () => { commit(); const t = E().strokes[sel]; t.over = $("over").checked; if (!t.over) delete t.halo; KR.save(); render(); };
     if ($("wreset")) $("wreset").onclick = () => { commit(); const t = E().strokes[sel]; if (t.wp0) t.wp = t.wp0; delete t.wf; delete t.wp0; KR.save(); render(); };
     wireHead();
     if ($("relock")) $("relock").onclick = () => { if (confirm(`Lock ${L(cur)} again? Your stroke edits to it are dropped and it follows ${KR.DEF[cur].comps.map(c => L(c.ref)).join(" + ")} again.`)) { KR.relock(cur); sel = 0; pick(); render(); } };

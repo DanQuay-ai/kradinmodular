@@ -180,8 +180,18 @@
     const PC = root.polygonClipping; if (!PC) return polys;
     const prep = (q, r) => { const p = q.map(([x, y]) => [Math.round(x * r) / r, Math.round(y * r) / r]).filter((pt, i, a) => !i || pt[0] !== a[i - 1][0] || pt[1] !== a[i - 1][1]); return p.length >= 3 ? [p.concat([p[0]])] : null; };
     const rings = mp => { const out = []; for (const poly of mp) for (const ring of poly) out.push(ring.slice(0, -1)); return out; };
+    const hasOver = polys.some(p => p.knock);
     for (const r of [1000, 100, 10]) {          // the library can trip on near-coincident points: retry coarser
-      try { const g = polys.map(q => prep(q, r)).filter(Boolean); return g.length ? rings(PC.union(...g)) : []; } catch (e) {}
+      try {
+        if (!hasOver) { const g = polys.map(q => prep(q, r)).filter(Boolean); return g.length ? rings(PC.union(...g)) : []; }
+        let acc = [];
+        for (const q of polys) {
+          const g = prep(q, r); if (!g) continue;
+          if (q.knock && acc.length) { const k = prep(q.knock, r); if (k) acc = PC.difference(acc, k); }
+          acc = acc.length ? PC.union(acc, g) : [g];
+        }
+        return rings(acc);
+      } catch (e) {}
     }
     // last resort: add the strokes one by one, keeping any that refuse to merge as they are
     let acc = null; const loose = [];
@@ -196,7 +206,15 @@
     // style: "regular" | "tapered" | {P, ov} (a rule-based style from styles.js / the Serif lab)
     const rule = style && typeof style === "object" && style.P && typeof KST !== "undefined" ? style : null;
     const poly = style === "tapered" ? KS.polygonTapered : KS.polygon;
-    const polysOf = (key, strokes, tfn) => rule ? KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]) : strokes.flatMap(KS.split).map(s => poly(s, W, tfn));
+    // a stroke marked "over" passes over what was drawn before it with a white halo around it (Böcklin's loops):
+    // its halo (the same stroke, wider by 2 x halo) is cut out of the earlier strokes before it is added
+    const haloOf = s => Object.assign({}, s, { over: false, wk: undefined, wp: (s.wp || [[0, s.wk || 1], [1, s.wk || 1]]).map(([t, w]) => [t, w + 2 * (s.halo ?? 0.16)]) });
+    const polysOf = (key, strokes, tfn) => {
+      if (rule) return KST.glyph(strokes.flatMap(KS.split), W, tfn, rule.P, (rule.ov || {})[key]);
+      const out = [];
+      for (const st of strokes) for (const s of KS.split(st)) { const p = poly(s, W, tfn); if (st.over) p.knock = poly(haloOf(s), W, tfn); out.push(p); }
+      return out;
+    };
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
       new opentype.Glyph({ name: "space", unicode: 32, advanceWidth: 300, path: new opentype.Path() })];
     const prevBody = Object.assign({}, KS.BODY); useBody();

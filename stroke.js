@@ -60,7 +60,12 @@ const KS = (() => {
       segs: st.segs.map(g => g.t === "L" ? Object.assign({}, g, { len: g.len * k }) : g.t === "A" ? Object.assign({}, g, { r: g.r * k }) : g) });
   }
   function svgStroke(st, W, o = {}) {
-    if (st.wp) { const pg = polygon(st, W); return `<path d="M${pg.map(p => f(p[0]) + " " + f(p[1])).join("L")}Z" fill="${o.color || "var(--ink)"}"${o.attr || ""}/>`; }
+    if (st.wp || st.over) {
+      const pg = polygon(st, W), dpath = q => `M${q.map(p => f(p[0]) + " " + f(p[1])).join("L")}Z`;
+      // a stroke that passes over others is drawn with its white halo first (faux depth)
+      const halo = st.over ? `<path d="${dpath(polygon(Object.assign({}, st, { over: false, wk: undefined, wp: (st.wp || [[0, st.wk || 1], [1, st.wk || 1]]).map(([t, w]) => [t, w + 2 * (st.halo ?? 0.16)]) }), W))}" fill="var(--canvas, #fff)" pointer-events="none"/>` : "";
+      return halo + `<path d="${dpath(pg)}" fill="${o.color || "var(--ink)"}"${o.attr || ""}/>`;
+    }
     st = scaled(st, W);
     const { d, t } = path(st, W), s = st.s ?? 0, e = st.e ?? 1;
     const dash = (s > 0 || e < 1) ? ` pathLength="1000" stroke-dasharray="0 ${f(s * 1000)} ${f((e - s) * 1000)} 3000"` : "";

@@ -20,6 +20,9 @@ for key, g in d['glyphs'].items():
     ink, left, top, adv = r
     im = Image.new('L', (ink.shape[1], ink.shape[0]), 0); dr = ImageDraw.Draw(im)
     for st in g['strokes']:
+        if st.get('over'):
+            h_ = dict(st, wp=[[t, w + 2 * st.get('halo', 0.16)] for t, w in (st.get('wp') or [[0, st.get('wk', 1)], [1, st.get('wk', 1)]])]); h_.pop('wk', None)
+            for poly in outline_polys(h_, W): dr.polygon([(x - left, top - y) for x, y in poly], fill=0)
         for poly in outline_polys(st, W): dr.polygon([(x - left, top - y) for x, y in poly], fill=255)
     rb = np.array(im) > 127
     rgb = np.full(ink.shape + (3,), 255, np.uint8)
