@@ -11,13 +11,13 @@
 <body>
 <nav class="nav">
   <a class="brand" href="index.html"><span class="k" data-lat="Kɔradin">kɔ</span><span class="bt">Kɔradin Modular</span></a>
-  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html" aria-current="page">Construction lab</a><a href="serif.html">Serif lab</a><a href="calendar.html">Calendar</a><a href="kradin.html">Kradin</a><a href="learn.html">Sua</a><a href="articles.html">Articles</a></div>
+  <div class="tabs"><a href="index.html">Type tester</a><a href="radicals.html">Radicals</a><a href="lab.html" aria-current="page">Construction lab</a><a href="trace.html">Trace study</a><a href="serif.html">Serif lab</a><a href="calendar.html">Calendar</a><a href="kradin.html">Kradin</a><a href="learn.html">Sua</a><a href="articles.html">Articles</a></div>
 </nav>
 <div class="gen">
   <aside class="pane pick" id="pick" aria-label="Glyphs"></aside>
   <main class="stage">
     <div class="top">
-      <div class="pane group scr" aria-label="Script"><a class="mini" data-s="kradin" href="lab.html">Kɔradin</a><a class="mini" data-s="adinkra" href="lab.html?s=adinkra">Adinkra alphabet</a></div>
+      <div class="pane group scr" aria-label="Script"><select class="mini" id="scr" aria-label="Script"></select></div>
       <div class="pane group"><span class="lbl">Stroke</span><input type="range" id="w" min="22" max="98" value="98" aria-label="Stroke weight"><span class="val" id="wv">98</span></div>
       <div class="pane group"><span class="lbl">Guide</span><label class="switch"><input type="checkbox" id="gh" checked><span></span></label>
         <span class="lbl">Lines</span><label class="switch"><input type="checkbox" id="cl" checked><span></span></label>
@@ -30,13 +30,16 @@
   </main>
   <aside class="pane ins" id="ins"></aside>
 </div>
-<script>window.EDITOR_MODE="all";window.KR_SCRIPT=new URLSearchParams(location.search).get("s")==="adinkra"?"adinkra":"kradin";
-document.querySelectorAll(".scr a").forEach(a=>a.setAttribute("aria-current",a.dataset.s===KR_SCRIPT));
+<script>window.EDITOR_MODE="all";window.KR_SCRIPT=new URLSearchParams(location.search).get("s")||"kradin";
 if(KR_SCRIPT==="adinkra")document.title="Adinkra Alphabet Construction Lab";</script>
 <script src="twi.js"></script>
 <script src="stroke.js"></script>
 <script src="kr.js"></script>
 <script src="kfont.js"></script>
+<script>
+const scr=document.getElementById("scr");scr.innerHTML=KR_SCRIPTS.map(s=>`<option value="${s.id}"${s.pending?" disabled":""}>${s.name}${s.pending?" (needs reference font)":""}</option>`).join("");scr.value=KR.SCRIPT;
+scr.onchange=()=>{location.href="lab.html"+(scr.value==="kradin"?"":"?s="+scr.value)};
+</script>
 <script src="editor.js"></script>
 <script src="vendor/opentype.min.js"></script>
 <script src="styles.js"></script>

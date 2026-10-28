@@ -49,7 +49,11 @@ const KS = (() => {
   }
   // weight scaling: designs are drawn at Black (98). At other weights the centrelines scale about the mid axis
   // so the outer edges still sit on the baseline and the top (circles stay circles).
-  const K = W => (700 - W) / 602;
+  // body: Kɔradin keeps every stroke inside 0..700 (strokes move in as they get heavier, K < 1).
+  // Latin scripts set fixed: strokes stay where they are drawn, the ink grows around them.
+  const BODY = { lo: 0, hi: 700, fixed: false, lines: null };
+  function setBody(b) { Object.assign(BODY, { lo: 0, hi: 700, fixed: false, lines: null }, b || {}); }
+  const K = W => BODY.fixed ? 1 : (700 - W) / 602;
   function scaled(st, W) {
     const k = K(W); if (Math.abs(k - 1) < 1e-6) return st;
     return Object.assign({}, st, { x: st.x * k, y: 350 + (st.y - 350) * k,
@@ -62,6 +66,7 @@ const KS = (() => {
     return `<path d="${d}" fill="none" stroke="${o.color || "var(--ink)"}" stroke-width="${W}" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10"${dash}${o.attr || ""}/>`;
   }
   function guides(W, x0 = -100, x1 = 1000) {
+    if (BODY.lines) return BODY.lines.map(([n, y], i) => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity="${y === 0 ? .6 : .35}" stroke-width="${y === 0 ? 3 : 2}" ${y === 0 ? "" : 'stroke-dasharray="12 10"'}/>`).join("");
     const a = AX(W);
     return [0, 700].map(y => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity=".55" stroke-width="3"/>`).join("") +
       [a.base, a.mid, a.top].map(y => `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="var(--tint)" stroke-opacity=".35" stroke-width="2" stroke-dasharray="12 10"/>`).join("");
@@ -205,14 +210,14 @@ const KS = (() => {
     const sc = strokes.map(s => scaled(s, W));
     let x1 = 0;
     sc.forEach(s => trace(s).joints.forEach(j => { x1 = Math.max(x1, j.x); }));
-    const r = Math.max(700, x1 + W / 2 + 60), id = "c" + (++_id);
+    const r = Math.max(BODY.fixed ? 400 : 700, x1 + W / 2 + 60), id = "c" + (++_id), lo = BODY.lo, hi = BODY.hi;
     let g = "";
     if (o.guides !== false) g += guides(W, -60, r + 40);
     if (o.ghost) g += `<path d="${o.ghost}" fill="#ff9500" fill-opacity=".25"/>`;
     g += `<g clip-path="url(#${id})">` + strokes.map((s, i) => svgStroke(s, W, { color: o.color ? o.color(i, s) : "var(--ink)", attr: o.attr ? o.attr(i, s) : "" })).join("") + `</g>`;
     if (o.cl) g += sc.map(s => `<path d="${trace(s).d}" fill="none" stroke="#ff3b30" stroke-width="3"/>`).join("");
     if (o.nums) g += sc.map((s, i) => `<g transform="translate(${s.x},${s.y}) scale(1,-1)"><circle r="30" fill="#ff3b30"/><text y="11" text-anchor="middle" font-size="32" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${i + 1}</text></g>`).join("");
-    return `<svg viewBox="-60 -60 ${r + 100} 820" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="0" width="${r + 600}" height="700"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
+    return `<svg viewBox="-60 ${700 - hi - 60} ${r + 100} ${hi - lo + 120}" class="${o.cls || ""}" role="img"><defs><clipPath id="${id}"><rect x="-300" y="${lo}" width="${r + 600}" height="${hi - lo}"/></clipPath></defs><g transform="translate(0,700) scale(1,-1)">${g}</g></svg>`;
   }
-  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, K, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
+  return { polygon, polygonTapered, place, centreline, trimCL, cutDecision, glyphSVG, K, BODY, setBody, scaled, trace, path, svgStroke, guides, AX, elements, autoOrder, f };
 })();

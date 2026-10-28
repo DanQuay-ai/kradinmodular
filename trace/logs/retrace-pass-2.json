@@ -1,0 +1,1742 @@
+{
+  "pass": 2,
+  "summary": "Cap-centred endpoints, component-aware path continuation, continuous curve fitting, shared bases and mirrored components. All removed regions trigger reconsideration of their complete source path and its junction neighbours.",
+  "feedbackCount": 150,
+  "reviewedGlyphs": 40,
+  "reviewedFlags": [
+    {
+      "key": "ne.liga/part:P12",
+      "updatedAt": "2026-10-28T09:34:20.233Z",
+      "action": "revise"
+    },
+    {
+      "key": "ne.liga/part:P13",
+      "updatedAt": "2026-10-28T09:34:18.275Z",
+      "action": "revise"
+    },
+    {
+      "key": "ne.liga/part:P11",
+      "updatedAt": "2026-10-28T09:22:58.530Z",
+      "action": "remove"
+    },
+    {
+      "key": "neopen.liga/part:P7",
+      "updatedAt": "2026-10-28T09:22:24.356Z",
+      "action": "remove"
+    },
+    {
+      "key": "ni.liga/part:P3",
+      "updatedAt": "2026-10-28T09:22:20.605Z",
+      "action": "remove"
+    },
+    {
+      "key": "ni.liga/part:P4",
+      "updatedAt": "2026-10-28T09:22:18.289Z",
+      "action": "remove"
+    },
+    {
+      "key": "no.liga/part:P3",
+      "updatedAt": "2026-10-28T09:22:12.512Z",
+      "action": "remove"
+    },
+    {
+      "key": "nu.liga/part:P8",
+      "updatedAt": "2026-10-28T09:21:47.949Z",
+      "action": "remove"
+    },
+    {
+      "key": "sa.liga/part:P2",
+      "updatedAt": "2026-10-28T09:02:32.689Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P6",
+      "updatedAt": "2026-10-28T09:01:38.701Z",
+      "action": "revise"
+    },
+    {
+      "key": "su.liga/part:P17",
+      "updatedAt": "2026-10-28T09:01:36.199Z",
+      "action": "revise"
+    },
+    {
+      "key": "su.liga/part:P4",
+      "updatedAt": "2026-10-28T09:01:29.883Z",
+      "action": "revise"
+    },
+    {
+      "key": "su.liga/part:P24",
+      "updatedAt": "2026-10-28T09:01:18.505Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P23",
+      "updatedAt": "2026-10-28T09:01:16.569Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P20",
+      "updatedAt": "2026-10-28T09:01:13.912Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P18",
+      "updatedAt": "2026-10-28T09:01:12.408Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P15",
+      "updatedAt": "2026-10-28T09:01:09.706Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P14",
+      "updatedAt": "2026-10-28T09:01:08.120Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P12",
+      "updatedAt": "2026-10-28T09:01:05.022Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P10",
+      "updatedAt": "2026-10-28T09:01:04.051Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P9",
+      "updatedAt": "2026-10-28T09:01:01.621Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P8",
+      "updatedAt": "2026-10-28T09:00:58.927Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P3",
+      "updatedAt": "2026-10-28T09:00:55.523Z",
+      "action": "remove"
+    },
+    {
+      "key": "su.liga/part:P1",
+      "updatedAt": "2026-10-28T09:00:53.370Z",
+      "action": "remove"
+    },
+    {
+      "key": "ri.liga/part:P2",
+      "updatedAt": "2026-10-28T09:00:24.764Z",
+      "action": "remove"
+    },
+    {
+      "key": "ri.liga/part:P8",
+      "updatedAt": "2026-10-28T09:00:20.692Z",
+      "action": "remove"
+    },
+    {
+      "key": "ri.liga/part:P11",
+      "updatedAt": "2026-10-28T09:00:17.867Z",
+      "action": "remove"
+    },
+    {
+      "key": "ri.liga/part:P14",
+      "updatedAt": "2026-10-28T09:00:16.140Z",
+      "action": "remove"
+    },
+    {
+      "key": "ri.liga/part:P12",
+      "updatedAt": "2026-10-28T09:00:14.207Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P17",
+      "updatedAt": "2026-10-28T09:00:08.391Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P15",
+      "updatedAt": "2026-10-28T09:00:06.070Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P11",
+      "updatedAt": "2026-10-28T09:00:03.475Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P1",
+      "updatedAt": "2026-10-28T08:59:59.709Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P5",
+      "updatedAt": "2026-10-28T08:59:57.451Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P12",
+      "updatedAt": "2026-10-28T08:59:50.827Z",
+      "action": "remove"
+    },
+    {
+      "key": "ro.liga/part:P13",
+      "updatedAt": "2026-10-28T08:59:43.371Z",
+      "action": "remove"
+    },
+    {
+      "key": "roopen.liga/part:P10",
+      "updatedAt": "2026-10-28T08:59:31.106Z",
+      "action": "remove"
+    },
+    {
+      "key": "roopen.liga/part:P7",
+      "updatedAt": "2026-10-28T08:59:27.561Z",
+      "action": "remove"
+    },
+    {
+      "key": "roopen.liga/part:P4",
+      "updatedAt": "2026-10-28T08:59:25.923Z",
+      "action": "remove"
+    },
+    {
+      "key": "roopen.liga/part:P3",
+      "updatedAt": "2026-10-28T08:59:24.033Z",
+      "action": "remove"
+    },
+    {
+      "key": "roopen.liga/part:P1",
+      "updatedAt": "2026-10-28T08:59:22.044Z",
+      "action": "remove"
+    },
+    {
+      "key": "ru.liga/part:P11",
+      "updatedAt": "2026-10-28T08:59:16.792Z",
+      "action": "remove"
+    },
+    {
+      "key": "ru.liga/part:P10",
+      "updatedAt": "2026-10-28T08:59:15.068Z",
+      "action": "remove"
+    },
+    {
+      "key": "ru.liga/part:P5",
+      "updatedAt": "2026-10-28T08:59:12.903Z",
+      "action": "remove"
+    },
+    {
+      "key": "ru.liga/part:P4",
+      "updatedAt": "2026-10-28T08:59:11.118Z",
+      "action": "remove"
+    },
+    {
+      "key": "ru.liga/part:P3",
+      "updatedAt": "2026-10-28T08:59:09.982Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P24",
+      "updatedAt": "2026-10-28T08:58:05.387Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P23",
+      "updatedAt": "2026-10-28T08:58:03.523Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P20",
+      "updatedAt": "2026-10-28T08:58:00.387Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P19",
+      "updatedAt": "2026-10-28T08:57:58.809Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P16",
+      "updatedAt": "2026-10-28T08:57:55.612Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P14",
+      "updatedAt": "2026-10-28T08:57:53.159Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P12",
+      "updatedAt": "2026-10-28T08:57:49.358Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P11",
+      "updatedAt": "2026-10-28T08:57:47.505Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P10",
+      "updatedAt": "2026-10-28T08:57:45.436Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P7",
+      "updatedAt": "2026-10-28T08:57:41.750Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P6",
+      "updatedAt": "2026-10-28T08:57:39.613Z",
+      "action": "remove"
+    },
+    {
+      "key": "fa.liga/part:P2",
+      "updatedAt": "2026-10-28T08:57:38.384Z",
+      "action": "remove"
+    },
+    {
+      "key": "fe.liga/part:P4",
+      "updatedAt": "2026-10-28T08:57:28.603Z",
+      "action": "remove"
+    },
+    {
+      "key": "fe.liga/part:P11",
+      "updatedAt": "2026-10-28T08:57:04.293Z",
+      "action": "remove"
+    },
+    {
+      "key": "feopen.liga/part:P12",
+      "updatedAt": "2026-10-28T08:56:57.768Z",
+      "action": "remove"
+    },
+    {
+      "key": "feopen.liga/part:P1",
+      "updatedAt": "2026-10-28T08:56:54.964Z",
+      "action": "remove"
+    },
+    {
+      "key": "feopen.liga/part:P6",
+      "updatedAt": "2026-10-28T08:56:52.034Z",
+      "action": "remove"
+    },
+    {
+      "key": "feopen.liga/part:P5",
+      "updatedAt": "2026-10-28T08:56:50.070Z",
+      "action": "remove"
+    },
+    {
+      "key": "fi.liga/part:P3",
+      "updatedAt": "2026-10-28T08:56:43.773Z",
+      "action": "remove"
+    },
+    {
+      "key": "fi.liga/part:P7",
+      "updatedAt": "2026-10-28T08:56:39.768Z",
+      "action": "remove"
+    },
+    {
+      "key": "fi.liga/part:P11",
+      "updatedAt": "2026-10-28T08:56:37.003Z",
+      "action": "remove"
+    },
+    {
+      "key": "fi.liga/part:P13",
+      "updatedAt": "2026-10-28T08:56:34.434Z",
+      "action": "remove"
+    },
+    {
+      "key": "fi.liga/part:P15",
+      "updatedAt": "2026-10-28T08:55:41.702Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P11",
+      "updatedAt": "2026-10-28T08:55:34.149Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P9",
+      "updatedAt": "2026-10-28T08:55:30.780Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P7",
+      "updatedAt": "2026-10-28T08:55:20.064Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P5",
+      "updatedAt": "2026-10-28T08:55:16.617Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P3",
+      "updatedAt": "2026-10-28T08:55:14.069Z",
+      "action": "remove"
+    },
+    {
+      "key": "fo.liga/part:P2",
+      "updatedAt": "2026-10-28T08:55:12.154Z",
+      "action": "remove"
+    },
+    {
+      "key": "foopen.liga/part:P11",
+      "updatedAt": "2026-10-28T08:55:03.912Z",
+      "action": "remove"
+    },
+    {
+      "key": "foopen.liga/part:P8",
+      "updatedAt": "2026-10-28T08:55:01.635Z",
+      "action": "remove"
+    },
+    {
+      "key": "foopen.liga/part:P6",
+      "updatedAt": "2026-10-28T08:54:58.027Z",
+      "action": "remove"
+    },
+    {
+      "key": "foopen.liga/part:P13",
+      "updatedAt": "2026-10-28T08:54:53.525Z",
+      "action": "remove"
+    },
+    {
+      "key": "fu.liga/part:P12",
+      "updatedAt": "2026-10-28T08:54:40.575Z",
+      "action": "revise"
+    },
+    {
+      "key": "fu.liga/part:P10",
+      "updatedAt": "2026-10-28T08:54:39.220Z",
+      "action": "revise"
+    },
+    {
+      "key": "fu.liga/part:P7",
+      "updatedAt": "2026-10-28T08:53:36.537Z",
+      "action": "remove"
+    },
+    {
+      "key": "fu.liga/part:P5",
+      "updatedAt": "2026-10-28T08:53:33.971Z",
+      "action": "remove"
+    },
+    {
+      "key": "fu.liga/part:P4",
+      "updatedAt": "2026-10-28T08:53:31.887Z",
+      "action": "remove"
+    },
+    {
+      "key": "du.liga/part:P7",
+      "updatedAt": "2026-10-28T08:53:15.591Z",
+      "action": "remove"
+    },
+    {
+      "key": "du.liga/part:P2",
+      "updatedAt": "2026-10-28T08:53:07.670Z",
+      "action": "remove"
+    },
+    {
+      "key": "pu.liga/part:P7",
+      "updatedAt": "2026-10-28T08:52:54.212Z",
+      "action": "remove"
+    },
+    {
+      "key": "pu.liga/part:P1",
+      "updatedAt": "2026-10-28T08:52:49.755Z",
+      "action": "remove"
+    },
+    {
+      "key": "pu.liga/part:P11",
+      "updatedAt": "2026-10-28T08:52:46.725Z",
+      "action": "remove"
+    },
+    {
+      "key": "poopen.liga/part:P2",
+      "updatedAt": "2026-10-28T08:52:37.754Z",
+      "action": "remove"
+    },
+    {
+      "key": "poopen.liga/part:P3",
+      "updatedAt": "2026-10-28T08:52:32.826Z",
+      "action": "remove"
+    },
+    {
+      "key": "po.liga/part:P9",
+      "updatedAt": "2026-10-28T08:52:23.195Z",
+      "action": "remove"
+    },
+    {
+      "key": "po.liga/part:P5",
+      "updatedAt": "2026-10-28T08:52:20.756Z",
+      "action": "remove"
+    },
+    {
+      "key": "po.liga/part:P4",
+      "updatedAt": "2026-10-28T08:52:18.500Z",
+      "action": "remove"
+    },
+    {
+      "key": "po.liga/part:P16",
+      "updatedAt": "2026-10-28T08:52:12.787Z",
+      "action": "remove"
+    },
+    {
+      "key": "po.liga/part:P1",
+      "updatedAt": "2026-10-28T08:52:02.251Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P9",
+      "updatedAt": "2026-10-28T08:51:54.211Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P5",
+      "updatedAt": "2026-10-28T08:51:44.536Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P4",
+      "updatedAt": "2026-10-28T08:51:41.876Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P15",
+      "updatedAt": "2026-10-28T08:51:30.030Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P8",
+      "updatedAt": "2026-10-28T08:51:26.852Z",
+      "action": "remove"
+    },
+    {
+      "key": "pi.liga/part:P3",
+      "updatedAt": "2026-10-28T08:51:24.184Z",
+      "action": "remove"
+    },
+    {
+      "key": "peopen.liga/part:P3",
+      "updatedAt": "2026-10-28T08:51:15.939Z",
+      "action": "remove"
+    },
+    {
+      "key": "pe.liga/part:P3",
+      "updatedAt": "2026-10-28T08:51:04.312Z",
+      "action": "remove"
+    },
+    {
+      "key": "pe.liga/part:P5",
+      "updatedAt": "2026-10-28T08:51:00.042Z",
+      "action": "remove"
+    },
+    {
+      "key": "pe.liga/part:P1",
+      "updatedAt": "2026-10-28T08:50:54.825Z",
+      "action": "remove"
+    },
+    {
+      "key": "pe.liga/part:P14",
+      "updatedAt": "2026-10-28T08:50:50.169Z",
+      "action": "remove"
+    },
+    {
+      "key": "pa.liga/part:P4",
+      "updatedAt": "2026-10-28T08:50:38.008Z",
+      "action": "revise"
+    },
+    {
+      "key": "pa.liga/part:P3",
+      "updatedAt": "2026-10-28T08:50:35.541Z",
+      "action": "revise"
+    },
+    {
+      "key": "pa.liga/part:P1",
+      "updatedAt": "2026-10-28T08:50:32.106Z",
+      "action": "revise"
+    },
+    {
+      "key": "pa.liga/part:P11",
+      "updatedAt": "2026-10-28T08:50:19.179Z",
+      "action": "remove"
+    },
+    {
+      "key": "pa.liga/part:P2",
+      "updatedAt": "2026-10-28T08:50:16.708Z",
+      "action": "remove"
+    },
+    {
+      "key": "u/part:P5",
+      "updatedAt": "2026-10-28T08:49:57.843Z",
+      "action": "remove"
+    },
+    {
+      "key": "oopen/part:P10",
+      "updatedAt": "2026-10-28T08:49:45.013Z",
+      "action": "remove"
+    },
+    {
+      "key": "o/part:P10",
+      "updatedAt": "2026-10-28T08:49:41.365Z",
+      "action": "remove"
+    },
+    {
+      "key": "o/part:P8",
+      "updatedAt": "2026-10-28T08:49:37.715Z",
+      "action": "remove"
+    },
+    {
+      "key": "o/part:P6",
+      "updatedAt": "2026-10-28T08:49:31.838Z",
+      "action": "remove"
+    },
+    {
+      "key": "o/part:P4",
+      "updatedAt": "2026-10-28T08:49:27.698Z",
+      "action": "remove"
+    },
+    {
+      "key": "i/part:P5",
+      "updatedAt": "2026-10-28T08:49:13.075Z",
+      "action": "remove"
+    },
+    {
+      "key": "i/part:P4",
+      "updatedAt": "2026-10-28T08:49:10.719Z",
+      "action": "remove"
+    },
+    {
+      "key": "i/part:P1",
+      "updatedAt": "2026-10-28T08:49:06.132Z",
+      "action": "remove"
+    },
+    {
+      "key": "i/part:P10",
+      "updatedAt": "2026-10-28T08:48:59.848Z",
+      "action": "remove"
+    },
+    {
+      "key": "eopen/part:P8",
+      "updatedAt": "2026-10-28T08:48:52.030Z",
+      "action": "revise"
+    },
+    {
+      "key": "eopen/part:P9",
+      "updatedAt": "2026-10-28T08:48:39.429Z",
+      "action": "remove"
+    },
+    {
+      "key": "eopen/part:P1",
+      "updatedAt": "2026-10-28T08:29:50.704Z",
+      "action": "remove"
+    },
+    {
+      "key": "eopen/part:P5",
+      "updatedAt": "2026-10-28T08:29:48.656Z",
+      "action": "remove"
+    },
+    {
+      "key": "e/part:P1",
+      "updatedAt": "2026-10-28T08:29:43.224Z",
+      "action": "remove"
+    },
+    {
+      "key": "e/part:P3",
+      "updatedAt": "2026-10-28T08:29:19.730Z",
+      "action": "remove"
+    },
+    {
+      "key": "e/part:P9",
+      "updatedAt": "2026-10-28T08:29:11.966Z",
+      "action": "remove"
+    },
+    {
+      "key": "e/part:P12",
+      "updatedAt": "2026-10-28T08:29:00.964Z",
+      "action": "remove"
+    },
+    {
+      "key": "e/part:P14",
+      "updatedAt": "2026-10-28T08:28:52.601Z",
+      "action": "remove"
+    },
+    {
+      "key": "a/part:P4",
+      "updatedAt": "2026-10-28T08:28:26.633Z",
+      "action": "remove"
+    },
+    {
+      "key": "ku.liga/part:P7",
+      "updatedAt": "2026-10-28T08:28:07.008Z",
+      "action": "remove"
+    },
+    {
+      "key": "ku.liga/part:P3",
+      "updatedAt": "2026-10-28T08:27:52.845Z",
+      "action": "remove"
+    },
+    {
+      "key": "ku.liga/part:P2",
+      "updatedAt": "2026-10-28T08:27:44.238Z",
+      "action": "remove"
+    },
+    {
+      "key": "koopen.liga/part:P7",
+      "updatedAt": "2026-10-28T08:27:14.930Z",
+      "action": "remove"
+    },
+    {
+      "key": "ki.liga/part:P9",
+      "updatedAt": "2026-10-28T08:26:38.228Z",
+      "action": "fix"
+    },
+    {
+      "key": "ki.liga/part:P3",
+      "updatedAt": "2026-10-28T08:26:24.946Z",
+      "action": "remove"
+    },
+    {
+      "key": "ki.liga/part:P6",
+      "updatedAt": "2026-10-28T08:26:17.922Z",
+      "action": "remove"
+    },
+    {
+      "key": "keopen.liga/part:P1",
+      "updatedAt": "2026-10-28T08:26:05.120Z",
+      "action": "remove"
+    },
+    {
+      "key": "keopen.liga/part:P3",
+      "updatedAt": "2026-10-28T08:26:02.982Z",
+      "action": "remove"
+    },
+    {
+      "key": "keopen.liga/part:P5",
+      "updatedAt": "2026-10-28T08:25:51.273Z",
+      "action": "remove"
+    },
+    {
+      "key": "ke.liga/part:P4",
+      "updatedAt": "2026-10-28T08:25:11.304Z",
+      "action": "remove"
+    },
+    {
+      "key": "ke.liga/part:P8",
+      "updatedAt": "2026-10-28T08:24:54.879Z",
+      "action": "remove"
+    },
+    {
+      "key": "ke.liga/part:P10",
+      "updatedAt": "2026-10-28T08:24:49.848Z",
+      "action": "remove"
+    },
+    {
+      "key": "ka.liga/part:P5",
+      "updatedAt": "2026-10-28T08:24:17.400Z",
+      "action": "fix"
+    },
+    {
+      "key": "ka.liga/part:P6",
+      "updatedAt": "2026-10-28T08:23:53.762Z",
+      "action": "remove"
+    },
+    {
+      "key": "ko.liga/part:P6",
+      "updatedAt": "2026-10-28T08:23:19.167Z",
+      "action": "remove"
+    },
+    {
+      "key": "ko.liga/part:P1",
+      "updatedAt": "2026-10-28T08:23:11.253Z",
+      "action": "remove"
+    },
+    {
+      "key": "ko.liga/part:P4",
+      "updatedAt": "2026-10-28T08:18:11.890Z",
+      "action": "remove"
+    }
+  ],
+  "oldPartCount": 812,
+  "newPartCount": 490,
+  "oldUnresolvedCount": 231,
+  "newUnresolvedCount": 0,
+  "endpointCorrections": [
+    {
+      "glyph": "a",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        568.79,
+        613.09
+      ],
+      "new": [
+        575.0,
+        644.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.53
+    },
+    {
+      "glyph": "e",
+      "stroke": "S4",
+      "end": 1,
+      "old": [
+        525.96,
+        282.84
+      ],
+      "new": [
+        496.5,
+        299.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 33.84
+    },
+    {
+      "glyph": "eopen",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        79.32,
+        3.41
+      ],
+      "new": [
+        112.5,
+        3.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 33.18
+    },
+    {
+      "glyph": "eopen",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        563.88,
+        5.68
+      ],
+      "new": [
+        531.0,
+        3.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 32.95
+    },
+    {
+      "glyph": "i",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        50.34,
+        380.45
+      ],
+      "new": [
+        82.0,
+        383.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.76
+    },
+    {
+      "glyph": "oopen",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        468.98,
+        173.12
+      ],
+      "new": [
+        446.5,
+        193.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.01
+    },
+    {
+      "glyph": "pe.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        536.67,
+        71.01
+      ],
+      "new": [
+        519.0,
+        74.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 18.01
+    },
+    {
+      "glyph": "pe.liga",
+      "stroke": "S5",
+      "end": 1,
+      "old": [
+        536.75,
+        696.93
+      ],
+      "new": [
+        516.0,
+        690.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 21.88
+    },
+    {
+      "glyph": "peopen.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        464.95,
+        112.1
+      ],
+      "new": [
+        466.0,
+        144.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 32.42
+    },
+    {
+      "glyph": "po.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        580.97,
+        6.03
+      ],
+      "new": [
+        581.0,
+        37.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.47
+    },
+    {
+      "glyph": "poopen.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        111.42,
+        365.57
+      ],
+      "new": [
+        82.0,
+        358.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.38
+    },
+    {
+      "glyph": "pu.liga",
+      "stroke": "S3",
+      "end": 0,
+      "old": [
+        119.09,
+        276.0
+      ],
+      "new": [
+        132.5,
+        248.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.05
+    },
+    {
+      "glyph": "pu.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        477.4,
+        276.93
+      ],
+      "new": [
+        467.0,
+        247.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.21
+    },
+    {
+      "glyph": "da.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        587.83,
+        459.46
+      ],
+      "new": [
+        556.0,
+        458.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.86
+    },
+    {
+      "glyph": "de.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        140.11,
+        1.21
+      ],
+      "new": [
+        171.0,
+        1.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.89
+    },
+    {
+      "glyph": "di.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        572.82,
+        0.0
+      ],
+      "new": [
+        557.0,
+        1.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 15.89
+    },
+    {
+      "glyph": "doopen.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        538.83,
+        459.46
+      ],
+      "new": [
+        507.0,
+        458.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.86
+    },
+    {
+      "glyph": "fa.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        451.76,
+        561.54
+      ],
+      "new": [
+        418.0,
+        560.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 33.8
+    },
+    {
+      "glyph": "fa.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        411.52,
+        0.43
+      ],
+      "new": [
+        402.5,
+        0.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 9.03
+    },
+    {
+      "glyph": "fa.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        51.24,
+        698.56
+      ],
+      "new": [
+        86.0,
+        700.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 34.79
+    },
+    {
+      "glyph": "fe.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        55.64,
+        699.85
+      ],
+      "new": [
+        55.0,
+        669.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.36
+    },
+    {
+      "glyph": "feopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        223.45,
+        0.34
+      ],
+      "new": [
+        225.0,
+        30.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 29.7
+    },
+    {
+      "glyph": "fi.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        297.56,
+        557.06
+      ],
+      "new": [
+        272.5,
+        557.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 25.06
+    },
+    {
+      "glyph": "fu.liga",
+      "stroke": "S3",
+      "end": 0,
+      "old": [
+        489.4,
+        271.93
+      ],
+      "new": [
+        478.5,
+        242.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.85
+    },
+    {
+      "glyph": "fu.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        128.09,
+        271.0
+      ],
+      "new": [
+        141.5,
+        242.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.5
+    },
+    {
+      "glyph": "keopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        727.59,
+        3.32
+      ],
+      "new": [
+        729.0,
+        33.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.21
+    },
+    {
+      "glyph": "keopen.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        513.32,
+        234.59
+      ],
+      "new": [
+        543.5,
+        237.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.28
+    },
+    {
+      "glyph": "keopen.liga",
+      "stroke": "S3",
+      "end": 0,
+      "old": [
+        515.13,
+        699.76
+      ],
+      "new": [
+        516.0,
+        669.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.27
+    },
+    {
+      "glyph": "ko.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        114.69,
+        2.67
+      ],
+      "new": [
+        84.5,
+        2.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.2
+    },
+    {
+      "glyph": "ko.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        594.82,
+        220.82
+      ],
+      "new": [
+        564.5,
+        221.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.32
+    },
+    {
+      "glyph": "reopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        115.78,
+        2.42
+      ],
+      "new": [
+        85.5,
+        2.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.28
+    },
+    {
+      "glyph": "ri.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        216.83,
+        196.63
+      ],
+      "new": [
+        218.0,
+        166.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.15
+    },
+    {
+      "glyph": "ri.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        389.75,
+        196.81
+      ],
+      "new": [
+        389.0,
+        166.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.32
+    },
+    {
+      "glyph": "ro.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        115.78,
+        1.42
+      ],
+      "new": [
+        85.5,
+        1.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.28
+    },
+    {
+      "glyph": "ro.liga",
+      "stroke": "S3",
+      "end": 0,
+      "old": [
+        169.82,
+        314.78
+      ],
+      "new": [
+        194.5,
+        350.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 43.42
+    },
+    {
+      "glyph": "ro.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        415.35,
+        316.95
+      ],
+      "new": [
+        391.5,
+        350.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 41.16
+    },
+    {
+      "glyph": "ro.liga",
+      "stroke": "S4",
+      "end": 0,
+      "old": [
+        171.35,
+        330.03
+      ],
+      "new": [
+        194.5,
+        297.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 39.93
+    },
+    {
+      "glyph": "ro.liga",
+      "stroke": "S4",
+      "end": 1,
+      "old": [
+        417.06,
+        333.21
+      ],
+      "new": [
+        391.5,
+        297.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 43.91
+    },
+    {
+      "glyph": "roopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        115.78,
+        2.42
+      ],
+      "new": [
+        85.5,
+        2.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.28
+    },
+    {
+      "glyph": "ru.liga",
+      "stroke": "S3",
+      "end": 0,
+      "old": [
+        132.9,
+        284.1
+      ],
+      "new": [
+        108.0,
+        284.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 24.9
+    },
+    {
+      "glyph": "ru.liga",
+      "stroke": "S3",
+      "end": 1,
+      "old": [
+        457.34,
+        290.38
+      ],
+      "new": [
+        483.5,
+        284.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 26.93
+    },
+    {
+      "glyph": "to.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        110.75,
+        1.3
+      ],
+      "new": [
+        88.5,
+        1.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 22.25
+    },
+    {
+      "glyph": "to.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        50.25,
+        467.22
+      ],
+      "new": [
+        80.5,
+        467.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.25
+    },
+    {
+      "glyph": "toopen.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        50.25,
+        468.22
+      ],
+      "new": [
+        80.5,
+        468.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.25
+    },
+    {
+      "glyph": "se.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        295.3,
+        683.36
+      ],
+      "new": [
+        291.0,
+        673.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 10.76
+    },
+    {
+      "glyph": "se.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        362.74,
+        55.83
+      ],
+      "new": [
+        355.0,
+        28.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 28.89
+    },
+    {
+      "glyph": "seopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        302.15,
+        0.06
+      ],
+      "new": [
+        289.0,
+        28.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.88
+    },
+    {
+      "glyph": "seopen.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        348.72,
+        684.45
+      ],
+      "new": [
+        353.0,
+        673.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 11.76
+    },
+    {
+      "glyph": "si.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        191.0,
+        0.0
+      ],
+      "new": [
+        160.5,
+        0.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.5
+    },
+    {
+      "glyph": "si.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        51.03,
+        141.65
+      ],
+      "new": [
+        50.0,
+        110.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.17
+    },
+    {
+      "glyph": "so.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        50.82,
+        0.03
+      ],
+      "new": [
+        50.0,
+        30.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.48
+    },
+    {
+      "glyph": "so.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        670.88,
+        18.74
+      ],
+      "new": [
+        671.0,
+        30.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 11.76
+    },
+    {
+      "glyph": "soopen.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        686.66,
+        5.72
+      ],
+      "new": [
+        687.0,
+        30.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 24.78
+    },
+    {
+      "glyph": "soopen.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        50.28,
+        7.36
+      ],
+      "new": [
+        50.0,
+        30.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 23.14
+    },
+    {
+      "glyph": "su.liga",
+      "stroke": "S1",
+      "end": 0,
+      "old": [
+        50.12,
+        14.03
+      ],
+      "new": [
+        50.0,
+        33.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 19.47
+    },
+    {
+      "glyph": "su.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        51.03,
+        699.65
+      ],
+      "new": [
+        50.0,
+        669.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.17
+    },
+    {
+      "glyph": "su.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        684.76,
+        14.87
+      ],
+      "new": [
+        685.0,
+        33.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 18.63
+    },
+    {
+      "glyph": "su.liga",
+      "stroke": "S5",
+      "end": 1,
+      "old": [
+        684.49,
+        699.99
+      ],
+      "new": [
+        685.0,
+        669.5
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 30.49
+    },
+    {
+      "glyph": "ne.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        51.24,
+        698.56
+      ],
+      "new": [
+        85.5,
+        700.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 34.29
+    },
+    {
+      "glyph": "neopen.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        51.24,
+        698.56
+      ],
+      "new": [
+        85.5,
+        700.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 34.29
+    },
+    {
+      "glyph": "ni.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        51.69,
+        699.62
+      ],
+      "new": [
+        50.0,
+        668.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.67
+    },
+    {
+      "glyph": "ni.liga",
+      "stroke": "S2",
+      "end": 0,
+      "old": [
+        361.75,
+        110.19
+      ],
+      "new": [
+        360.0,
+        142.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.86
+    },
+    {
+      "glyph": "no.liga",
+      "stroke": "S1",
+      "end": 1,
+      "old": [
+        51.69,
+        699.62
+      ],
+      "new": [
+        50.0,
+        668.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.67
+    },
+    {
+      "glyph": "nu.liga",
+      "stroke": "S2",
+      "end": 1,
+      "old": [
+        208.19,
+        472.75
+      ],
+      "new": [
+        239.5,
+        472.0
+      ],
+      "rule": "OTF flat-cap midpoint",
+      "movement": 31.32
+    }
+  ],
+  "sharedBases": 25,
+  "rules": [
+    {
+      "glyph": "su.liga",
+      "rule": "creator-provided component grammar",
+      "detail": "Opposed forms are explicit components; intersections do not choose stroke order. One side supplies the mirrored counterpart."
+    },
+    {
+      "glyph": "tu.liga",
+      "rule": "creator-provided component grammar",
+      "detail": "Opposed forms are explicit components; intersections do not choose stroke order. One side supplies the mirrored counterpart."
+    }
+  ],
+  "limitations": [
+    "The smooth compound arcs are measured cubic fits, not yet an approved circular-radius grammar.",
+    "Symmetry scores are evidence; only explicit components and the shared R body are mirrored in this pass.",
+    "The source is a centreline interpretation of filled OTF outlines, not recovered handwriting order."
+  ]
+}

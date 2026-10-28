@@ -28,7 +28,7 @@
   function pick() {
     const live = k => KR.DEF[k] && !KR.deleted(k);
     const rows = [[KR.FIRST_ROW, ""]].concat(KR.RAD_ROWS.slice(1).map(r => [r, r]));
-    let h = `<h3 class="sec">${KR.SCRIPT === "adinkra" ? "Adinkra alphabet" : "Radicals"}</h3>` + rows.map(([n, on]) => `<h3>${n}</h3><div class="chips">${KR.VOW.map(v => live(on + v) ? chip(on + v) : "").join("")}</div>`).join("");
+    let h = `<h3 class="sec">${KR.SCRIPT === "adinkra" ? "Adinkra alphabet" : KR.SCRIPT.startsWith("latin:") ? KR.META.name : "Radicals"}</h3>` + rows.map(([n, on]) => `<h3>${n}</h3><div class="chips">${KR.VOW.map(v => live(on + v) ? chip(on + v) : "").join("")}</div>`).join("");
     if (KR.COMP_ROWS.length) h += `<h3 class="sec">Composed</h3>` + KR.COMP_ROWS.map(([on, how]) => {
       const c = KR.VOW.map(v => live(on + v) && KR.DEF[on + v].type === "composite" ? chip(on + v) : "").join("");
       return c ? `<h3>${on} <small>${how}</small></h3><div class="chips">${c}</div>` : "";
@@ -60,13 +60,14 @@
   function canvas() {
     const w = W(), res = KR.resolve(cur), lock = res.filter(s => s.locked), mine = own(), NL = lock.length, cl = $("cl").checked;
     let xmax = 900; res.forEach(s => KS.trace(KS.scaled(s, w)).joints.forEach(j => { xmax = Math.max(xmax, j.x + 120); }));
-    $("cv").setAttribute("viewBox", `-100 -100 ${xmax + 100} 900`);
-    let s = `<defs><clipPath id="body"><rect x="-300" y="0" width="${xmax + 600}" height="700"/></clipPath>
+    const B = KS.BODY, lo = B.lo, hi = B.hi;
+    $("cv").setAttribute("viewBox", `-100 ${700 - hi - 100} ${xmax + 100} ${hi - lo + 200}`);
+    let s = `<defs><clipPath id="body"><rect x="-300" y="${lo}" width="${xmax + 600}" height="${hi - lo}"/></clipPath>
       <pattern id="lk" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="16" height="16" fill="var(--ink)" opacity=".55"/><rect width="7" height="16" fill="var(--ink)" opacity=".25"/></pattern></defs>
       <g id="flip" transform="translate(0,700) scale(1,-1)">`;
-    for (let x = 0; x <= xmax; x += 100) s += `<line x1="${x}" x2="${x}" y1="-60" y2="760" stroke="var(--sep)" stroke-width="1.5"/><text transform="translate(${x},-90) scale(1,-1)" font-size="20" fill="var(--label2)" text-anchor="middle" font-family="system-ui">${x}</text>`;
+    for (let x = 0; x <= xmax; x += 100) s += `<line x1="${x}" x2="${x}" y1="${lo - 60}" y2="${hi + 60}" stroke="var(--sep)" stroke-width="1.5"/><text transform="translate(${x},${lo - 90}) scale(1,-1)" font-size="20" fill="var(--label2)" text-anchor="middle" font-family="system-ui">${x}</text>`;
     s += KS.guides(w, -100, xmax);
-    [["0", 0], ["base", w / 2], ["mid", 350], ["top", 700 - w / 2], ["700", 700]].forEach(([n, y]) => s += `<text transform="translate(-95,${y + 6}) scale(1,-1)" font-size="18" fill="var(--tint)" font-family="system-ui">${n}</text>`);
+    (B.lines || [["0", 0], ["base", w / 2], ["mid", 350], ["top", 700 - w / 2], ["700", 700]]).forEach(([n, y]) => s += `<text transform="translate(-95,${y + 6}) scale(1,-1)" font-size="18" fill="var(--tint)" font-family="system-ui">${n}</text>`);
     if ($("gh").checked && GH[cur]) s += `<path d="${GH[cur].d}" fill="#ff9500" fill-opacity=".22"/>`;
     const tails = lock.filter(t => t.ext).map(t => ({ t: extTail(t), ei: t.ext.ei }));
     if (!$("hide").checked) {
@@ -120,7 +121,7 @@
     if (sel < mine.length) {
       const t = mine[sel], tr = KS.trace(t);
       s += `<h4>Stroke ${NL + sel + 1}<span class="btns"><button class="mini" data-a="up">↑</button><button class="mini" data-a="down">↓</button><button class="mini" data-a="dup">Duplicate</button><button class="mini" data-a="mir">Mirror</button><button class="mini" data-a="rev">Reverse</button><button class="mini" data-a="del">Delete</button></span></h4>
-      ${num("Start x", "x", t.x, -100, 1400, 1, "s")}${num("Start y", "y", t.y, 0, 700, 1, "s")}${num("Heading", "h", t.h, 0, 359, 1, "s")}
+      ${num("Start x", "x", t.x, -100, 1400, 1, "s")}${num("Start y", "y", t.y, KS.BODY.lo, KS.BODY.hi, 1, "s")}${num("Heading", "h", t.h, 0, 359, 1, "s")}
       <div class="hb">${HEADINGS.map(a => `<button data-h="${a}">${a}°</button>`).join("")}</div>
       <h4>Endpoint</h4>${num("Start", "s", Math.round((t.s ?? 0) * 100), 0, 100, 1, "p")}${num("End", "e", Math.round((t.e ?? 1) * 100), 0, 100, 1, "p")}
       <div class="f"><span>Start cap</span><select data-cap="cap0"><option value="auto">Cut flat at 0 / 700</option><option value="butt">Plain</option></select><span></span></div>
@@ -219,7 +220,7 @@
   function pt(e) { const m = $("flip").getScreenCTM().inverse(), p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m), k = KS.K(W()); return { x: p.x / k, y: 350 + (p.y - 350) / k }; }
   function snap(x, y) {
     let sx = Math.round(x / 5) * 5, sy = Math.round(y / 5) * 5;
-    for (const a of [0, 49, 350, 651, 700]) if (Math.abs(y - a) < 14) sy = a;
+    for (const a of (KS.BODY.lines ? KS.BODY.lines.map(l => l[1]) : [0, 49, 350, 651, 700])) if (Math.abs(y - a) < 14) sy = a;
     const res = KR.resolve(cur), NL = res.filter(s => s.locked).length;
     res.forEach((t, i) => { if (!t.locked && i - NL === sel) return; KS.trace(t).joints.forEach(j => { if (Math.hypot(j.x - x, j.y - y) < 16) { sx = Math.round(j.x * 10) / 10; sy = Math.round(j.y * 10) / 10; } }); });
     return [sx, sy];
@@ -245,13 +246,13 @@
     };
     ["w", "gh", "cl", "hide"].forEach(i => $(i).oninput = () => { $("wv").textContent = W(); prog(); canvas(); });
     const doExport = test => {
-      const name = prompt(test ? "Name this test build" : "Name this font", test ? "Test " + new Date().toLocaleString() : (KR.SCRIPT === "adinkra" ? "Adinkra " : "Kɔradin ") + new Date().toLocaleDateString());
+      const name = prompt(test ? "Name this test build" : "Name this font", test ? "Test " + new Date().toLocaleString() : (KR.SCRIPT === "adinkra" ? "Adinkra " : KR.SCRIPT.startsWith("latin:") ? KR.META.name.split(" (")[0] + " " : "Kɔradin ") + new Date().toLocaleDateString());
       if (name === null) return;
-      try { KR.exportFont(name, test); location.href = KR.SCRIPT === "adinkra" ? "index.html#adfont=latest" : "index.html#font=latest"; } catch (err) { alert(err.message); }
+      try { KR.exportFont(name, test); location.href = KR.SCRIPT === "adinkra" ? "index.html#adfont=latest" : KR.SCRIPT.startsWith("latin:") ? "index.html#latfont=" + KR.SCRIPT.slice(6) : "index.html#font=latest"; } catch (err) { alert(err.message); }
     };
     $("exportAll").onclick = () => doExport(false);
     $("exportTest").onclick = () => doExport(true);
     addEventListener("hashchange", () => openG(decodeURIComponent(location.hash.slice(1))));
   }
-  Promise.all([KR.load(), fetch(KR.GHOST).then(r => r.json())]).then(([_, g]) => { GH = g; init(); openG(decodeURIComponent(location.hash.slice(1)) || "a"); });
+  Promise.all([KR.load().then(() => { KR.useBody(); if (KR.META && KR.SCRIPT.startsWith("latin:")) { $("w").value = Math.round(KR.META.W); $("wv").textContent = $("w").value; } }), fetch(KR.GHOST).then(r => r.json())]).then(([_, g]) => { GH = g; init(); openG(decodeURIComponent(location.hash.slice(1)) || "a"); });
 })();

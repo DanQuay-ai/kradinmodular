@@ -2,7 +2,9 @@
    exported font snapshots, text shaping and in-browser font generation (needs opentype.js for fonts). */
 (function (root) {
  function make(SCRIPT) {
-  const AD = SCRIPT === "adinkra", P0 = AD ? "ad-" : "kr-";
+  const AD = SCRIPT === "adinkra", LAT = SCRIPT.startsWith("latin:"), LID = LAT ? SCRIPT.slice(6) : "";
+  const P0 = AD ? "ad-" : LAT ? "lt-" + LID + "-" : "kr-";
+  let BODYDEF = null; // Latin: baseline 0, cap height 700, glyphs keep their position as the weight changes
   // studio projects: each named font keeps its own edits, builds and styles under its own prefix
   const PROJ = (() => { try { return JSON.parse(localStorage.getItem("studio-cur-" + P0)) || ""; } catch (e) { return ""; } })();
   const P = P0 + (PROJ ? PROJ + "-" : "");
@@ -10,13 +12,13 @@
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   };
-  const VOW = AD ? ["a", "b", "d", "e", "ɛ", "f", "g", "h", "i", "k", "l", "m", "n", "o", "ɔ", "p", "r", "s", "t", "u", "w", "y", "c", "j", "q", "v", "x", "z"] : ["a", "e", "ɛ", "i", "o", "ɔ", "u"];
-  const RAD_ROWS = AD ? [""] : ["", "p", "t", "d", "k", "f", "s", "n", "r"];
-  const FIRST_ROW = AD ? "Letters" : "Vowels";
-  const COMP_ROWS = AD ? [] : [["b", "p + bar"], ["kp", "p + bracket"], ["gb", "b + bracket"], ["ky", "t + bar"], ["tw", "t + bar"], ["gy", "d + bar (= j)"], ["dw", "d + bar"],
+  const VOW = LAT ? [] : AD ? ["a", "b", "d", "e", "ɛ", "f", "g", "h", "i", "k", "l", "m", "n", "o", "ɔ", "p", "r", "s", "t", "u", "w", "y", "c", "j", "q", "v", "x", "z"] : ["a", "e", "ɛ", "i", "o", "ɔ", "u"];
+  const RAD_ROWS = AD || LAT ? [""] : ["", "p", "t", "d", "k", "f", "s", "n", "r"];
+  const FIRST_ROW = AD || LAT ? "Letters" : "Vowels";
+  const COMP_ROWS = AD || LAT ? [] : [["b", "p + bar"], ["kp", "p + bracket"], ["gb", "b + bracket"], ["ky", "t + bar"], ["tw", "t + bar"], ["gy", "d + bar (= j)"], ["dw", "d + bar"],
     ["hy", "s + bar"], ["z", "s + bar"], ["v", "f + bar"], ["hw", "f + bar"], ["l", "r + bar"], ["g", "k + bar"], ["m", "n + bar"], ["h", "vowel + bar"],
     ["y", "mini i + vowel"], ["w", "mini ɔ + vowel"], ["kw", "kɔ + a / e"], ["ny", "ni + vowel (= ni)"], ["my", "mi + vowel"]];
-  const OTHER = AD ? [["Punctuation", ["period", "comma", "hyphen", "exclam", "question"]]] : [["Numbers", ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]],
+  const OTHER = LAT ? [["Punctuation", ["period", "comma", "hyphen", "exclam", "question", "quote"]]] : AD ? [["Punctuation", ["period", "comma", "hyphen", "exclam", "question"]]] : [["Numbers", ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]],
     ["Nasal marks", ["m.pre", "n.pre", "ng.pre", "m", "n", "ng"]], ["Punctuation", ["period", "comma", "exclam", "question"]],
     ["Standalone consonants", ["b", "c", "d", "f", "g", "h", "j", "k", "l", "p", "q", "r", "s", "t", "v", "w", "y", "z"]]];
   const LABEL = { zero: "0", one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", period: ".", comma: ",", exclam: "!", question: "?",
@@ -24,13 +26,21 @@
   const label = k => k.startsWith("@") ? (LABEL[k.slice(1)] || k.slice(1)) : k;
   let DEF = null, VER = "", EDIT = {};
 
+  const META = { name: "", W: 98 };
+  const useBody = () => (BODYDEF ? KS.setBody(BODYDEF) : KS.setBody());
   async function load() {
-    const d = await fetch(AD ? "adinkra.json" : "glyphs.json").then(r => r.json());
+    const d = await fetch(AD ? "adinkra.json" : LAT ? "latin/" + LID + ".json" : "glyphs.json").then(r => r.json());
+    if (LAT) {
+      const m = d.metrics; META.name = d.name; META.W = m.W;
+      BODYDEF = { fixed: true, lo: m.desc - 40, hi: Math.max(m.asc, 760) + 40, lines: [["desc", m.desc], ["base", 0], ["x-height", m.x], ["cap", 700], ["asc", m.asc]] };
+      const rank = k => /^[A-ZƐƆ]$/.test(k) ? 0 : /^\d$/.test(k) ? 2 : 1;
+      VOW.length = 0; Object.keys(d.glyphs).filter(k => !k.startsWith("@")).sort((a, b) => rank(a) - rank(b)).forEach(k => VOW.push(k));
+    }
     DEF = d.glyphs; VER = d._version;
     EDIT = LS.get(P + "edits", {});
     if (PROJ && LS.get(P + "fresh", false)) { EDIT = {}; LS.set(P + "fresh", false); save(); }
     // a new set of glyphs: your edits so far are baked into it, so park them in a backup and start clean
-    const VK = (AD ? "ad-ver" : "kr-ver2") + (PROJ ? "-" + PROJ : "");
+    const VK = (AD ? "ad-ver" : LAT ? P0 + "ver" : "kr-ver2") + (PROJ ? "-" + PROJ : "");
     if (LS.get(VK, "") !== VER) {
       if (Object.keys(EDIT).length) LS.set(P + "edits-backup-" + (LS.get(VK, "") || "v1"), EDIT);
       EDIT = {}; LS.set(VK, VER); save();
@@ -173,8 +183,11 @@
     const polysOf = (key, strokes, tfn) => rule ? KST.glyph(strokes, W, tfn, rule.P, (rule.ov || {})[key]) : strokes.map(s => poly(s, W, tfn));
     const glyphs = [new opentype.Glyph({ name: ".notdef", unicode: 0, advanceWidth: 500, path: new opentype.Path() }),
       new opentype.Glyph({ name: "space", unicode: 32, advanceWidth: 300, path: new opentype.Path() })];
-    if (AD) { // Adinkra alphabet: one glyph per letter, on the Latin letters themselves (both cases)
-      const PUN = { "@period": ".", "@comma": ",", "@hyphen": "-", "@exclam": "!", "@question": "?" };
+    const prevBody = Object.assign({}, KS.BODY); useBody();
+    try { return buildInner(); } finally { KS.setBody(prevBody); }
+    function buildInner() {
+    if (AD || LAT) { // Adinkra alphabet / Latin: one glyph per letter, on the Latin letters themselves (both cases)
+      const PUN = { "@period": ".", "@comma": ",", "@hyphen": "-", "@exclam": "!", "@question": "?", "@quote": "'" };
       Object.keys(snapshot).forEach((k, i) => {
         const ch = PUN[k] || k; if (ch.length !== 1 || !snapshot[k].length) return;
         const P = new opentype.Path(), polys = polysOf(k, snapshot[k], tf), un = polysOf(k, snapshot[k], (x, y) => [x * xs, y]);
@@ -183,7 +196,7 @@
         for (const pg of polys) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
         const up = ch.toUpperCase(), adv = Math.round(x1 - x0 + 2 * SB);
         glyphs.push(new opentype.Glyph({ name: "ad" + i, unicode: ch.codePointAt(0), advanceWidth: adv, path: P }));
-        if (up !== ch) glyphs.push(new opentype.Glyph({ name: "adU" + i, unicode: up.codePointAt(0), advanceWidth: adv, path: P }));
+        if (AD && up !== ch) glyphs.push(new opentype.Glyph({ name: "adU" + i, unicode: up.codePointAt(0), advanceWidth: adv, path: P }));
       });
       return new opentype.Font({ familyName: family, styleName: "Regular", unitsPerEm: 1000, ascender: 900, descender: -250, glyphs });
     }
@@ -221,6 +234,7 @@
     }
     HALF[family] = half;
     return new opentype.Font({ familyName: family, styleName: "Regular", unitsPerEm: 1000, ascender: 900, descender: -250, glyphs });
+    }
   }
   async function fontFace(snapshot, W, wdth, slnt, family, style) {
     await fontmap();
@@ -236,7 +250,7 @@
     const np = P0 + id + "-";
     if (copy) { LS.set(np + "edits", EDIT); LS.set(np + "styles", LS.get(P + "styles", LS.get("kr-styles", []))); }
     else LS.set(np + "fresh", true);
-    LS.set((AD ? "ad-ver" : "kr-ver2") + "-" + id, VER);
+    LS.set((AD ? "ad-ver" : LAT ? P0 + "ver" : "kr-ver2") + "-" + id, VER);
     return id;
   }
   function useProject(id) { LS.set("studio-cur-" + P0, id || ""); }
@@ -257,10 +271,17 @@
 
   const api = { projects, createProject, useProject, renameProject, deleteProject, projectName, downloadFont, get PROJ() { return PROJ; }, PREFIX: P, load, save, def, edit, status, setStatus, setDeleted, deleted, unlock, relock, blockedBy, resolve, progress, radicalKeys, compositeKeys, otherKeys, allKeys, liveKeys,
     fonts, exportFont, deleteFont, snapshot, fontmap, shape, buildFont, fontFace, label, VOW, RAD_ROWS, COMP_ROWS, OTHER,
-    get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : "radicals-ghost.json" };
+    get DEF() { return DEF; }, get EDIT() { return EDIT; }, clone, base, SCRIPT, FIRST_ROW, GHOST: AD ? "adinkra-ghost.json" : LAT ? "latin/" + LID + "-ghost.json" : "radicals-ghost.json", META, useBody };
   return api;
  }
- root.KR = make(root.KR_SCRIPT === "adinkra" ? "adinkra" : "kradin");
+ root.KR = make(/^(adinkra|latin:\w+)$/.test(root.KR_SCRIPT || "") ? root.KR_SCRIPT : "kradin");
  root.KRA = root.KR.SCRIPT === "adinkra" ? root.KR : make("adinkra");
  root.KRK = root.KR.SCRIPT === "kradin" ? root.KR : make("kradin");
+ // every script the lab can draw. Latin fonts are rebuilt from a reference font by gen/autotrace.py.
+ root.KR_SCRIPTS = [{ id: "kradin", name: "Kɔradin" }, { id: "adinkra", name: "Adinkra alphabet" },
+   { id: "latin:franklin", name: "Franklin Gothic", ref: "traced from Libre Franklin (OFL), after Morris Fuller Benton, 1902" },
+   { id: "latin:eckmann", name: "Eckmannschrift", ref: "Otto Eckmann, 1900", pending: true },
+   { id: "latin:auriol", name: "Auriol", ref: "George Auriol, 1901", pending: true },
+   { id: "latin:bocklin", name: "Arnold Böcklin", ref: "Otto Weisert, 1904", pending: true }];
+ const cache = {}; root.KRL = id => cache[id] || (cache[id] = root.KR.SCRIPT === "latin:" + id ? root.KR : make("latin:" + id));
 })(typeof globalThis !== "undefined" ? globalThis : this);

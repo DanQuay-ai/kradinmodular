@@ -1,0 +1,158 @@
+[
+  {
+    "glyph": "ne.liga",
+    "old": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 176
+    },
+    "new": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 174
+    }
+  },
+  {
+    "glyph": "neopen.liga",
+    "old": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 187
+    },
+    "new": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 185
+    }
+  },
+  {
+    "glyph": "foopen.liga",
+    "old": {
+      "max": 0.85,
+      "outside5": 0,
+      "samples": 209
+    },
+    "new": {
+      "max": 0.85,
+      "outside5": 0,
+      "samples": 156
+    }
+  },
+  {
+    "glyph": "a",
+    "old": {
+      "max": 1.0,
+      "outside5": 0,
+      "samples": 169
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 167
+    }
+  },
+  {
+    "glyph": "eopen",
+    "old": {
+      "max": 0.6,
+      "outside5": 0,
+      "samples": 144
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 140
+    }
+  },
+  {
+    "glyph": "oopen",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 161
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 159
+    }
+  },
+  {
+    "glyph": "pe.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 167
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 165
+    }
+  },
+  {
+    "glyph": "pu.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 140
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 136
+    }
+  },
+  {
+    "glyph": "de.liga",
+    "old": {
+      "max": 0.79,
+      "outside5": 0,
+      "samples": 176
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 175
+    }
+  },
+  {
+    "glyph": "di.liga",
+    "old": {
+      "max": 0.18,
+      "outside5": 0,
+      "samples": 228
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 227
+    }
+  },
+  {
+    "glyph": "do.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 165
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 132
+    }
+  },
+  {
+    "glyph": "du.liga",
+    "old": {
+      "max": 0.95,
+      "outside5": 0,
+      "samples": 175
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 163
+    }
+  }
+]

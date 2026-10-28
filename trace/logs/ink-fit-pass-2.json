@@ -1,0 +1,821 @@
+[
+  {
+    "glyph": "a",
+    "old": {
+      "max": 1.0,
+      "outside5": 0,
+      "samples": 169
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 167
+    }
+  },
+  {
+    "glyph": "e",
+    "old": {
+      "max": 0.15,
+      "outside5": 0,
+      "samples": 115
+    },
+    "new": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 114
+    }
+  },
+  {
+    "glyph": "eopen",
+    "old": {
+      "max": 0.6,
+      "outside5": 0,
+      "samples": 144
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 140
+    }
+  },
+  {
+    "glyph": "i",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 113
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 111
+    }
+  },
+  {
+    "glyph": "o",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 171
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 171
+    }
+  },
+  {
+    "glyph": "oopen",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 161
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 159
+    }
+  },
+  {
+    "glyph": "u",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 188
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 225
+    }
+  },
+  {
+    "glyph": "pa.liga",
+    "old": {
+      "max": 0.37,
+      "outside5": 0,
+      "samples": 148
+    },
+    "new": {
+      "max": 0.37,
+      "outside5": 0,
+      "samples": 148
+    }
+  },
+  {
+    "glyph": "pe.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 167
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 165
+    }
+  },
+  {
+    "glyph": "peopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 117
+    },
+    "new": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 163
+    }
+  },
+  {
+    "glyph": "pi.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 185
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 186
+    }
+  },
+  {
+    "glyph": "po.liga",
+    "old": {
+      "max": 0.03,
+      "outside5": 0,
+      "samples": 196
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 194
+    }
+  },
+  {
+    "glyph": "poopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 167
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 165
+    }
+  },
+  {
+    "glyph": "pu.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 140
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 136
+    }
+  },
+  {
+    "glyph": "da.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 131
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 128
+    }
+  },
+  {
+    "glyph": "de.liga",
+    "old": {
+      "max": 0.79,
+      "outside5": 0,
+      "samples": 176
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 175
+    }
+  },
+  {
+    "glyph": "deopen.liga",
+    "old": {
+      "max": 0.43,
+      "outside5": 0,
+      "samples": 140
+    },
+    "new": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 140
+    }
+  },
+  {
+    "glyph": "di.liga",
+    "old": {
+      "max": 0.18,
+      "outside5": 0,
+      "samples": 228
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 227
+    }
+  },
+  {
+    "glyph": "do.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 165
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 132
+    }
+  },
+  {
+    "glyph": "doopen.liga",
+    "old": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 177
+    },
+    "new": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 155
+    }
+  },
+  {
+    "glyph": "du.liga",
+    "old": {
+      "max": 0.95,
+      "outside5": 0,
+      "samples": 175
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 163
+    }
+  },
+  {
+    "glyph": "fa.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 204
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 199
+    }
+  },
+  {
+    "glyph": "fe.liga",
+    "old": {
+      "max": 0.54,
+      "outside5": 0,
+      "samples": 158
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 154
+    }
+  },
+  {
+    "glyph": "feopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 186
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 218
+    }
+  },
+  {
+    "glyph": "fi.liga",
+    "old": {
+      "max": 0.32,
+      "outside5": 0,
+      "samples": 176
+    },
+    "new": {
+      "max": 0.32,
+      "outside5": 0,
+      "samples": 174
+    }
+  },
+  {
+    "glyph": "fo.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 194
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 159
+    }
+  },
+  {
+    "glyph": "foopen.liga",
+    "old": {
+      "max": 0.85,
+      "outside5": 0,
+      "samples": 209
+    },
+    "new": {
+      "max": 0.85,
+      "outside5": 0,
+      "samples": 156
+    }
+  },
+  {
+    "glyph": "fu.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 174
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 156
+    }
+  },
+  {
+    "glyph": "ka.liga",
+    "old": {
+      "max": 0.48,
+      "outside5": 0,
+      "samples": 175
+    },
+    "new": {
+      "max": 0.48,
+      "outside5": 0,
+      "samples": 175
+    }
+  },
+  {
+    "glyph": "ke.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 205
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 204
+    }
+  },
+  {
+    "glyph": "keopen.liga",
+    "old": {
+      "max": 0.66,
+      "outside5": 0,
+      "samples": 144
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 176
+    }
+  },
+  {
+    "glyph": "ki.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 147
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 146
+    }
+  },
+  {
+    "glyph": "ko.liga",
+    "old": {
+      "max": 1.0,
+      "outside5": 0,
+      "samples": 126
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 137
+    }
+  },
+  {
+    "glyph": "koopen.liga",
+    "old": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 160
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 186
+    }
+  },
+  {
+    "glyph": "ku.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 148
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 183
+    }
+  },
+  {
+    "glyph": "ra.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 144
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 144
+    }
+  },
+  {
+    "glyph": "re.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 142
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 181
+    }
+  },
+  {
+    "glyph": "reopen.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 150
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 186
+    }
+  },
+  {
+    "glyph": "ri.liga",
+    "old": {
+      "max": 0.63,
+      "outside5": 0,
+      "samples": 144
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 180
+    }
+  },
+  {
+    "glyph": "ro.liga",
+    "old": {
+      "max": 0.63,
+      "outside5": 0,
+      "samples": 233
+    },
+    "new": {
+      "max": 0.25,
+      "outside5": 0,
+      "samples": 260
+    }
+  },
+  {
+    "glyph": "roopen.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 173
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 209
+    }
+  },
+  {
+    "glyph": "ru.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 165
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 234
+    }
+  },
+  {
+    "glyph": "ta.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 121
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 121
+    }
+  },
+  {
+    "glyph": "te.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 112
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 141
+    }
+  },
+  {
+    "glyph": "teopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 147
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 192
+    }
+  },
+  {
+    "glyph": "ti.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 150
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 150
+    }
+  },
+  {
+    "glyph": "to.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 180
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 189
+    }
+  },
+  {
+    "glyph": "toopen.liga",
+    "old": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 154
+    },
+    "new": {
+      "max": 0.33,
+      "outside5": 0,
+      "samples": 133
+    }
+  },
+  {
+    "glyph": "tu.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 203
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 298
+    }
+  },
+  {
+    "glyph": "sa.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 137
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 136
+    }
+  },
+  {
+    "glyph": "se.liga",
+    "old": {
+      "max": 0.35,
+      "outside5": 0,
+      "samples": 126
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 123
+    }
+  },
+  {
+    "glyph": "seopen.liga",
+    "old": {
+      "max": 0.35,
+      "outside5": 0,
+      "samples": 125
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 128
+    }
+  },
+  {
+    "glyph": "si.liga",
+    "old": {
+      "max": 0.65,
+      "outside5": 0,
+      "samples": 140
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 136
+    }
+  },
+  {
+    "glyph": "so.liga",
+    "old": {
+      "max": 0.8,
+      "outside5": 0,
+      "samples": 178
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 345
+    }
+  },
+  {
+    "glyph": "soopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 180
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 178
+    }
+  },
+  {
+    "glyph": "su.liga",
+    "old": {
+      "max": 0.65,
+      "outside5": 0,
+      "samples": 224
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 356
+    }
+  },
+  {
+    "glyph": "na.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 171
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 170
+    }
+  },
+  {
+    "glyph": "ne.liga",
+    "old": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 176
+    },
+    "new": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 174
+    }
+  },
+  {
+    "glyph": "neopen.liga",
+    "old": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 187
+    },
+    "new": {
+      "max": 0.93,
+      "outside5": 0,
+      "samples": 185
+    }
+  },
+  {
+    "glyph": "ni.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 117
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 113
+    }
+  },
+  {
+    "glyph": "no.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 91
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 94
+    }
+  },
+  {
+    "glyph": "noopen.liga",
+    "old": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 119
+    },
+    "new": {
+      "max": 0.0,
+      "outside5": 0,
+      "samples": 131
+    }
+  },
+  {
+    "glyph": "nu.liga",
+    "old": {
+      "max": 0.37,
+      "outside5": 0,
+      "samples": 171
+    },
+    "new": {
+      "max": 0.5,
+      "outside5": 0,
+      "samples": 181
+    }
+  }
+]
