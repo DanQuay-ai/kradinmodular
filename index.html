@@ -126,6 +126,7 @@ Akwaaba. Kyerɛw. Nyame.</textarea>
 <script src="kfont.js"></script>
 <script src="styles.js"></script>
 <script src="vendor/opentype.min.js"></script>
+<script src="vendor/polygon-clipping.umd.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
@@ -204,7 +205,7 @@ function glyphSet(){
 }
 async function render(){
   const exp=genOn();
-  const F=exp?{name:ver()==="live"?(LT()?(KR_SCRIPTS.find(x=>x.id==="latin:"+st.lver)||{}).name+" modular":AL()?"Adinkra Alphabet Modular":"Construction lab glyphs"):(exportsList().find(x=>x.id===ver())||{}).name||"Export",styles:GSTY().map(s=>s.id),gen:true,axes:["wght","wdth","slnt"],dl:[]}:FONTS[fontKey()];
+  const F=exp?{name:ver()==="live"?(LT()?(KR_SCRIPTS.find(x=>x.id==="latin:"+st.lver)||{}).name+" modular":AL()?"Adinkra Alphabet Modular":"Construction lab glyphs"):(exportsList().find(x=>x.id===ver())||{}).name||"Export",styles:LT()?[]:GSTY().map(s=>s.id),gen:true,axes:["wght","wdth","slnt"],dl:[]}:FONTS[fontKey()];
   if(exp&&legacy[st.style])st.style=legacy[st.style];
   if(!exp&&!F.styles.includes(st.style))st.style=F.styles[0]||"";
   if(exp&&!F.styles.includes(st.style))st.style="regular";

@@ -99,8 +99,19 @@ def redraw(ring, tol=1.6, corner=38):
     return segs
 
 
+SNAP = []      # alignment lines in design units (baseline, x-height, cap, ascender, descender)
+
+
+def snapy(y, tol=14):
+    for L in SNAP:
+        if abs(y - L) < tol: return L
+    return y
+
+
 def draw(pen, segs, s, dx=0):
-    R = lambda p: (int(round(p[0] * s + dx)), int(round(p[1] * s)))
+    # every point (and the handles that share its height at an extremum) close to an alignment line
+    # is put exactly on it, so all glyphs sit on the same baseline, x-height and cap height
+    R = lambda p: (int(round(p[0] * s + dx)), int(round(snapy(p[1]) * s)))
     start = R(segs[0][1]); pen.moveTo(start); cur = start
     for g in segs:
         if g[0] == "L":
@@ -124,6 +135,7 @@ def main():
     a = ap.parse_args()
     d = json.load(open(a.data)); m = d["metrics"]; W = m["W"]
     autotrace.CUTS[:] = [m["desc"], 0, m["x"], 700, m["asc"]]
+    SNAP[:] = [0, m["x"], 700, m["asc"], m["desc"]]
     ref = TTFont(a.ref); upm = ref["head"].unitsPerEm; cm = ref.getBestCmap(); gs = ref.getGlyphSet()
     cap = getattr(ref["OS/2"], "sCapHeight", 0)
     if not cap: b = BoundsPen(gs); gs[cm[ord("H")]].draw(b); cap = b.bounds[3]

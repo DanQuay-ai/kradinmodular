@@ -173,6 +173,18 @@
       else i++;
     }
   }
+  // overlapping strokes (and strokes that fold over themselves in tight turns) are merged into one clean
+  // shape, so no overlap can cancel out and leave a hole. Needs vendor/polygon-clipping (falls back to raw polygons).
+  function merge(polys) {
+    const PC = root.polygonClipping; if (!PC) return polys;
+    try {
+      const geoms = polys.filter(p => p.length >= 3).map(p => [p.concat([p[0]])]);
+      if (!geoms.length) return [];
+      const out = [];
+      for (const poly of PC.union(...geoms)) for (const ring of poly) out.push(ring.slice(0, -1));
+      return out;
+    } catch (e) { return polys; }
+  }
   // style: "regular" (uniform stroke) or "tapered" (brush logic: thin horizontals, thick verticals, decorated ends)
   function buildFont(snapshot, W, wdth, slnt, family, style) {
     const SB = 50, t = Math.tan((-slnt || 0) * Math.PI / 180), xs = (wdth || 100) / 100;
@@ -193,7 +205,7 @@
         const P = new opentype.Path(), polys = polysOf(k, snapshot[k], tf), un = polysOf(k, snapshot[k], (x, y) => [x * xs, y]);
         let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
         if (!isFinite(x0)) { x0 = 0; x1 = 300; }
-        for (const pg of polys) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
+        for (const pg of merge(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
         const up = ch.toUpperCase(), adv = Math.round(x1 - x0 + 2 * SB);
         glyphs.push(new opentype.Glyph({ name: "ad" + i, unicode: ch.codePointAt(0), advanceWidth: adv, path: P }));
         if (AD && up !== ch) glyphs.push(new opentype.Glyph({ name: "adU" + i, unicode: up.codePointAt(0), advanceWidth: adv, path: P }));
@@ -208,7 +220,7 @@
       const un = polysOf(g.k, snapshot[g.k], (x, y) => [x * xs, y]);
       let x0 = 1e9, x1 = -1e9; un.forEach(p => p.forEach(([x]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); }));
       if (!isFinite(x0)) { x0 = 0; x1 = 300; }
-      for (const pg of polys) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
+      for (const pg of merge(polys)) { if (pg.length < 3) continue; pg.forEach(([x, y], j) => j ? P.lineTo(x - x0 + SB, y) : P.moveTo(x - x0 + SB, y)); P.close(); }
       const adv = Math.round(x1 - x0 + 2 * SB);
       if (CODA.includes(g.n)) { marks.push([CODA.indexOf(g.n), g, i, un]); return; }
       half.set(i, Math.round(adv / 2));
