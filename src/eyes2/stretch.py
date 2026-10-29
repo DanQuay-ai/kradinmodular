@@ -5,7 +5,7 @@ from shapely.geometry import LineString, box, Polygon, Point, mapping
 import relax as RX
 from shapely import affinity
 import body as BODY
-D = json.load(open(sys.argv[1])); f = float(sys.argv[3]); H = 700 * f
+D = json.load(open(sys.argv[1])); f = float(sys.argv[3]); H = 700 * f; BODYH = H
 def split_closed(strokes):
     """a stroke that turns more than 200 degrees (a ring, a loop, a spiral) is stored as consecutive pieces of at
     most 200 degrees each: one outline per piece, no piece overlaps itself, so loops keep their counters"""
@@ -87,6 +87,27 @@ def plan(strokes, W=40.0, tol=30.0):
                 if ops[(a_[0], a_[1])][0] != "cap": ops[(a_[0], a_[1], "cap")] = ("cap", b_[0])
     return ops
 
+FORCE = json.load(open(os.environ["EYES_FORCE"])) if os.environ.get("EYES_FORCE") else {}
+def forced(k, strokes, W=40.0):
+    """owner marks -> ops: 'cut' (end runs to the nearest body line, cut flat), 'run' (end runs on to the nearest stroke)"""
+    ops = {}
+    Qs = [np.asarray(st["cl"], float) for st in strokes]
+    for f in FORCE.get(k, []):
+        p = np.array([f["x"], 20 + (f["y"] - 20) * 660 / (700 * 1.3 - 40)])
+        best = min(((np.hypot(*(Qs[i][end] - p)), i, end) for i in range(len(Qs)) if len(Qs[i]) > 1 for end in (0, -1)
+                    if not strokes[i].get("joints", [False, False])[0 if end == 0 else 1]), default=None)
+        if best is None: continue
+        _, i, end = best
+        if f["op"] == "cut": ops[(i, end)] = ("cut", -1)
+        else:
+            hits = [(j, _ray_hit(Qs[i], end, Qs[j], 300)) for j in range(len(Qs)) if j != i and len(Qs[j]) > 1]
+            hits = [h for h in hits if h[1] is not None]
+            if hits: ops[(i, end)] = ("run", min(hits, key=lambda h: h[1])[0])
+            else:
+                j = min((j for j in range(len(Qs)) if j != i and len(Qs[j]) > 1), key=lambda j: LineString(Qs[j]).distance(Point(Qs[i][end])))
+                ops[(i, end)] = ("link", j)
+    return ops
+
 def st_piece(st): return bool(st.get("piece"))
 
 def apply(Qs, ops, caps):
@@ -97,6 +118,14 @@ def apply(Qs, ops, caps):
         if op == "trim":
             q, _ = _trim_at(Qs[i], end, Qs[j], 3.0 * 60)
             if q is not None and len(q) >= 2: Qs[i] = q
+        elif op == "link":                               # straight on to the nearest point of the other stroke
+            O = LineString(Qs[j]); q = O.interpolate(O.project(Point(Qs[i][end]))); q = np.array(q.coords[0])
+            Qs[i] = np.vstack([Qs[i], q]) if end == -1 else np.vstack([q, Qs[i]])
+        elif op == "cut":
+            t = _tan(Qs[i], end); y = Qs[i][end][1]
+            if abs(t[1]) > 0.15:
+                tgt = 0.0 if t[1] < 0 else BODYH
+                Qs[i] = _run_on(Qs[i], end, (tgt - y) / t[1] + 40)
         elif op == "run":
             d = _ray_hit(Qs[i], end, Qs[j], 400)
             if d is not None: Qs[i] = _run_on(Qs[i], end, d)
@@ -109,6 +138,7 @@ def apply(Qs, ops, caps):
 
 for k in D["keys"]:
     OPS = {} if os.environ.get("EYES_NOPLAN") else plan(split_closed(D["G"][k]["40"]))
+    OPS.update(forced(k, split_closed(D["G"][k]["40"])))
     if OPS: print(k, {kk: v[0] for kk, v in OPS.items()})
     for W, strokes in D["G"][k].items():
         W = float(W); out = []; cn = BODY.contrast(W)
@@ -124,10 +154,12 @@ for k in D["keys"]:
         for si, st in enumerate(S):
             Q = Qs[si]
             if len(Q) < 2: continue
+            fc = [OPS.get((si, 0), ("",))[0] == "cut", OPS.get((si, -1), ("",))[0] == "cut"]
             if not st.get("piece"): cuts = [bool(RX._cut_end(st, 0)), bool(RX._cut_end(st, -1))]
             else:                                     # a piece's free end can be cut on a body line too (a stem on top of a loop)
                 c0 = np.asarray(st["cl"], float)[[0, -1], 1]; jn = st.get("joints", [False, False])
                 cuts = [bool(not jn[n] and (c0[n] >= 700 - W / 2 - 1 or c0[n] <= W / 2 + 1) and RX._cut_end(st, 0 if n == 0 else -1)) for n in (0, 1)]
+            cuts = [cuts[0] or fc[0], cuts[1] or fc[1]]
             hw, hv = CAP[si]; keepcl = Q.copy()
             for end, nb, c in ((0, 1, cuts[0]), (-1, -2, cuts[1])):
                 if not c: continue

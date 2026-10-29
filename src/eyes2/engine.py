@@ -110,7 +110,7 @@ def cut_lines(S, far, R=None):
 
 def squircle(cx, cy, a, b, ang, n=None, k=72):
     """Ojuju counter: a rounded rectangle, corner radius 42 % of its short half side"""
-    r = 0.42 * min(a, b)
+    r = min(EYE_R, 0.42 * min(a, b))     # inner corners follow the outer ones: outer radius minus the weight, small
     q = box(-a + r, -b + r, a - r, b - r).buffer(r, quad_segs=10) if a > r and b > r else Point(0, 0).buffer(min(a, b), quad_segs=10)
     return affinity.translate(affinity.rotate(q, ang, origin=(0, 0)), cx, cy)
 
@@ -138,6 +138,7 @@ def fit_eye(H):
                 if best is None or sq.area > best.area: best = sq
     return best
 
+EYE_R = float(os.environ.get("EYES_EYE_R", 16))
 EYE_CLASSES = (0.34, 0.5, 0.72, 1.0, 1.4)     # eye widths, as shares of the weight
 def uniform(eye, W):
     """snap a fitted eye to the standard eye widths (never wider than it fits): eyes repeat across glyphs"""
@@ -192,12 +193,14 @@ def ring_merge(far, S0, thin):
     f.M = far.M; f.touch = far.touch; return f
 
 EXCEPT = {"ku": "rings"}
+SHRINK = {"fɔ"}          # strokes may shrink to fit (owner: fɔ too thin)
 
 def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
     """the heavy master is built in a space squashed by its contrast (y / c): there the elliptical nib is round,
     so clearances, cuts, eyes and closings are all isotropic; the result is scaled back (y * c)"""
     import body as BODY, relax as RX
     global BH
+    RX.SHRINK_ALL = key in SHRINK
     c = BODY.contrast(W)
     if c == 1.0: return _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min, relax, key)
     sc = lambda st: dict(st, cl=(np.asarray(st["cl"], float) / [1, c]).tolist(), poly=(np.asarray(st["poly"], float) / [1, c]).tolist())

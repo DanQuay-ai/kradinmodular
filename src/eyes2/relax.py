@@ -9,6 +9,7 @@ from shapely.ops import unary_union
 import os
 FLARE = float(os.environ.get("EYES_FLARE", 1.0))
 SMIN = float(os.environ.get("EYES_SMIN", 0.8))      # a stroke may shrink (about its centre) to fit inside a counter
+SHRINK_ALL = False
 RETRACT = float(os.environ.get("EYES_RETRACT", 2.0))   # a free end may shorten by up to this many weights to clear a part
 
 def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
@@ -77,7 +78,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     lo = np.r_[np.tile([-45, -40, 0.95, 0.9], ns), 0.98]
     bb = np.array([[P0[sid == i][:, 0].min(), P0[sid == i][:, 1].min(), P0[sid == i][:, 0].max(), P0[sid == i][:, 1].max()] for i in range(ns)])
     for i in range(ns):                       # a stroke nested inside another (a curl inside a bowl) may shrink to fit
-        if any(j != i and bb[j, 0] < bb[i, 0] and bb[j, 1] < bb[i, 1] and bb[j, 2] > bb[i, 2] and bb[j, 3] > bb[i, 3] for j in range(ns)):
+        if SHRINK_ALL or any(j != i and bb[j, 0] < bb[i, 0] and bb[j, 1] < bb[i, 1] and bb[j, 2] > bb[i, 2] and bb[j, 3] > bb[i, 3] for j in range(ns)):
             lo[4 * i + 2] = lo[4 * i + 3] = SMIN
     hi = np.r_[np.tile([45, 40, 1.12, 1.2], ns), 1.45]   # strokes barely drift; the whole glyph may widen
     e = 1e-6
