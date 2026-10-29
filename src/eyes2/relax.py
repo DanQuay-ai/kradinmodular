@@ -10,6 +10,9 @@ import os
 FLARE = float(os.environ.get("EYES_FLARE", 1.0))
 SMIN = float(os.environ.get("EYES_SMIN", 0.8))      # a stroke may shrink (about its centre) to fit inside a counter
 SHRINK_ALL = False
+GX_FIX = None
+GX_MIN = float(os.environ['EYES_GX_MIN']) if os.environ.get('EYES_GX_MIN') else None
+LAST_GX = None
 RETRACT = float(os.environ.get("EYES_RETRACT", 2.0))   # a free end may shorten by up to this many weights to clear a part
 
 def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
@@ -86,7 +89,11 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         if hasB[i] or hasT[i]: lo[4 * i + 1], hi[4 * i + 1] = -e, e            # no vertical shift
         if hasB[i] and hasT[i]: lo[4 * i + 3], hi[4 * i + 3] = 1 - e, 1 + e     # full height: no vertical scale
     x0 = np.clip(x0, lo, hi)
+    if GX_MIN is not None and GX_FIX is None: lo[-1] = max(lo[-1], GX_MIN); x0[-1] = max(x0[-1], GX_MIN)
+    if GX_FIX is not None:                     # the glyph's widening set from outside (width harmonised across the font)
+        lo[-1], hi[-1] = GX_FIX - 1e-6, GX_FIX + 1e-6; x0[-1] = GX_FIX
     sol = least_squares(res, x0, bounds=(lo, hi), x_scale=np.r_[np.tile([W, W, 1, 1], ns), 1], max_nfev=300)
+    global LAST_GX; LAST_GX = float(sol.x[-1])
     P = place(sol.x)
     # retract free ends that still crowd a separate part (shorter strokes instead of bites)
     gid = gof; CPset = {(int(a), int(b)): True for a, b in CP}

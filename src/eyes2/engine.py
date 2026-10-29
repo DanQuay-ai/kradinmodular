@@ -230,6 +230,7 @@ def ring_merge(far, S0, thin):
 
 EXCEPT = {"ku": "rings"}
 for _k in os.environ.get("EYES_EXCEPT_OFF", "").split(","): EXCEPT.pop(_k, None)
+GX = json.load(open(os.environ["EYES_GX"])) if os.environ.get("EYES_GX") else {}
 SHRINK = {"fɔ"} | set(filter(None, os.environ.get("EYES_SHRINK", "").split(",")))          # strokes may shrink to fit (owner: fɔ too thin)
 
 def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
@@ -238,6 +239,7 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
     import body as BODY, relax as RX
     global BH
     RX.SHRINK_ALL = key in SHRINK
+    RX.GX_FIX = GX.get(key)
     c = BODY.contrast(W)
     if c == 1.0: return _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min, relax, key)
     sc = lambda st: dict(st, cl=(np.asarray(st["cl"], float) / [1, c]).tolist(), poly=(np.asarray(st["poly"], float) / [1, c]).tolist())
@@ -272,6 +274,7 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
     dropped = None
     if cut is not None and W > Wthin: cut, dropped = clean_cuts(ink, cut, gap, W)
     ink, cut = owner_marks(key, ink, cut, W, Wthin, gap, lines_w, strokes)
+    if cut is not None and W > Wthin and BLADE: cut = bladeify(cut, gap, ink)
     A = ink.difference(cut) if cut is not None else ink
     # eyes: closed counters without islands -> squircle negative
     eyes = []
@@ -314,6 +317,16 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
         A = A.union(v.intersection(box(-3000, 0, 4000, BH)))
     A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])   # crumbs left by the cuts
     if W > Wthin: A = fill_wedges(A, dropped, W, gap); A = fill_tapers(A, cut, gap) if not os.environ.get("EYES_NOTAPER") else A; A = fill_notches(A, W)
+    if W > Wthin and EYE_STYLE == "lens":             # eyes and blades keep their sharp points (no rounding pass reaches them)
+        sharp = [x for x in eyes] + ([cut] if (cut is not None and BLADE) else [])
+        spn = unary_union(list(sp.values())) if sp else None                # never through a stroke's spine
+        if sharp:
+            S_ = unary_union([x.buffer(0) for x in sharp])
+            if spn is not None: S_ = S_.difference(spn.buffer(0.12 * W))
+            hull_ = box(*A.bounds).buffer(10); neg = hull_.difference(A)
+            S_ = S_.intersection(neg.buffer(0.15 * W))                # only the points the rounding filled, next to the counter
+            A = A.difference(S_)
+        A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])
     if W > Wthin: A = finish(A, tink, W, ro)
     return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, S0=S0, lines=lines, skel=lines_w, keep=keep)
 
@@ -367,6 +380,27 @@ def owner_marks(key, ink, cut, W, Wthin, gap, lines=None, strokes=None):
             r = 0.3 * W
             ink = ink.union(ink.buffer(r, quad_segs=12).buffer(-r, quad_segs=12).intersection(E)).buffer(0)
     return ink, cut
+
+BLADE = os.environ.get("EYES_BLADE", "1") == "1"
+BLADE_MAX = float(os.environ.get("EYES_BLADE_MAX", 4.5))
+def bladeify(cut, gap, ink):
+    """every gap kept between two strokes is drawn as a blade: a lens pointed at both ends. An end that opens
+    onto a counter or the outside runs out past the ink (the point lands in the open); an end that stops in the
+    ink stops there, pointed (a leaf). All apertures share one shape, as the eyes do"""
+    out = []
+    for b in polys(cut):
+        xy = np.asarray(b.exterior.coords); c = xy.mean(axis=0); ax = np.linalg.svd(xy - c, full_matrices=False)[2][0]
+        t = (xy - c) @ ax; L = t.max() - t.min(); nrm = np.array([-ax[1], ax[0]]); off = (xy - c) @ nrm
+        width = off.max() - off.min()
+        if L < 1.2 * gap or L > BLADE_MAX * gap: out.append(b); continue      # long slots stay parallel
+        mid = c + nrm * (off.max() + off.min()) / 2
+        e0, e1 = mid + ax * t.min(), mid + ax * t.max()
+        op0 = not ink.contains(Point(e0 - ax * gap * 0.6)); op1 = not ink.contains(Point(e1 + ax * gap * 0.6))
+        if not (op0 or op1): out.append(b); continue
+        p0 = e0 - ax * (0.35 * L if op0 else 0); p1 = e1 + ax * (0.35 * L if op1 else 0)
+        cen = (p0 + p1) / 2; a = np.hypot(*(p1 - p0)) / 2; bb = min(width / 2 * 1.25, 0.45 * a)
+        out.append(lens(cen[0], cen[1], a, bb, math.degrees(math.atan2(ax[1], ax[0]))))
+    return unary_union(out)
 
 def fill_notches(A, W, mouth=1.3, area=1.2):
     """a notch that opens on a body line (baseline or top) between two feet of the same part, narrower than
