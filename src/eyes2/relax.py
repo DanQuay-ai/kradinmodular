@@ -2,6 +2,7 @@
 Thin get room for two heavy strokes plus the gap. Strokes keep their shape (every edge vector along a stroke,
 and every junction offset, is held), the glyph may grow wider, the body lines (0 / 700) hold."""
 import math, numpy as np
+from body import H as BH
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import unary_union
@@ -20,7 +21,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     hw_s = [W / 2 * st.get("wk", 1) for st in strokes]       # one weight for every stroke (monoline)
     hw = np.array([hw_s[i] for i in sid])
     C = np.array([P0[sid == i].mean(axis=0) for i in range(ns)])
-    pinB = P0[:, 1] <= W / 2 + 6; pinT = P0[:, 1] >= 700 - W / 2 - 6
+    pinB = P0[:, 1] <= W / 2 + 6; pinT = P0[:, 1] >= BH - W / 2 - 6
     hasB = np.array([pinB[sid == i].any() for i in range(ns)]); hasT = np.array([pinT[sid == i].any() for i in range(ns)])
     for i in range(ns):                      # strokes standing on a body line scale from that line, and stay on it
         if hasB[i] and not hasT[i]: C[i, 1] = P0[sid == i][:, 1].min()
@@ -32,7 +33,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     pr = cKDTree(P0).query_pairs(float(need_all.max()) * 1.6, output_type="ndarray")
     if len(pr): pr = pr[far.M[pr[:, 0], pr[:, 1]]]
     need = need_all[pr[:, 0], pr[:, 1]] if len(pr) else np.zeros(0)
-    pin = (P0[:, 1] <= W / 2 + 6) | (P0[:, 1] >= 700 - W / 2 - 6)
+    pin = (P0[:, 1] <= W / 2 + 6) | (P0[:, 1] >= BH - W / 2 - 6)
     # closed counters of Thin: the samples around each must leave room for two half weights + an eye
     from shapely.geometry import Point
     tink = unary_union([Polygon(st0).buffer(0) for st0 in [st["poly"] for st in far.thin]]) if hasattr(far, "thin") else None
@@ -60,7 +61,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         for idx in rings:
             c = Q[idx].mean(axis=0); r.append(4.0 * np.maximum(0, Rneed - np.hypot(*(Q[idx] - c).T)) / W)
         r.append(10.0 * (Q[pin, 1] - P0[pin, 1]) / W)
-        r.append(10.0 * (np.maximum(0, 0.45 * W - Q[:, 1]) + np.maximum(0, Q[:, 1] - (700 - 0.45 * W))) / W)   # stay in the body
+        r.append(10.0 * (np.maximum(0, 0.45 * W - Q[:, 1]) + np.maximum(0, Q[:, 1] - (BH - 0.45 * W))) / W)   # stay in the body
         r.append(np.r_[2.5 * X[:, 0] / W, 3.0 * X[:, 1] / W, (X[:, 2] - 1) * 4, (X[:, 3] - 1) * 4, (X[:, 2] - X[:, 3]) * 4, [(x[-1] - 1) * 1.0]])
         if len(CP): r.append(1.5 * (X[CP[:, 0], 0] - X[CP[:, 1], 0]) / W)
         return np.concatenate(r)
@@ -96,15 +97,16 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         Q = Q.copy()
         for end, nb in ((0, 1), (-1, -2)):            # ends on the body lines: run past, cut flat by the clip
             t = Q[end] - Q[nb]; t = t / (np.hypot(*t) or 1)
-            if abs(t[1]) > 0.2 and (Q[end][1] < W * 0.8 or Q[end][1] > 700 - W * 0.8) and _cut_end(strokes[i], end):
+            if abs(t[1]) > 0.2 and (Q[end][1] < W * 0.8 or Q[end][1] > BH - W * 0.8) and _cut_end(strokes[i], end):
                 Q = np.vstack([Q, Q[-1] + t * W]) if end == -1 else np.vstack([Q[0] + t * W, Q])
         lines.append(Q.tolist())
         polys.append(LineString(Q).buffer(hw_s[i], cap_style=2, join_style=1, quad_segs=8))
-    raw = unary_union(polys).intersection(box(-2000, 0, 3000, 700))
+    raw = unary_union(polys).intersection(box(-2000, 0, 3000, BH))
     return P, raw, lines, alive
 
 def _cut_end(st, end):
     """the original stroke was cut flat on a body line at this end (its polygon reaches 0 or 700 there)"""
+    if "cuts" in st: return st["cuts"][0 if end == 0 else 1]
     cl = np.asarray(st["cl"]); poly = np.asarray(st["poly"]); p = cl[0 if end == 0 else -1]
     near = poly[np.hypot(*(poly - p).T) < 120]
     return len(near) and (np.abs(near[:, 1]).min() < 1.5 or np.abs(near[:, 1] - 700).min() < 1.5)

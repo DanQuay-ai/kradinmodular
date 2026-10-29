@@ -14,6 +14,7 @@ Rule: two parts of a glyph that do not touch in Thin never touch in any weight.
  6. Soft corners: inner radius (closing, before the cuts), outer radius (opening, after: can only remove ink).
 """
 import json, math, sys
+from body import H as BH
 import numpy as np
 from scipy.spatial import Voronoi, cKDTree
 from scipy.sparse import coo_matrix
@@ -196,13 +197,14 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
     if W > Wthin and EXCEPT.get(key) == "rings": far = ring_merge(far, S0, thin)
     far.thin = thin
     raw = unary_union([Polygon(s["poly"]).buffer(0) for s in strokes if len(s["poly"]) >= 3])
-    lines_w = [s["cl"] for s in strokes]
+    lines_w = [s["cl"] for s in strokes]; keep = None
     if relax:
         import relax as RX
         S, raw, lines_w, alive = RX.relax(S0, S, sid, strokes, far, W, Wthin, gap)
         if not alive.all():                       # retracted ends: drop their samples, keep the index map
             keep = np.where(alive)[0]; f0 = far
             far = lambda a, b: f0(keep[a], keep[b]); S = S[keep]
+    else: keep = None
     ink = raw.buffer(ri, quad_segs=8).buffer(-ri, quad_segs=8) if ri > 0.5 else raw
     lines = [l for l in cut_lines(S, far, W / 2 + gap / 2)]
     cut = None
@@ -245,17 +247,17 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
     for k, v in sp.items():
         others = [w for j, w in sp.items() if j != k]
         if others: v = v.difference(unary_union(others).buffer(gap + 0.18 * W))
-        A = A.union(v.intersection(box(-3000, 0, 4000, 700)))
+        A = A.union(v.intersection(box(-3000, 0, 4000, BH)))
     A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])   # crumbs left by the cuts
     if W > Wthin: A = finish(A, tink, W, ro)
-    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines, skel=lines_w)
+    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines, skel=lines_w, keep=keep)
 
 def finish(A, tink, W, ro):
     """body lines and symmetry, as read on Thin:
     - a glyph that sits on the baseline and reaches the top in Thin does so in Black, exactly (0 and 700)
     - a glyph that is mirror-symmetric in Thin is made exactly symmetric in Black (kept where both halves agree)"""
     tb = tink.bounds; b = A.bounds
-    lo = 0 if tb[1] < 3 else None; hi = 700 if tb[3] > 697 else None
+    lo = 0 if tb[1] < 3 else None; hi = BH if tb[3] > BH - 3 else None
     if lo is not None or hi is not None:
         y0 = b[1] if lo is None else lo; y1 = b[3] if hi is None else hi
         if b[3] - b[1] > 10 and abs(y0 - b[1]) < 60 and abs(y1 - b[3]) < 60:

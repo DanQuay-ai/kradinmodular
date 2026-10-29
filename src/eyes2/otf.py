@@ -24,6 +24,6 @@ for W, name in ((str(min(map(int, R))), "Thin"), (str(max(map(int, R))), "Black"
         cs[gn] = pen.getCharString(); mt[gn] = (adv, 0); order.append(gn); cmap[D["pua"][k]] = gn
     fb.setupGlyphOrder(order); fb.setupCharacterMap(cmap)
     fb.setupCFF("KoradinEyes-" + name, {"FullName": "Koradin Eyes " + name}, cs, {})
-    fb.setupHorizontalMetrics(mt); fb.setupHorizontalHeader(ascent=900, descent=-250)
-    fb.setupNameTable({"familyName": "Koradin Eyes", "styleName": name}); fb.setupOS2(sTypoAscender=900, sTypoDescender=-250, usWinAscent=950, usWinDescent=250); fb.setupPost()
+    fb.setupHorizontalMetrics(mt); fb.setupHorizontalHeader(ascent=1000, descent=-250)
+    fb.setupNameTable({"familyName": "Koradin Eyes", "styleName": name}); fb.setupOS2(sTypoAscender=950, sTypoDescender=-250, usWinAscent=1000, usWinDescent=250); fb.setupPost()
     fb.save(f"{out}/KoradinEyes-{name}.otf"); print(name, len(order) - 2, "glyphs")

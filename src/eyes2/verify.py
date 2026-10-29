@@ -21,6 +21,7 @@ def check(k, D, W="140", P=None):
     S0, _, sid = engine.samples(thin, thin)
     tink = unary_union([Polygon(s["poly"]).buffer(0) for s in thin])
     lt, Gt = comp_labels(tink, S0, 25); lh, Gh = comp_labels(g, dbg["S"], 90)
+    if dbg.get("keep") is not None: lt = lt[dbg["keep"]]
     issues = []
     for c in set(lh) - {-1}:
         ts = set(lt[lh == c]) - {-1}
