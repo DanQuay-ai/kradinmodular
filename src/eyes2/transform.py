@@ -7,7 +7,7 @@
 import json, math, sys
 SPACE = 207          # design units: (140 + 52) / K(140) = 192 / 0.930
 
-def rc_of(r): return min(r, max(45.0, min(110.0, 0.42 * r)))
+def rc_of(r): return min(r, max(45.0, 0.55 * r))      # corner radius: squarer, but the stroke stays near the akrokerri line
 
 def square_arc(g):
     r, ang = g["r"], g["ang"]; th = abs(ang)
@@ -86,7 +86,9 @@ def open_hairpins(strokes):
 
 def transform(strokes):
     res = []
-    strokes = open_hairpins([dict(st, segs=respace(st["segs"])) for st in strokes])
+    # fidelity to the akrokerri mod: no re-spacing of spirals, no opened hairpins (both moved whole parts);
+    # only the turns are restyled, every junction point and end stays where it was drawn
+    strokes = [dict(st) for st in strokes]
     for st in strokes:
         segs = st["segs"]
         sq = []

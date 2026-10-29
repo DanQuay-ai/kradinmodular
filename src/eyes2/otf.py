@@ -4,7 +4,7 @@ from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from shapely.geometry import Polygon
 R = json.load(open(sys.argv[1])); D = json.load(open(sys.argv[2])); out = sys.argv[3]
-for W, name in ((str(min(map(int, R))), "Thin"), (str(max(map(int, R))), "Black")):
+for W, name in ([(str(min(map(int, R))), "Thin")] + ([(str(max(map(int, R))), "Black")] if len(R) > 1 else [])):
     fb = FontBuilder(1000, isTTF=False); order = [".notdef", "space"]; cs = {}; mt = {}; cmap = {32: "space"}
     for n, adv in ((".notdef", 500), ("space", 300 if name == "Thin" else 340)): p = T2CharStringPen(adv, None); cs[n] = p.getCharString(); mt[n] = (adv, 0)
     sb = 50 if name == "Thin" else 60
