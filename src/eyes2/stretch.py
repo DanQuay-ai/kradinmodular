@@ -39,10 +39,13 @@ def _trim_at(Q, end, other, limit):
     """walk in from the end; the first crossing of the other stroke's centreline within `limit` -> cut there"""
     O = LineString(other); R = Q if end == -1 else Q[::-1]; acc = 0.0
     for k in range(len(R) - 1, 0, -1):
-        seg = LineString([R[k - 1], R[k]]); h = seg.intersection(O)
-        if not h.is_empty:
-            g = h if h.geom_type == "Point" else (list(h.geoms)[0] if hasattr(h, "geoms") else h.representative_point())
-            q = np.array(g.coords[0]); out = np.vstack([R[:k], q]); s_ = acc + np.hypot(*(R[k] - q))
+        seg = LineString([R[k - 1], R[k]])
+        if seg.distance(O) < 0.5:                       # crossing (or passing through the other stroke's end point)
+            from shapely.ops import nearest_points
+            h = seg.intersection(O)
+            if not h.is_empty and h.geom_type == "Point": q = np.array(h.coords[0])
+            else: q = np.array(nearest_points(seg, O)[0].coords[0])
+            out = np.vstack([R[:k], q]); s_ = acc + np.hypot(*(R[k] - q))
             if s_ > limit: return None, None
             return out if end == -1 else out[::-1], s_
         acc += seg.length
@@ -56,8 +59,9 @@ def plan(strokes, W=40.0, tol=30.0):
     'cap'  after that, two ends meet in an L corner: each runs on by the other's half weight (square, full corner)"""
     from shapely.ops import unary_union
     Qs = [np.asarray(st["cl"], float) for st in strokes]; ops = {}
+    # an end cut on a body line is one that crosses it; a stroke lying along the baseline has a free end there
     free = lambda i, end: len(Qs[i]) >= 2 and not strokes[i].get("joints", [False, False])[0 if end == 0 else 1] \
-        and not RX._cut_end(strokes[i], end)
+        and not (RX._cut_end(strokes[i], end) and abs(_tan(Qs[i], end)[1]) > 0.2)
     B = [LineString(Q).buffer(W / 2, cap_style=2) if len(Q) > 1 else None for Q in Qs]
     for i in range(len(Qs)):
         for end in (0, -1):
@@ -66,13 +70,15 @@ def plan(strokes, W=40.0, tol=30.0):
             # overshoot
             best = None
             for j in others:
-                q, s_ = _trim_at(Q, end, Qs[j], 1.5 * W)
+                q, s_ = _trim_at(Q, end, Qs[j], 2.5 * W)
+                if q is not None and len(q) >= 2:
+                    at = q[end]; Lcorner = min(np.hypot(*(at - Qs[j][0])), np.hypot(*(at - Qs[j][-1]))) < 0.75 * W
+                    if s_ > (2.5 if Lcorner else 1.5) * W: continue      # past the end of the other stroke: an L corner overshoot, up to 2.5 W
                 if q is not None and s_ > W / 2 + 2 and len(q) >= 2:
                     c = abs(_tan(Q, end) @ _tan(q, end)) if len(q) > 1 else 1
                     if best is None or s_ < best[1]: best = (j, s_)
             if best: ops[(i, end)] = ("trim", best[0]); continue
-            # near miss
-            if st_piece(strokes[i]): continue
+            # near miss (free ends of pieces too: a hook curling back to its own stroke)
             near = B[i].intersection(Point(Q[end]).buffer(W * 0.6))
             d = min((near.distance(B[j]) for j in others), default=1e9)
             if 0 < d < tol:
@@ -93,6 +99,12 @@ def forced(k, strokes, W=40.0):
     ops = {}
     Qs = [np.asarray(st["cl"], float) for st in strokes]
     for f in FORCE.get(k, []):
+        if "stroke" in f:                                  # named end: run on to the stroke its tangent meets
+            i, end = f["stroke"], f["end"]; Qe = Qs[i]
+            hits = [(j, _ray_hit(Qe, end, Qs[j], 400)) for j in range(len(Qs)) if j != i and len(Qs[j]) > 1]
+            hits = [h for h in hits if h[1] is not None]
+            if hits: ops[(i, end)] = ("run", min(hits, key=lambda h: h[1])[0], f.get("w"))
+            continue
         p = np.array([f["x"], 20 + (f["y"] - 20) * 660 / (700 * 1.3 - 40)])
         best = min(((np.hypot(*(Qs[i][end] - p)), i, end) for i in range(len(Qs)) if len(Qs[i]) > 1 for end in (0, -1)
                     if not strokes[i].get("joints", [False, False])[0 if end == 0 else 1]), default=None)
@@ -113,7 +125,8 @@ def st_piece(st): return bool(st.get("piece"))
 def apply(Qs, ops, caps):
     """run / trim on the given centrelines (any weight); caps = (hw, hv) per stroke to also apply the caps"""
     Qs = [Q.copy() for Q in Qs]
-    for key, (op, j) in ops.items():
+    for key, v in ops.items():
+        op, j = v[0], v[1]
         i, end = key[0], key[1]
         if op == "trim":
             q, _ = _trim_at(Qs[i], end, Qs[j], 3.0 * 60)
@@ -130,7 +143,8 @@ def apply(Qs, ops, caps):
             d = _ray_hit(Qs[i], end, Qs[j], 400)
             if d is not None: Qs[i] = _run_on(Qs[i], end, d)
     if caps is not None:
-        for key, (op, j) in ops.items():
+        for key, v in ops.items():
+            op, j = v[0], v[1]
             if op != "cap": continue
             i, end = key[0], key[1]; hw, hv = caps[i]; t = _tan(Qs[i], end)
             Qs[i] = _run_on(Qs[i], end, hw * abs(t[0]) + hv * abs(t[1]))
@@ -150,7 +164,7 @@ for k in D["keys"]:
                 Q[:, 1] = cn * W / 2 + (Q[:, 1] - W / 2) * (H - cn * W) / (700 - W)   # strokes on a body line stay on it
                 Q[:, 1] = np.clip(Q[:, 1], hv, H - hv)     # Kɔradin clips the glyph to its body: a bowl dipping past a body line runs flat along it
             Qs.append(Q); CAP.append((hw, hv))
-        Qs = apply(Qs, OPS, CAP)
+        Qs = apply(Qs, {kk: v[:2] for kk, v in OPS.items() if len(v) < 3 or v[2] in (None, str(int(W)))}, CAP)
         for si, st in enumerate(S):
             Q = Qs[si]
             if len(Q) < 2: continue

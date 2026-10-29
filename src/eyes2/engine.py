@@ -234,6 +234,7 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
         if not ml.is_empty: cut = ml.buffer(gap / 2, quad_segs=8)
     dropped = None
     if cut is not None and W > Wthin: cut, dropped = clean_cuts(ink, cut, gap, W)
+    ink, cut = owner_marks(key, ink, cut, W, Wthin, gap)
     A = ink.difference(cut) if cut is not None else ink
     # eyes: closed counters without islands -> squircle negative
     eyes = []
@@ -275,6 +276,38 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
     if W > Wthin: A = fill_wedges(A, dropped, W, gap); A = fill_tapers(A, cut, gap) if not os.environ.get("EYES_NOTAPER") else A; A = fill_notches(A, W)
     if W > Wthin: A = finish(A, tink, W, ro)
     return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, S0=S0, lines=lines, skel=lines_w, keep=keep)
+
+OWNER = json.load(open(os.environ["EYES_OWNER"])) if os.environ.get("EYES_OWNER") else {}
+def owner_marks(key, ink, cut, W, Wthin, gap):
+    """the owner's review marks, applied where he drew them (coordinates of the published glyph):
+    join   two strokes crowding each other inside the mark become one: the gap there is dropped, the space between
+           them filled (convex hull of the ink inside the mark); a counter this closes gets an eye like any other
+    crotch a narrow wedge where two strokes converge is filled until it is as wide as the stroke (rounded end)
+    smooth a notch is filled (small closing)"""
+    import body as BODY
+    c = BODY.contrast(W)
+    for m in OWNER.get(key, []):
+        if m.get("w", "black") == "black" and W <= Wthin: continue
+        E = affinity.scale(Point(m["cx"], (BH * c - m["cy"]) / c).buffer(1, quad_segs=24), m["rx"], m["ry"] / c)
+        hit = []
+        if m["op"] in ("join", "nogap") and cut is not None:     # every gap the mark touches goes, whole
+            keep = [b for b in polys(cut) if not b.intersects(E.buffer(gap / 2))]; hit = [b for b in polys(cut) if b.intersects(E.buffer(gap / 2))]
+            cut = unary_union(keep) if keep else None
+        if m["op"] == "join":
+            Z = E.buffer(0.4 * W); ink = ink.union(ink.intersection(Z).convex_hull).buffer(0)
+            Zc = unary_union([E] + [b.buffer(gap / 2) for b in hit]); r = 0.35 * W
+            ink = ink.union(ink.buffer(r, quad_segs=12).buffer(-r, quad_segs=12).intersection(Zc)).buffer(0)
+        elif m["op"] == "nogap" and hit:
+            Zc = unary_union([b.buffer(gap / 2) for b in hit]); r = 0.35 * W
+            ink = ink.union(ink.buffer(r, quad_segs=12).buffer(-r, quad_segs=12).intersection(Zc)).buffer(0)
+        elif m["op"] == "crotch":
+            r = 0.5 * W
+            ink = ink.union(ink.buffer(r, quad_segs=12).buffer(-r, quad_segs=12).intersection(E.buffer(W))).buffer(0)
+            if cut is not None: cut = cut.difference(E); cut = None if cut.is_empty else cut
+        elif m["op"] == "smooth":
+            r = 0.3 * W
+            ink = ink.union(ink.buffer(r, quad_segs=12).buffer(-r, quad_segs=12).intersection(E)).buffer(0)
+    return ink, cut
 
 def fill_notches(A, W, mouth=1.3, area=1.2):
     """a notch that opens on a body line (baseline or top) between two feet of the same part, narrower than
