@@ -21,5 +21,5 @@ for i, k in enumerate(keys):
         d.line([tf(*q) for q in p.exterior.coords], fill=(230, 0, 0), width=2)
         for r in p.interiors: d.line([tf(*q) for q in r.coords], fill=(230, 0, 0), width=2)
     d.text((ox + 4, oy + 2), f"{k} {iou:.2f}", fill=(0, 0, 0))
-d.text((6, 6), "red outline: akrokerri mod (glyphs.json, body x1.25)   grey: Kɔradin Eyes Thin", fill=(0, 0, 0))
+d.text((6, 6), "red outline: akrokerri mod (glyphs.json, body x1.3)   grey: Kɔradin Eyes Thin", fill=(0, 0, 0))
 im.save(out); stats.sort(); print(stats[:25]); print("mean IoU", round(np.mean([s for s, _ in stats]), 3))

@@ -1,6 +1,6 @@
 import json, sys
 from PIL import Image, ImageDraw
-R = json.load(open(sys.argv[1])); ks = sys.argv[2].split(","); WS = sorted(R, key=float)
+R = json.load(open(sys.argv[1])); ks = sys.argv[2].split(",") if sys.argv[2] else list(R[sorted(R)[0]]); WS = sorted(R, key=float)
 cell = 560; bg, cr = (92, 58, 33), (250, 243, 228)
 im = Image.new("RGB", (cell * len(ks), cell * len(WS)), bg); d = ImageDraw.Draw(im)
 for m, W in enumerate(WS):

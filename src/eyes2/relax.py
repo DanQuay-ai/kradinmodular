@@ -6,6 +6,10 @@ from body import H as BH
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import unary_union
+import os
+FLARE = float(os.environ.get("EYES_FLARE", 1.0))
+SMIN = float(os.environ.get("EYES_SMIN", 0.8))      # a stroke may shrink (about its centre) to fit inside a counter
+RETRACT = float(os.environ.get("EYES_RETRACT", 2.0))   # a free end may shorten by up to this many weights to clear a part
 
 def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     """every stroke moves as a whole (translate) and may stretch (scale about its centre); junctions hold;
@@ -61,7 +65,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         Q = place(x); X = x[:-1].reshape(ns, 4); r = []
         if len(pr):
             d = np.hypot(*(Q[pr[:, 1]] - Q[pr[:, 0]]).T); r.append(4.0 * np.maximum(0, need - d) / W)
-        if len(J): r.append(6.0 * ((Q[J[:, 1]] - Q[J[:, 0]]) - RJ * np.array([x[-1], 1])).ravel() / W)
+        if len(J): r.append(25.0 * ((Q[J[:, 1]] - Q[J[:, 0]]) - RJ * np.array([x[-1], 1])).ravel() / W)   # junctions hold: no overshoot
         for idx in rings:
             c = Q[idx].mean(axis=0); r.append(4.0 * np.maximum(0, Rneed - np.hypot(*(Q[idx] - c).T)) / W)
         r.append(10.0 * (Q[pin, 1] - P0[pin, 1]) / W)
@@ -70,7 +74,12 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         if len(CP): r.append(1.5 * (X[CP[:, 0], 0] - X[CP[:, 1], 0]) / W)
         return np.concatenate(r)
     x0 = np.r_[np.tile([0, 0, 1, 1], ns).astype(float), 1.0]
-    lo = np.r_[np.tile([-45, -40, 0.95, 0.9], ns), 0.98]; hi = np.r_[np.tile([45, 40, 1.12, 1.2], ns), 1.45]   # strokes barely drift; the whole glyph may widen
+    lo = np.r_[np.tile([-45, -40, 0.95, 0.9], ns), 0.98]
+    bb = np.array([[P0[sid == i][:, 0].min(), P0[sid == i][:, 1].min(), P0[sid == i][:, 0].max(), P0[sid == i][:, 1].max()] for i in range(ns)])
+    for i in range(ns):                       # a stroke nested inside another (a curl inside a bowl) may shrink to fit
+        if any(j != i and bb[j, 0] < bb[i, 0] and bb[j, 1] < bb[i, 1] and bb[j, 2] > bb[i, 2] and bb[j, 3] > bb[i, 3] for j in range(ns)):
+            lo[4 * i + 2] = lo[4 * i + 3] = SMIN
+    hi = np.r_[np.tile([45, 40, 1.12, 1.2], ns), 1.45]   # strokes barely drift; the whole glyph may widen
     e = 1e-6
     for i in range(ns):
         if hasB[i] or hasT[i]: lo[4 * i + 1], hi[4 * i + 1] = -e, e            # no vertical shift
@@ -79,6 +88,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     sol = least_squares(res, x0, bounds=(lo, hi), x_scale=np.r_[np.tile([W, W, 1, 1], ns), 1], max_nfev=300)
     P = place(sol.x)
     # retract free ends that still crowd a separate part (shorter strokes instead of bites)
+    gid = gof; CPset = {(int(a), int(b)): True for a, b in CP}
     alive = np.ones(n, bool); tree = cKDTree(P); Jset = set(J.ravel().tolist()) | Jself | Jp
     for i in range(len(strokes)):
         idx = np.where(sid_s == i)[0]
@@ -89,15 +99,15 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
             if _cut_end(strokes[i], 0 if end == 0 else -1) or strokes[i].get("joints", [False, False])[end]: continue
             if any(j in Jset for j, l in zip(order, Lo) if l < 0.6 * W): continue     # a junction end: keep
             k = 0
-            while k < len(order) - 1 and Lo[k] < 0.9 * W and (L[-1] - Lo[k]) > 1.4 * W:
+            while k < len(order) - 1 and Lo[k] < RETRACT * W and (L[-1] - Lo[k]) > 1.4 * W:
                 e = order[k]; nb = tree.query_ball_point(P[e], hw[e] + hw.max() + gap)
                 if not any(alive[j] and far.M[e, j] and np.hypot(*(P[j] - P[e])) < hw[e] + hw[j] + gap for j in nb): break
                 alive[e] = False; k += 1
     # rebuild the heavy strokes around the relaxed centrelines
-    lines, polys = [], []
+    lines, polys, flares = [], [], []
     for i in range(len(strokes)):
         Q = P[(sid_s == i) & alive]
-        if len(Q) < 2: continue
+        if len(Q) < 2: polys.append(Polygon()); continue
         Q = Q.copy()
         for end, nb in ((0, 1), (-1, -2)):            # ends on the body lines: run past, cut flat by the clip
             t = Q[end] - Q[nb]; t = t / (np.hypot(*t) or 1)
@@ -105,10 +115,32 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
                 Q = np.vstack([Q, Q[-1] + t * W]) if end == -1 else np.vstack([Q[0] + t * W, Q])
         lines.append(Q.tolist())
         pg = LineString(Q).buffer(hw_s[i], cap_style=2, join_style=1, quad_segs=8)
+        idx = np.where((sid_s == i) & alive)[0]
+        for end, nb in ((0, 1), (-1, -2)):            # free terminals flare: the heavy end keeps its weight to the tip
+            if FLARE <= 1 or _cut_end(strokes[i], end) or strokes[i].get("joints", [False, False])[0 if end == 0 else 1]: continue
+            if len(idx) < 4 or np.hypot(*(P0[idx[0]] - P0[idx[-1]])) < 2 * hw_s[i]: continue
+            Lc = np.r_[0, np.cumsum(np.hypot(*np.diff(Q, axis=0).T))]; Lo = Lc if end == 0 else Lc[-1] - Lc
+            near = idx[Lo[:len(idx)] < 0.6 * W] if len(Lo) >= len(idx) else []
+            if any(int(j) in Jset for j in near): continue
+            if Lc[-1] < 2.2 * W: continue
+            t = Q[end] - Q[nb]; t = t / (np.hypot(*t) or 1); nrm = np.array([-t[1], t[0]])
+            base = Q[end] - t * 0.75 * W
+            tip = Q[Lo <= 0.75 * W]                       # the end runs straight for the flare length only
+            if len(tip) < 2 or np.abs((tip - Q[end]) @ nrm).max() > 3: continue
+            a, b = hw_s[i], hw_s[i] * FLARE
+            fl = Polygon([base + nrm * a, Q[end] + nrm * b, Q[end] - nrm * b, base - nrm * a])
+            seg = Q[Lo <= 2.2 * W] if end == 0 else Q[Lo <= 2.2 * W]
+            flares.append((i, fl, LineString(seg).buffer(hw_s[i] * 1.6) if len(seg) > 1 else Polygon()))
         from shapely.geometry import Point as _Pt
         for j, at in zip(strokes[i].get("joints", [False, False]), (Q[0], Q[-1])):
             if j: pg = pg.union(_Pt(at).buffer(hw_s[i], quad_segs=16))
         polys.append(pg)
+    # a flare is kept only where it leaves every separate part its full clearance
+    for i, fl, local in flares:
+        others = unary_union([p for j, p in enumerate(polys) if j != i] + [polys[i].difference(local)])
+        extra = fl.difference(polys[i])
+        if extra.is_empty: continue
+        if others.is_empty or extra.distance(others) >= gap: polys[i] = polys[i].union(fl)
     raw = unary_union(polys).intersection(box(-2000, 0, 3000, BH))
     return P, raw, lines, alive
 

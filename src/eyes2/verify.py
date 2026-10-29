@@ -18,7 +18,7 @@ def comp_labels(geom, pts, tol):
 def check(k, D, W="140", P=None):
     thin = D["G"][k]["40"]; heavy = D["G"][k][W]
     g, dbg = engine.build(heavy, thin, float(W), 40., key=k, **(P or engine.PRESETS[int(W)]))
-    S0, _, sid = engine.samples(thin, thin)
+    S0 = dbg["S0"]
     tink = unary_union([Polygon(s["poly"]).buffer(0) for s in thin])
     lt, Gt = comp_labels(tink, S0, 25); lh, Gh = comp_labels(g, dbg["S"], 90)
     if dbg.get("keep") is not None: lt = lt[dbg["keep"]]

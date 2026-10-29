@@ -4,7 +4,7 @@ import json, sys, numpy as np
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 from shapely import affinity
-SYM = "do ri ru rɔ rɛ so tu u pu ro su ku de fo te tɛ fu re ka pa".split()
+SYM = "do ri ru rɔ rɛ so tu u pu ro su ku de fo fu re ka".split()
 def geom(ps): return unary_union([Polygon(p[0], p[1:]).buffer(0) for p in ps])
 def polys(g): return [] if g.is_empty else [p for p in (g.geoms if hasattr(g, "geoms") else [g]) if p.geom_type == "Polygon"]
 def axis(g):
@@ -23,7 +23,7 @@ def main():
         Ws = sorted(R, key=float); G = {W: geom(R[W][k]) for W in Ws}
         for side in (0, 1):
             out = {W: mirror_half(G[W], axis(G[W]), side) for W in Ws}
-            if len({sig(out[W]) for W in Ws}) == 1 and sig(out[Ws[-1]]) == sig(G[Ws[-1]]) and all(out[W].area > 0.8 * G[W].area for W in Ws): break   # both masters agree, Black keeps its parts and counters
+            if all(sig(out[W]) == sig(G[W]) for W in Ws) and all(out[W].area > 0.8 * G[W].area for W in Ws): break   # every master keeps its parts and counters
         else:
             print(k, "kept as is (no half keeps every part and counter)"); continue
         for W in Ws: R[W][k] = [[np.round(np.array(p.exterior.coords), 1).tolist()] + [np.round(np.array(r.coords), 1).tolist() for r in p.interiors] for p in polys(out[W])]

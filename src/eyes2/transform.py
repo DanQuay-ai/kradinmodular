@@ -57,6 +57,12 @@ def polyline(st, W=40):
     pts = [p for _, _, P, _ in anatomy.trace(st, W) for p in P]
     return pts
 
+def contacts(strokes, W=40):
+    """how much each pair of strokes overlaps (Thin): a kiss must stay a kiss, a junction a junction"""
+    from shapely.geometry import LineString
+    B = [LineString(polyline(st)).buffer(W / 2) if len(polyline(st)) >= 2 else None for st in strokes]
+    return {(i, j): B[i].intersection(B[j]).area for i in range(len(B)) for j in range(i + 1, len(B)) if B[i] is not None and B[j] is not None and B[i].intersects(B[j])}
+
 def signature(strokes, W=40):
     """what must not change: which strokes touch, how many parts, how many closed counters, inside the body"""
     from shapely.geometry import LineString
@@ -101,7 +107,9 @@ def transform(strokes):
     base = signature(strokes); res = [dict(st) for st in strokes]
     for i, st in enumerate(strokes):
         trial = [dict(s) for s in res]; trial[i] = dict(st, segs=merge_lines(square_stroke(st, st["h"])))
-        if signature(trial) == base: res = trial
+        c0, c1 = contacts(res), contacts(trial)
+        same = all(abs(c1.get(p, 0) - a) <= 0.35 * a + 30 for p, a in c0.items())
+        if signature(trial) == base and same: res = trial
         else:                                    # try turn by turn
             for j, g in enumerate(st["segs"]):
                 if g["t"] != "A": continue

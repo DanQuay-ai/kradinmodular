@@ -13,7 +13,7 @@ Rule: two parts of a glyph that do not touch in Thin never touch in any weight.
  5. Closed counters ("eyes") are filled and a squircle is fitted in them as the designed negative.
  6. Soft corners: inner radius (closing, before the cuts), outer radius (opening, after: can only remove ink).
 """
-import json, math, sys
+import json, math, os, sys
 from body import H as BH
 import numpy as np
 from scipy.spatial import Voronoi, cKDTree
@@ -47,8 +47,10 @@ def samples(thin_strokes, other_strokes):
         S0.append(resample(a["cl"], fr)); S1.append(resample(b["cl"], fr)); sid += [i] * n
     return np.vstack(S0), np.vstack(S1), np.array(sid)
 
-def separation(S0, sid, Wthin, thin=None):
+def separation(S0, sid, Wthin, thin=None, W=None):
     """boolean function far(a, b): a and b are separate parts in Thin"""
+    # near a junction the way round is only a little longer than straight across: no cut there (no ink trap)
+    SEP = max(Wthin, 0.9 * (W or Wthin))
     n = len(S0); rows, cols, vals = [], [], []
     for i in range(n - 1):
         if sid[i] == sid[i + 1]:
@@ -72,9 +74,9 @@ def separation(S0, sid, Wthin, thin=None):
     def far(a, b):
         e = np.hypot(*(S0[a] - S0[b]))
         g = D[a, b]
-        return (not np.isfinite(g)) or (g > LAMBDA * e and g - e > Wthin)
+        return (not np.isfinite(g)) or (g > LAMBDA * e and g - e > SEP)
     E = np.hypot(S0[:, None, 0] - S0[None, :, 0], S0[:, None, 1] - S0[None, :, 1])
-    far.M = (~np.isfinite(D)) | ((D > LAMBDA * E) & (D - E > Wthin))
+    far.M = (~np.isfinite(D)) | ((D > LAMBDA * E) & (D - E > SEP))
     far.touch = G
     return far
 
@@ -192,8 +194,24 @@ def ring_merge(far, S0, thin):
 EXCEPT = {"ku": "rings"}
 
 def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
+    """the heavy master is built in a space squashed by its contrast (y / c): there the elliptical nib is round,
+    so clearances, cuts, eyes and closings are all isotropic; the result is scaled back (y * c)"""
+    import body as BODY, relax as RX
+    global BH
+    c = BODY.contrast(W)
+    if c == 1.0: return _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min, relax, key)
+    sc = lambda st: dict(st, cl=(np.asarray(st["cl"], float) / [1, c]).tolist(), poly=(np.asarray(st["poly"], float) / [1, c]).tolist())
+    old = BH; BH = old / c; RX.BH = BH
+    try: A, dbg = _build([sc(s) for s in strokes], [sc(s) for s in thin], W, Wthin, gap, ro, ri, eye_min, relax, key)
+    finally: BH = old; RX.BH = old
+    up = lambda g: affinity.scale(g, 1, c, origin=(0, 0)) if g is not None else None
+    dbg = dict(dbg, cut=up(dbg["cut"]), raw=up(dbg["raw"]), eyes=[up(x) for x in dbg["eyes"]],
+               S=np.asarray(dbg["S"]) * [1, c], S0=np.asarray(dbg["S0"]) * [1, c], lines=[up(l) for l in dbg["lines"]], skel=[(np.asarray(l) * [1, c]).tolist() for l in dbg["skel"]])
+    return up(A).buffer(0), dbg
+
+def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
     S0, S, sid = samples(thin, strokes)
-    far = separation(S0, sid, Wthin, thin)
+    far = separation(S0, sid, Wthin, thin, W)
     if W > Wthin and EXCEPT.get(key) == "rings": far = ring_merge(far, S0, thin)
     far.thin = thin
     raw = unary_union([Polygon(s["poly"]).buffer(0) for s in strokes if len(s["poly"]) >= 3])
@@ -211,6 +229,8 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
     if lines:
         ml = unary_union(lines).intersection(raw.buffer(gap))
         if not ml.is_empty: cut = ml.buffer(gap / 2, quad_segs=8)
+    dropped = None
+    if cut is not None and W > Wthin: cut, dropped = clean_cuts(ink, cut, gap, W)
     A = ink.difference(cut) if cut is not None else ink
     # eyes: closed counters without islands -> squircle negative
     eyes = []
@@ -249,8 +269,99 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
         if others: v = v.difference(unary_union(others).buffer(gap + 0.18 * W))
         A = A.union(v.intersection(box(-3000, 0, 4000, BH)))
     A = unary_union([p for p in polys(A.buffer(0)) if p.area > 0.15 * W * W])   # crumbs left by the cuts
+    if W > Wthin: A = fill_wedges(A, dropped, W, gap); A = fill_tapers(A, cut, gap) if not os.environ.get("EYES_NOTAPER") else A; A = fill_notches(A, W)
     if W > Wthin: A = finish(A, tink, W, ro)
-    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, lines=lines, skel=lines_w, keep=keep)
+    return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, S0=S0, lines=lines, skel=lines_w, keep=keep)
+
+def fill_notches(A, W, mouth=1.3, area=1.2):
+    """a notch that opens on a body line (baseline or top) between two feet of the same part, narrower than
+    0.6 W: filled, so the glyph stands on a flat foot (no ink trap at the base)"""
+    def sig(g):
+        P = [p for p in polys(g.buffer(0)) if p.area > 50]
+        return (len(P), sum(1 for p in P for r in p.interiors if Polygon(r).area > 50))
+    ref = sig(A); b = A.bounds
+    for y in [f * W for f in (0.03, 0.1, 0.2, 0.3)] + [BH - f * W for f in (0.03, 0.1, 0.2, 0.3)]:
+        if not (b[1] < 1 if y < BH / 2 else b[3] > BH - 1): continue
+        ln = LineString([(b[0] - 5, y), (b[2] + 5, y)]); xs = sorted(geoms(ln.intersection(A)), key=lambda g: g.bounds[0])
+        xs = [g for g in xs if g.length > 0]
+        for g0, g1 in zip(xs, xs[1:]):
+            x0, x1 = g0.bounds[2], g1.bounds[0]
+            if not (0 < x1 - x0 < mouth * W): continue
+            room = box(b[0] - 1, 0, b[2] + 1, BH).difference(A)
+            pc = [p for p in polys(room) if p.distance(Point((x0 + x1) / 2, y)) < 1 and p.distance(LineString([(x0, 0 if y < BH / 2 else BH), (x1, 0 if y < BH / 2 else BH)])) < 1]
+            if not pc or pc[0].area > area * W * W: continue
+            if pc[0].bounds[3] - pc[0].bounds[1] > 0.7 * W: continue          # a shallow notch only, not a slit or a counter
+            B = A.union(pc[0].buffer(0.5)).buffer(0)
+            if sig(B) == ref: A = B
+    return A
+
+def clean_cuts(ink, cut, gap, W):
+    """a cut is kept only if it changes what the glyph is: it keeps two parts apart or keeps a counter open.
+    A cut that only bites into ink that is joined anyway (the inside of a corner, the fork of an acute
+    junction) is an ink trap: dropped. A cut that is kept is drawn straight, as a clean gap."""
+    def sig(g):
+        P = [p for p in polys(g.buffer(0)) if p.area > 50]
+        return (len(P), sum(1 for p in P for r in p.interiors if Polygon(r).area > 50))
+    bands = sorted(polys(cut), key=lambda b: b.area)
+    keep = list(bands); drop = []
+    ref = sig(ink.difference(cut))
+    def length(b):
+        xy = np.asarray(b.exterior.coords); c = xy.mean(axis=0); vt = np.linalg.svd(xy - c, full_matrices=False)[2]
+        t = (xy - c) @ vt[0]; return t.max() - t.min()
+    for b in bands:
+        if length(b) > 1.5 * W: continue           # a long cut keeps two runs of stroke apart: never a bite
+        trial = [x for x in keep if x is not b]
+        if sig(ink.difference(unary_union(trial)) if trial else ink) == ref: keep = trial; drop.append(b)
+    out = []
+    for b in keep:                                 # straight: the band's long axis, full length, same width
+        xy = np.asarray(b.exterior.coords); c = xy.mean(axis=0); u, s, vt = np.linalg.svd(xy - c, full_matrices=False)
+        ax = vt[0]; t = (xy - c) @ ax; seg = LineString([c + ax * (t.min() + gap / 2), c + ax * (t.max() - gap / 2)])
+        sb = seg.buffer(gap / 2, quad_segs=8)
+        out.append(sb if sig(ink.difference(unary_union([x for x in keep if x is not b] + [sb]))) == ref else b)
+    return (unary_union(out) if out else None), (unary_union(drop) if drop else None)
+
+def fill_wedges(A, dropped, W, gap):
+    """where a cut was dropped (ink joined anyway), what is left of the wedge between the two strokes is filled:
+    a closing, only around the dropped cut, only if parts and counters stay"""
+    if dropped is None: return A
+    def sig(g):
+        P = [p for p in polys(g.buffer(0)) if p.area > 50]
+        return (len(P), sum(1 for p in P for r in p.interiors if Polygon(r).area > 50))
+    ref = sig(A); r = 0.42 * gap
+    F = A.buffer(r, quad_segs=8).buffer(-r, quad_segs=8).difference(A).intersection(dropped.buffer(gap))
+    for p in sorted(polys(F), key=lambda g: -g.area):
+        if p.area < 4: continue
+        B = A.union(p.buffer(0.5)).buffer(0)
+        if sig(B) == ref: A = B
+    return A
+
+def fill_tapers(A, cut, gap):
+    """the thin dead-end wedges left where two strokes converge (outside the gaps that are kept): filled. Right and
+    obtuse inside corners are left alone (their fill is small), so only acute tapers go"""
+    def sig(g):
+        P = [p for p in polys(g.buffer(0)) if p.area > 50]
+        return (len(P), sum(1 for p in P for r in p.interiors if Polygon(r).area > 50))
+    ref = sig(A); r = 0.42 * gap
+    A2 = A.union(cut) if cut is not None else A            # a kept gap counts as ink here: what tapers beside it goes
+    F = A2.buffer(r, quad_segs=8).buffer(-r, quad_segs=8).difference(A2)
+    for p in sorted(polys(F), key=lambda g: -g.area):
+        if p.area < 0.6 * r * r: continue
+        if cut is not None and p.distance(cut) < 2:          # beside a kept gap: only a long sliver along it, not a horn at its end
+            xy = np.asarray(p.minimum_rotated_rectangle.exterior.coords)[:4]
+            L1, L2 = np.hypot(*(xy[1] - xy[0])), np.hypot(*(xy[2] - xy[1]))
+            if max(L1, L2) < 3 * max(1e-6, min(L1, L2)): continue
+            b = min(polys(cut), key=lambda q: q.distance(p))      # and it runs along the gap, not past its end
+            xy = np.asarray(b.exterior.coords); c = xy.mean(axis=0); ax = np.linalg.svd(xy - c, full_matrices=False)[2][0]
+            t = (xy - c) @ ax; tp = (np.asarray(p.exterior.coords) - c) @ ax
+            if tp.min() < t.min() + 0.5 * gap or tp.max() > t.max() - 0.25 * gap: continue
+        B = A.union(p.buffer(0.5)).buffer(0)
+        if sig(B) == ref: A = B
+    o = 0.25 * gap                                          # no horns where a fill meets the round end of a kept gap
+    if cut is not None:
+        zone = cut.buffer(gap)
+        B = A.difference(zone).union(A.buffer(-o, quad_segs=8).buffer(o, quad_segs=8).intersection(zone)).buffer(0)
+        if sig(B) == ref and B.area > 0.98 * A.area: A = B
+    return A
 
 def finish(A, tink, W, ro):
     """body lines and symmetry, as read on Thin:
