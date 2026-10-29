@@ -11,7 +11,10 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     """every stroke moves as a whole (translate) and may stretch (scale about its centre); junctions hold;
     separate parts are pushed to clearance; least squares. What the stretch cannot solve, the cuts do."""
     from scipy.optimize import least_squares
-    P0 = S.copy(); n = len(P0); ns = sid.max() + 1
+    P0 = S.copy(); n = len(P0)
+    # pieces of one drawn stroke (rings, loops, spirals are stored in pieces) move as one
+    gof = np.array([st.get("group", i) for i, st in enumerate(strokes)]); _, gof = np.unique(gof, return_inverse=True)
+    sid_s = sid; sid = gof[sid_s]; ns = sid.max() + 1
     hw_s = []
     for st in strokes:
         cl = np.asarray(st["cl"], float); L = np.hypot(*np.diff(cl, axis=0).T).sum() if len(cl) > 1 else 1
@@ -19,7 +22,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         except Exception: A = W * L
         hw_s.append(min(W / 2 * 1.05, max(W * 0.15, A / (2 * max(L, 1)))))
     hw_s = [W / 2 * st.get("wk", 1) for st in strokes]       # one weight for every stroke (monoline)
-    hw = np.array([hw_s[i] for i in sid])
+    hw = np.array([hw_s[i] for i in sid_s])
     C = np.array([P0[sid == i].mean(axis=0) for i in range(ns)])
     pinB = P0[:, 1] <= W / 2 + 6; pinT = P0[:, 1] >= BH - W / 2 - 6
     hasB = np.array([pinB[sid == i].any() for i in range(ns)]); hasT = np.array([pinT[sid == i].any() for i in range(ns)])
@@ -27,6 +30,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
         if hasB[i] and not hasT[i]: C[i, 1] = P0[sid == i][:, 1].min()
         elif hasT[i] and not hasB[i]: C[i, 1] = P0[sid == i][:, 1].max()
     T = far.touch.tocoo(); J = np.array([(i, j) for i, j in zip(T.row, T.col) if sid[i] != sid[j]], int).reshape(-1, 2)
+    Jp = set(int(i) for i, j in zip(T.row, T.col) if sid_s[i] != sid_s[j]) | set(int(j) for i, j in zip(T.row, T.col) if sid_s[i] != sid_s[j])
     Jself = set(int(i) for i, j in zip(T.row, T.col) if sid[i] == sid[j] and abs(i - j) > 3) | set(int(j) for i, j in zip(T.row, T.col) if sid[i] == sid[j] and abs(i - j) > 3)
     RJ = P0[J[:, 1]] - P0[J[:, 0]] if len(J) else np.zeros((0, 2))
     need_all = hw[:, None] + hw[None, :] + gap
@@ -75,14 +79,14 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     sol = least_squares(res, x0, bounds=(lo, hi), x_scale=np.r_[np.tile([W, W, 1, 1], ns), 1], max_nfev=300)
     P = place(sol.x)
     # retract free ends that still crowd a separate part (shorter strokes instead of bites)
-    alive = np.ones(n, bool); tree = cKDTree(P); Jset = set(J.ravel().tolist()) | Jself
-    for i in range(ns):
-        idx = np.where(sid == i)[0]
+    alive = np.ones(n, bool); tree = cKDTree(P); Jset = set(J.ravel().tolist()) | Jself | Jp
+    for i in range(len(strokes)):
+        idx = np.where(sid_s == i)[0]
         if len(idx) < 4 or np.hypot(*(P0[idx[0]] - P0[idx[-1]])) < 2 * hw[idx[0]]: continue   # closed strokes (rings) have no ends
         L = np.r_[0, np.cumsum(np.hypot(*np.diff(P[idx], axis=0).T))]
         for end in (0, 1):
             order = idx if end == 0 else idx[::-1]; Lo = L if end == 0 else L[-1] - L[::-1]
-            if _cut_end(strokes[i], 0 if end == 0 else -1): continue
+            if _cut_end(strokes[i], 0 if end == 0 else -1) or strokes[i].get("joints", [False, False])[end]: continue
             if any(j in Jset for j, l in zip(order, Lo) if l < 0.6 * W): continue     # a junction end: keep
             k = 0
             while k < len(order) - 1 and Lo[k] < 0.9 * W and (L[-1] - Lo[k]) > 1.4 * W:
@@ -92,7 +96,7 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
     # rebuild the heavy strokes around the relaxed centrelines
     lines, polys = [], []
     for i in range(len(strokes)):
-        Q = P[(sid == i) & alive]
+        Q = P[(sid_s == i) & alive]
         if len(Q) < 2: continue
         Q = Q.copy()
         for end, nb in ((0, 1), (-1, -2)):            # ends on the body lines: run past, cut flat by the clip
@@ -100,7 +104,11 @@ def relax(S0, S, sid, strokes, far, W, Wthin, gap, iters=None):
             if abs(t[1]) > 0.2 and (Q[end][1] < W * 0.8 or Q[end][1] > BH - W * 0.8) and _cut_end(strokes[i], end):
                 Q = np.vstack([Q, Q[-1] + t * W]) if end == -1 else np.vstack([Q[0] + t * W, Q])
         lines.append(Q.tolist())
-        polys.append(LineString(Q).buffer(hw_s[i], cap_style=2, join_style=1, quad_segs=8))
+        pg = LineString(Q).buffer(hw_s[i], cap_style=2, join_style=1, quad_segs=8)
+        from shapely.geometry import Point as _Pt
+        for j, at in zip(strokes[i].get("joints", [False, False]), (Q[0], Q[-1])):
+            if j: pg = pg.union(_Pt(at).buffer(hw_s[i], quad_segs=16))
+        polys.append(pg)
     raw = unary_union(polys).intersection(box(-2000, 0, 3000, BH))
     return P, raw, lines, alive
 

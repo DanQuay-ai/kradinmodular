@@ -8,7 +8,8 @@ def split_closed(strokes):
     """a stroke that turns more than 200 degrees (a ring, a loop, a spiral) is stored as consecutive pieces of at
     most 200 degrees each: one outline per piece, no piece overlaps itself, so loops keep their counters"""
     out = []
-    for st in strokes:
+    for gid, st in enumerate(strokes):
+        st = dict(st, group=gid)
         Q = np.asarray(st["cl"], float)
         if len(Q) < 4: out.append(st); continue
         h = np.unwrap(np.arctan2(*np.diff(Q, axis=0).T[::-1])); cuts = [0]; acc = 0.0
@@ -18,7 +19,7 @@ def split_closed(strokes):
         cuts.append(len(Q) - 1)
         if len(cuts) == 2: out.append(st); continue
         for n, (a, b) in enumerate(zip(cuts, cuts[1:])):
-            out.append(dict(st, cl=Q[a:b + 1].tolist(), piece=True, joints=[n > 0, n < len(cuts) - 2]))
+            out.append(dict(st, cl=Q[a:b + 1].tolist(), piece=True, joints=[n > 0, n < len(cuts) - 2], group=gid))
     return out
 
 for k in D["keys"]:

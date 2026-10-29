@@ -84,7 +84,33 @@ def open_hairpins(strokes):
                 if signature(trial) == base: strokes = trial; break
     return strokes
 
+def square_stroke(st, start_h):
+    """square the right-angle turns that start on an axis (a turn on a diagonal stays round: se, sɛ)"""
+    h = start_h; out = []
+    for g in st["segs"]:
+        if g["t"] == "A":
+            on_axis = min(abs(((h % 90) + 90) % 90), 90 - abs(((h % 90) + 90) % 90)) < 5
+            out += square_arc(g) if on_axis else [g]; h += g["ang"]
+        else:
+            if g["t"] == "C": h += g["ang"]
+            out.append(g)
+    return out
+
 def transform(strokes):
+    """square each turn only if Thin keeps every contact, part and counter (fɔ: the inner curl stays on the bowl)"""
+    base = signature(strokes); res = [dict(st) for st in strokes]
+    for i, st in enumerate(strokes):
+        trial = [dict(s) for s in res]; trial[i] = dict(st, segs=merge_lines(square_stroke(st, st["h"])))
+        if signature(trial) == base: res = trial
+        else:                                    # try turn by turn
+            for j, g in enumerate(st["segs"]):
+                if g["t"] != "A": continue
+                segs = [dict(x) for x in res[i]["segs"]] if res[i] is not st else [dict(x) for x in st["segs"]]
+                # locate this arc in the current segs by order among arcs of the original
+                pass
+    return res
+
+def _old_transform(strokes):
     res = []
     # fidelity to the akrokerri mod: no re-spacing of spirals, no opened hairpins (both moved whole parts);
     # only the turns are restyled, every junction point and end stays where it was drawn

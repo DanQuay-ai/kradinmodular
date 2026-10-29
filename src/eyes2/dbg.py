@@ -1,6 +1,6 @@
 import json, sys, engine
 from PIL import Image, ImageDraw
-D = json.load(open("/tmp/claude-0/rad3.json")); k = sys.argv[1]; W = sys.argv[2] if len(sys.argv) > 2 else "140"
+D = json.load(open("/tmp/claude-0/rad4.json")); k = sys.argv[1]; W = sys.argv[2] if len(sys.argv) > 2 else "140"
 P = engine.PRESETS[int(W)]
 g, dbg = engine.build(D["G"][k][W], D["G"][k]["40"], float(W), 40., key=k, **P)
 im = Image.new("RGB", (900, 900), (255, 255, 255)); d = ImageDraw.Draw(im); s = 0.95

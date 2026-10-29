@@ -220,12 +220,12 @@ def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=N
         for r in p.interiors:
             H = Polygon(r)
             island = any(H.contains(q.representative_point()) for q in polys(A) if q is not p)
-            eye = None if island or H.area < (0.25 * W) ** 2 else uniform(fit_eye(H), W)
+            eye = None if island or H.area < (0.25 * W) ** 2 or W <= Wthin else uniform(fit_eye(H), W)
             if eye is not None and eye.area >= eye_min * H.area: holes.append(eye); eyes.append(eye)
             else: holes.append(H)
         out.append(Polygon(p.exterior).difference(unary_union(holes)) if holes else Polygon(p.exterior))
     A = unary_union(out)
-    for e in thin_eyes(lines_w, W, Wthin, max(30, 0.42 * W)):
+    for e in (thin_eyes(lines_w, W, Wthin, max(30, 0.42 * W)) if W > Wthin else []):   # Thin is the reference: its counters are what its strokes leave
         if not any(h.intersects(e.centroid) for p in polys(A) for h in [Polygon(r) for r in p.interiors]):
             A = A.difference(e)
     if cut is not None: A = A.difference(cut)
