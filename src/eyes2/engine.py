@@ -114,6 +114,42 @@ def squircle(cx, cy, a, b, ang, n=None, k=72):
     q = box(-a + r, -b + r, a - r, b - r).buffer(r, quad_segs=10) if a > r and b > r else Point(0, 0).buffer(min(a, b), quad_segs=10)
     return affinity.translate(affinity.rotate(q, ang, origin=(0, 0)), cx, cy)
 
+EYE_STYLE = os.environ.get("EYES_EYE", "lens")
+def lens(cx, cy, a, b, ang, n=24):
+    """the eye: a vesica (two arcs meeting in points), half-length a along ang, half-thickness b"""
+    b = max(1.0, min(b, a * 0.98)); R = (a * a + b * b) / (2 * b); d = R - b
+    t = math.asin(min(1.0, a / R)); ts = np.linspace(-t, t, n)
+    up = np.c_[R * np.sin(ts), -d + R * np.cos(ts)]; lo = np.c_[R * np.sin(ts[::-1]), d - R * np.cos(ts[::-1])]
+    q = Polygon(np.vstack([up, lo])).buffer(0)
+    return affinity.translate(affinity.rotate(q, ang, origin=(0, 0)), cx, cy)
+
+def lens_eye(H, W):
+    """an eye for the counter H: a lens along the counter's long axis, point to point across the whole counter
+    (the points touch the inner edges), as thick as fits, snapped to the standard eye sizes"""
+    mrr = H.minimum_rotated_rectangle; xy = np.array(mrr.exterior.coords)[:4]
+    e1, e2 = xy[1] - xy[0], xy[2] - xy[1]; L1, L2 = np.hypot(*e1), np.hypot(*e2); v = e1 if L1 >= L2 else e2
+    A, B = max(L1, L2) / 2, min(L1, L2) / 2
+    ang = math.degrees(math.atan2(v[1], v[0])) if A > 1.12 * B else 0.0        # squarish counters: a level eye
+    from shapely.algorithms.polylabel import polylabel
+    try: c = polylabel(H.buffer(0), 1.0)
+    except Exception: c = H.representative_point()
+    u = np.array([math.cos(math.radians(ang)), math.sin(math.radians(ang))])
+    ch = LineString([np.array(c.coords[0]) - u * 4000, np.array(c.coords[0]) + u * 4000]).intersection(H)
+    segs = [g for g in geoms(ch) if g.length > 0] if not ch.is_empty else []
+    if not segs: return None
+    s = min(segs, key=lambda g: g.distance(c)); p0, p1 = np.array(s.coords[0]), np.array(s.coords[-1])
+    m = (p0 + p1) / 2; a = np.hypot(*(p1 - p0)) / 2 * 0.98
+    Hb = H.buffer(0.5); lo_, hi_ = 0.0, min(a * 0.45, 0.62 * B * 1.6)          # a lens, never a disc: b <= 0.45 a
+    for _ in range(16):
+        bm = (lo_ + hi_) / 2
+        if Hb.contains(lens(m[0], m[1], a, bm, ang)): lo_ = bm
+        else: hi_ = bm
+    b = lo_
+    if b < 3: return None
+    cls = [c_ * W / 2 for c_ in EYE_CLASSES if c_ * W / 2 <= b + 0.5]
+    if cls: b = max(cls) if max(cls) > 0.6 * b else b
+    return lens(m[0], m[1], a, b, ang)
+
 def fit_eye(H):
     """the biggest squircle, in the counter's own orientation, that fits inside the counter H"""
     mrr = H.minimum_rotated_rectangle
@@ -173,7 +209,7 @@ def thin_eyes(lines, W, Wthin, mineye):
             except Exception: pl = sk.representative_point()
             room = sk.exterior.distance(pl)
             b = min(max(mineye / 2, B - W / 2), room * 0.62); a = min(max(b, A - W / 2), max(b, A * 0.62))
-            eye = squircle(pl.x, pl.y, a, b, ang)
+            eye = squircle(pl.x, pl.y, a, b, ang) if EYE_STYLE != "lens" else lens(pl.x, pl.y, a, b, ang)
             if not E.is_empty and E.area > eye.area: eye = max(polys(E), key=lambda g: g.area)
             out.append(eye)
     return out
@@ -245,10 +281,13 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
         for r in p.interiors:
             H = Polygon(r)
             island = any(H.contains(q.representative_point()) for q in polys(A) if q is not p)
-            eye = None if island or H.area < (0.25 * W) ** 2 or W <= Wthin else uniform(fit_eye(H), W)
-            if eye is not None and eye.area >= eye_min * H.area: holes.append(eye); eyes.append(eye)
+            small = H.minimum_rotated_rectangle; _xy = np.array(small.exterior.coords)[:4]
+            _B = min(np.hypot(*(_xy[1] - _xy[0])), np.hypot(*(_xy[2] - _xy[1]))) / 2
+            use_lens = EYE_STYLE == "lens" and _B < 0.55 * W                 # small counters are eyes: lens; big ones keep their shape
+            eye = None if island or H.area < (0.25 * W) ** 2 or W <= Wthin else (lens_eye(H, W) if use_lens else uniform(fit_eye(H), W))
+            if eye is not None and eye.area >= (0.2 if use_lens else eye_min) * H.area: holes.append(eye); eyes.append(eye)
             else: holes.append(H)
-        out.append(Polygon(p.exterior).difference(unary_union(holes)) if holes else Polygon(p.exterior))
+        out.append(Polygon(p.exterior).difference(unary_union([h.buffer(0) for h in holes])) if holes else Polygon(p.exterior))
     A = unary_union(out)
     for e in (thin_eyes(lines_w, W, Wthin, max(30, 0.42 * W)) if W > Wthin else []):   # Thin is the reference: its counters are what its strokes leave
         if not any(h.intersects(e.centroid) for p in polys(A) for h in [Polygon(r) for r in p.interiors]):
