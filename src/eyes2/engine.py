@@ -193,7 +193,8 @@ def ring_merge(far, S0, thin):
     f.M = far.M; f.touch = far.touch; return f
 
 EXCEPT = {"ku": "rings"}
-SHRINK = {"fɔ"}          # strokes may shrink to fit (owner: fɔ too thin)
+for _k in os.environ.get("EYES_EXCEPT_OFF", "").split(","): EXCEPT.pop(_k, None)
+SHRINK = {"fɔ"} | set(filter(None, os.environ.get("EYES_SHRINK", "").split(",")))          # strokes may shrink to fit (owner: fɔ too thin)
 
 def build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=None):
     """the heavy master is built in a space squashed by its contrast (y / c): there the elliptical nib is round,
@@ -234,7 +235,7 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
         if not ml.is_empty: cut = ml.buffer(gap / 2, quad_segs=8)
     dropped = None
     if cut is not None and W > Wthin: cut, dropped = clean_cuts(ink, cut, gap, W)
-    ink, cut = owner_marks(key, ink, cut, W, Wthin, gap)
+    ink, cut = owner_marks(key, ink, cut, W, Wthin, gap, lines_w, strokes)
     A = ink.difference(cut) if cut is not None else ink
     # eyes: closed counters without islands -> squircle negative
     eyes = []
@@ -278,7 +279,7 @@ def _build(strokes, thin, W, Wthin, gap, ro, ri, eye_min=0.55, relax=False, key=
     return A.buffer(0), dict(cut=cut, eyes=eyes, raw=raw, S=S, S0=S0, lines=lines, skel=lines_w, keep=keep)
 
 OWNER = json.load(open(os.environ["EYES_OWNER"])) if os.environ.get("EYES_OWNER") else {}
-def owner_marks(key, ink, cut, W, Wthin, gap):
+def owner_marks(key, ink, cut, W, Wthin, gap, lines=None, strokes=None):
     """the owner's review marks, applied where he drew them (coordinates of the published glyph):
     join   two strokes crowding each other inside the mark become one: the gap there is dropped, the space between
            them filled (convex hull of the ink inside the mark); a counter this closes gets an eye like any other
@@ -289,6 +290,25 @@ def owner_marks(key, ink, cut, W, Wthin, gap):
     for m in OWNER.get(key, []):
         if m.get("w", "black") == "black" and W <= Wthin: continue
         E = affinity.scale(Point(m["cx"], (BH * c - m["cy"]) / c).buffer(1, quad_segs=24), m["rx"], m["ry"] / c)
+        if m["op"] == "slit" and lines is not None:         # a hook end kept apart from its stem by a clean, straight slit
+            L = [LineString(l) if len(l) > 1 else None for l in lines]
+            ends = [(i, end) for i, l in enumerate(lines) if L[i] is not None for end in (0, -1)
+                    if not (strokes[i].get("joints") or [False, False])[0 if end == 0 else 1] and E.contains(Point(l[end]))]
+            if ends:
+                hi = ends[0][0]
+                si = max((i for i in range(len(L)) if L[i] is not None and i != hi and strokes[i].get("group") != None or i != hi),
+                         key=lambda i: L[i].intersection(E).length if L[i] is not None and i != hi else -1)
+                hw = W / 2; w = m.get("wf", 0.5) * gap
+                if cut is not None:
+                    keep = [b for b in polys(cut) if not b.intersects(E)]; cut = unary_union(keep) if keep else None
+                stem = L[si].buffer(hw, cap_style=2); hook = L[hi].buffer(hw * 1.02, cap_style=2)
+                # the hook's own small counter and the slit merge into one clean channel along the stem
+                ytop = max(y for x, y in lines[hi]) - hw                       # the channel stops under the hook's top run
+                lim = box(-3000, -3000, 4000, ytop).intersection(Point(lines[hi][ends[0][1]]).buffer(1.5 * W))
+                band = stem.buffer(w, cap_style=2, join_style=2).difference(stem).intersection(hook.difference(stem)).intersection(E.buffer(w)).intersection(lim)
+                band = band.buffer(0.5).buffer(-0.5)
+                cut = band if cut is None else cut.union(band)
+            continue
         hit = []
         if m["op"] in ("join", "nogap") and cut is not None:     # every gap the mark touches goes, whole
             keep = [b for b in polys(cut) if not b.intersects(E.buffer(gap / 2))]; hit = [b for b in polys(cut) if b.intersects(E.buffer(gap / 2))]

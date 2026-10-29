@@ -99,6 +99,10 @@ def forced(k, strokes, W=40.0):
     ops = {}
     Qs = [np.asarray(st["cl"], float) for st in strokes]
     for f in FORCE.get(k, []):
+        if f.get("op") == "pull":                          # the end gets shorter by d (Thin units, scaled with the weight)
+            ops[(f["stroke"], f["end"], "pull")] = ("pull", f["d"], f.get("w")); continue
+        if f.get("op") == "foot":                          # a foot: the end runs past the stroke it stops on
+            ops[(f["stroke"], f["end"], "foot")] = ("foot", f["f"], None); continue
         if "stroke" in f:                                  # named end: run on to the stroke its tangent meets
             i, end = f["stroke"], f["end"]; Qe = Qs[i]
             hits = [(j, _ray_hit(Qe, end, Qs[j], 400)) for j in range(len(Qs)) if j != i and len(Qs[j]) > 1]
@@ -145,6 +149,15 @@ def apply(Qs, ops, caps):
     if caps is not None:
         for key, v in ops.items():
             op, j = v[0], v[1]
+            if op == "pull":
+                i, end = key[0], key[1]; Q = Qs[i]; d = j * (700 - caps[i][0] * 2) / 660
+                R_ = Q if end == -1 else Q[::-1]; acc = 0.0; k_ = len(R_) - 1
+                while k_ > 1 and acc + np.hypot(*(R_[k_] - R_[k_ - 1])) < d: acc += np.hypot(*(R_[k_] - R_[k_ - 1])); k_ -= 1
+                seg = R_[k_] - R_[k_ - 1]; L_ = np.hypot(*seg) or 1; q = R_[k_] - seg / L_ * (d - acc)
+                R_ = np.vstack([R_[:k_], q]); Qs[i] = R_ if end == -1 else R_[::-1]; continue
+            if op == "foot":
+                i, end = key[0], key[1]; hw, hv = caps[i]; t = _tan(Qs[i], end)
+                Qs[i] = _run_on(Qs[i], end, hw + j * hw * 2); continue
             if op != "cap": continue
             i, end = key[0], key[1]; hw, hv = caps[i]; t = _tan(Qs[i], end)
             Qs[i] = _run_on(Qs[i], end, hw * abs(t[0]) + hv * abs(t[1]))

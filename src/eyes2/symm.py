@@ -19,7 +19,7 @@ def mirror_half(g, c, side):
     return unary_union([half, affinity.scale(half, -1, 1, origin=(c, 0))]).buffer(0.01).buffer(-0.01)
 def main():
     R = json.load(open(sys.argv[1]))
-    for k in SYM:
+    for k in [k for k in SYM if k in next(iter(R.values()))]:
         Ws = sorted(R, key=float); G = {W: geom(R[W][k]) for W in Ws}
         for side in (0, 1):
             out = {W: mirror_half(G[W], axis(G[W]), side) for W in Ws}
